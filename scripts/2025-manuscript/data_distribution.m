@@ -8,16 +8,15 @@ clear
 
 %% Load in spreadsheet
 
-[base, ~, savepath, ppi] = getPaths();
-datapath = 'scripts/data-cleaning';
+[base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, datapath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
 num_units = size(sessions, 1);
 
 %% Set up figure
 
-figure('Position',[194,1045,1175,226])
-tiledlayout(1, 5, 'Padding','compact')
+figure('Position',[194,1047,874,224])
+tiledlayout(1, 4, 'Padding','compact')
 fontsize = 12;
 titlesize = 14;
 
@@ -145,27 +144,40 @@ xlabel('WMF (Hz)')
 title('BS WMFs', 'fontsize', titlesize)
 
 %% Hybrids
+% 
+% H_MTFs = contains(table.MTF, 'H');
+% WMFs = table.WMF(H_MTFs);
+% WMFs(isnan(WMFs)) = [];
+% BMFs = table.BMF(H_MTFs);
+% BMFs(isnan(BMFs)) = [];
+% 
+% % Plot 
+% nexttile
+% histogram(BMFs, edges2)
+% hold on
+% histogram(WMFs, edges2)
+% xlabel('BMF or WMF (Hz)')
+% hLegend = legend('BMF', 'WMF', 'Location','west');
+% hLegend.ItemTokenSize = [6,6];
+% set(gca, 'FontSize', fontsize)
+% xticks([2 4 8 16 32 64 128 254 512])
+% set(gca, 'XScale', 'log');
+% ylabel('# Neurons')
+% title('Hybrids', 'fontsize', titlesize)
 
-H_MTFs = contains(table.MTF, 'H');
-WMFs = table.WMF(H_MTFs);
-WMFs(isnan(WMFs)) = [];
-BMFs = table.BMF(H_MTFs);
-BMFs(isnan(BMFs)) = [];
+%% Annotations 
 
-% Plot 
-nexttile
-histogram(BMFs, edges2)
-hold on
-histogram(WMFs, edges2)
-xlabel('BMF or WMF (Hz)')
-hLegend = legend('BMF', 'WMF', 'Location','west');
-hLegend.ItemTokenSize = [6,6];
-set(gca, 'FontSize', fontsize)
-xticks([2 4 8 16 32 64 128 254 512])
-set(gca, 'XScale', 'log');
-ylabel('# Neurons')
-title('Hybrids', 'fontsize', titlesize)
+labelsize = 20;
+left = linspace(0.01, 0.73, 4);
+annotation('textbox',[left(1) 0.96 0.0826 0.0385],'String',{'A'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[left(2) 0.96 0.0826 0.0385],'String',{'B'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[left(3) 0.96 0.0826 0.0385],'String',{'C'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[left(4) 0.96 0.0826 0.0385],'String',{'D'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Export 
-
-exportgraphics(gcf, fullfile(savepath, 'manuscript', 'data-distribution.png'), 'Resolution', 600)
+%
+%exportgraphics(gcf, fullfile(savepath, 'manuscript', 'data-distribution.png'), 'Resolution', 600)
