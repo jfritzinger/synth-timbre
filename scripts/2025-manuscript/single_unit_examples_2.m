@@ -2,19 +2,20 @@
 %
 %
 %
-
+clear
 
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = 'data/2025-manuscript/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
 sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 
 %% Set up figure
+
 linewidth = 1.5;
-figure('Position',[4,189,1079,718])
-tiledlayout(3, 3)
+figure('Position',[4,295,894,612])
+%tiledlayout(3, 3)
 data_colors = {'#03882F', '#82BB95'};
 
 
@@ -43,7 +44,7 @@ for ineuron = 1:9
 	% Synthetic timbre analysis
 	params = data(7, 2);
 	params = params(~cellfun(@isempty, params));
-	data_ST  = analyzeST(params);
+	data_ST  = analyzeST(params, CF);
 	data_ST = data_ST{1};
 	rate = data_ST.rate;
 	rate_std = data_ST.rate_std;
@@ -55,15 +56,13 @@ for ineuron = 1:9
 	max_rate = max(rate);
 
 	% Plot
-	nexttile
+	h(ineuron) = subplot(3, 3, ineuron);
 	hold on
-	rates_sm = smooth_rates(rate, rlb, rub);
+	rates_sm = smooth_rates(rate, rlb, rub, CF);
 	errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
 		'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
 	plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
 	plot(fpeaks./1000, rates_sm, 'linewidth', linewidth, 'color', 'k')
-
-	% 
 	xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 	yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
 	yline(0.1, 'k', LineWidth=linewidth)
@@ -74,8 +73,15 @@ for ineuron = 1:9
 	xlim(plot_range);
 	grid on
 	ylim([0 max_rate+5])
-	xlabel('Spectral Peak Frequency (Hz)')
-	ylabel('Avg. Rate (sp/s)')
+	
+
+	if mod(ineuron, 3) == 1
+		ylabel('Avg. Rate (sp/s)')
+	end
+
+	if ineuron > 6
+		xlabel('Spectral Peak Freq. (Hz)')
+	end
 
 	% Legend
 	if ineuron == 9
@@ -91,23 +97,45 @@ for ineuron = 1:9
 			'VerticalAlignment', 'top', 'FontSize',16)
 	end
 
-	% Titles
-	titles_x = {'Low CF', 'Medium CF', 'High CF'};
-	locs = linspace(0.16, 0.772, 3);
-	for ii = 1:3
-		annotation('textbox',[locs(ii) 0.933 0.126 0.0459],...
-			'String',titles_x{ii},'FontWeight','bold',...
-			'FontSize',20,'EdgeColor','none');
-	end
-
-	titles_y = {'Flat', 'Dip', 'Peak'};
-	locs = linspace(0.19, 0.78, 3);
-	for ii = 1:3
-		annotation('textbox',[0.045 locs(ii) 0.126 0.0459],...
-			'String',titles_y{ii},'FontWeight','bold',...
-			'FontSize',20,'EdgeColor','none', 'Rotation',90);
-	end
 end
+
+%% Set locations
+
+% Titles
+titles_x = {'Low CF', 'Medium CF', 'High CF'};
+locs = linspace(0.18, 0.8, 3);
+for ii = 1:3
+	annotation('textbox',[locs(ii) 0.93 0.4 0.0459],...
+		'String',titles_x{ii},...
+		'FontSize',18,'EdgeColor','none');
+end
+
+titles_y = {'Sloping', 'Dip', 'Peak'};
+locs = linspace(0.14, 0.81, 3);
+for ii = 1:3
+	annotation('textbox',[0.05 locs(ii) 0.126 0.0459],...
+		'String',titles_y{ii},...
+		'FontSize',18,'EdgeColor','none', 'Rotation',90);
+end
+
+left = repmat(linspace(0.1, 0.7, 3), 1, 3);
+bottom = repmat(linspace(0.1, 0.73, 3), 3, 1);
+bottom = fliplr(reshape(bottom, 1, 9));
+width = 0.26;
+height = 0.20;
+
+for ii = 1:9
+	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
+end
+
+% Set annotations
+labelsize = 24;
+annotation('textbox',[0.01 0.95 0.0826 0.0385],'String',{'A'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.01 0.63 0.0826 0.0385],'String',{'B'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.01 0.33 0.0826 0.0385],'String',{'C'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Export figure
 
