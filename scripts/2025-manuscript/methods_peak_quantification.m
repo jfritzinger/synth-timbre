@@ -1,10 +1,17 @@
 %% methods_peak_quantification 
 
+%% Load in spreadsheet 
+
+[base, datapath, savepath, ppi] = getPaths();
+sheetpath = 'data/2025-manuscript/data-cleaning';
+spreadsheet_name = 'PutativeTable.xlsx';
+sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+
+
 %% Set up figure 
 
-figure('Position',[103,736,671,420])
+figure('Position',[830,392,596,420])
 fontsize = 14;
-%tiledlayout(2, 3)
 
 %% Peak/Dip/Sloping Examples 
  
@@ -48,36 +55,28 @@ for ineuron = 1:3
 	errorbar(data_ST.fpeaks./1000,rate, 1/sqrt(30), 'linewidth', 0.9, 'Color',"#0072BD");
 	plot(data_ST.fpeaks./1000,rate_sm, 'linewidth', 1.5,'Color','k');
 	ylim([-4 4])
-	scatter(peaks.locs./1000, peaks.pks, 'filled', 'r')
+	scatter(peaks.locs./1000, peaks.pks,50,  'filled', 'r')
 	num_peaks = length(peaks.pks);
-	for ip = 1:num_peaks
-		plot([peaks.locs(ip) peaks.locs(ip)]./1000, [peaks.pks(ip)-peaks.p(ip) peaks.pks(ip)], 'Color',"#D95319")
-	end
-	scatter(dips.locs./1000, -1*dips.pks, 'filled', 'b')
+	% for ip = 1:num_peaks
+	% 	plot([peaks.locs(ip) peaks.locs(ip)]./1000, [peaks.pks(ip)-peaks.p(ip) peaks.pks(ip)], 'Color',"#D95319")
+	% end
+	scatter(dips.locs./1000, -1*dips.pks, 50, 'filled', 'g')
 	num_dips = length(dips.pks);
-	for ip = 1:num_dips
-		plot([dips.locs(ip) dips.locs(ip)]./1000, -1*([dips.pks(ip)-dips.p(ip) dips.pks(ip)]), 'Color',"#7E2F8E")
-	end
+	% for ip = 1:num_dips
+	% 	plot([dips.locs(ip) dips.locs(ip)]./1000, -1*([dips.pks(ip)-dips.p(ip) dips.pks(ip)]), 'Color',"#7E2F8E")
+	% end
 	%plot(bounds_freq, [halfheight halfheight], 'g')
-
-	% % Annotate prominence & width
-	% message = sprintf('Prom: %0.2f', prom);
-	% text(0.05, 0.98, message, 'Units', 'normalized', ...
-	% 	'VerticalAlignment', 'top', 'FontSize',fontsize)
-	% message = sprintf('Width: %0.0f Hz', width);
-	% text(0.05, 0.94, message, 'Units', 'normalized', ...
-	% 	'VerticalAlignment', 'top', 'FontSize',fontsize)
 
 	plot_range = [param_ST{1}.fpeaks(1) param_ST{1}.fpeaks(end)]./1000;
 	xline(CF./1000, '--', 'Color',CF_color, 'linewidth', 1.5)
 	xlim(plot_range)
-	xlabel('Spectral Peak Freq. (kHz)')
 	if ineuron == 1
 		ylabel('Z-score')
 		title('Peak')
 	elseif ineuron == 2
 		yticklabels([])
 		title('Dip')
+		xlabel('Spectral Peak Freq. (kHz)')
 	else 
 		yticklabels([])
 		title('Sloping')
@@ -120,44 +119,63 @@ for ineuron = 1:2
 	rate_sm = data_ST.rates_sm;
 	max_rate = max(rate);
 
+	[peaks, dips, type, prom, ~, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF);
+	rate = zscore(data_ST.rate);
+	rate_sm = zscore(data_ST.rates_sm);
+
 	% Plot
-	h(3+ineuron) = subplot(2, 3, 3+ineuron);
-	hold on
-	rates_sm = smooth_rates(rate, rlb, rub, CF);
-	errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
-		'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
-	plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
-	plot(fpeaks./1000, rates_sm, 'linewidth', linewidth, 'color', 'k')
-	xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-	yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
-
-	% Figure parameters 
-	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
-	set(gca, 'Fontsize', fontsize, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
-	xlim(plot_range);
-	grid on
-	ylim([0 max_rate+5])
-	ylabel('Avg. Rate (sp/s)')
-	xlabel('Spectral Peak Freq. (kHz)')
-
-	% if ineuron == 2
-	% 	legend({'', 'Data', 'CF', 'Spont.'}, 'Location',...
-		% 	'northeastoutside')
-	% end
-
+	if ineuron == 1
+		h(3+ineuron) = subplot(2, 3, 3+ineuron);
+		hold on
+		yline(0)
+		plot(fpeaks./1000,rate,'LineWidth', 1.5)
+		plot(fpeaks./1000, rate_sm, 'linewidth', linewidth, 'color', 'k')
+		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
+		scatter(peaks.locs/1000, peaks.pks, 'r', 'filled', 'LineWidth',1.5)
+		line([peaks.locs peaks.locs]./1000, [peaks.pks-0.75 peaks.pks], 'Color', 'r', 'LineWidth', 1.5);
+		xline(CF/1000, '--')
+		xlabel('Spectral Peak Freq. (kHz)')
+		ylabel('Z-score')
+		xlim([fpeaks(1)/1000 fpeaks(end)/1000])
+		box on
+		grid on
+	else
+		h(3+ineuron) = subplot(2, 3, 3+ineuron);
+		hold on
+		yline(0)
+		plot(fpeaks./1000,rate,'LineWidth', 1.5)
+		plot(fpeaks./1000, rate_sm, 'linewidth', linewidth, 'color', 'k')
+		scatter(dips.locs/1000, -1*dips.pks, 'r', 'filled', 'LineWidth',1.5)
+		line([dips.locs dips.locs]./1000, -1*[dips.pks-0.75 dips.pks], 'Color', 'r', 'LineWidth', 1.5);
+		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
+		xline(CF/1000, '--')
+		xlabel('Spectral Peak Freq. (kHz)')
+		%ylabel('Z-score')
+		yticklabels([])
+		xlim([fpeaks(1)/1000 fpeaks(end)/1000])
+		box on
+		grid on
+		legend('', 'Data', 'Smoothed', 'Ref. Value', '+/- 0.75', ...
+			'Bandwidth', 'CF', 'Location','northeastoutside')
+	end
+	set(gca, 'fontsize', fontsize)
 end
 
 %% Arrange and annotate 
 
 left = repmat(linspace(0.1, 0.7, 3), 1, 2);
-left(5) = 0.54;
-bottom = [0.6 0.6 0.6 0.13 0.13];
-width = 0.27;
+left(5) = 0.445;
+bottom = [0.6 0.6 0.6 0.11 0.11];
 height = 0.32;
 
-for ii = 1:5
-	set(h(ii), 'position', [left(ii) bottom(ii) width height])
+for ii = 1:3
+	set(h(ii), 'position', [left(ii) bottom(ii) 0.28 height])
 end
+
+for ii = 4:5
+	set(h(ii), 'position', [left(ii) bottom(ii) 0.33 height])
+end
+
 
 % Add labels 
 labelsize = 24;
