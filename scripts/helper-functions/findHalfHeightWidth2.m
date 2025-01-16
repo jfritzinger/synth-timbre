@@ -29,7 +29,7 @@ max_rate = rate_interp(peak_ind);
 %%%%%%%%%%%%%% 25% from 0 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %halfHeight = max_rate*0.75;
 
-%%%%%%%%%%%%%% 0.5 z units below peak %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% z units below peak %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 halfHeight = max_rate-0.75;
 
 %%%%%%%%%%%%%% 25% below peak referenced to min value %%%%%%%%%%%%%%%
