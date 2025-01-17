@@ -14,7 +14,7 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 %% Set up figure
 
 linewidth = 1.5;
-figure('Position',[4,295,894,612])
+figure('Position',[4,295,796,612])
 %tiledlayout(3, 3)
 data_colors = {'#03882F', '#82BB95'};
 
