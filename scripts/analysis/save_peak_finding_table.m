@@ -13,9 +13,8 @@ clear
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
 spreadsheet_name = 'PutativeTable2.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Create table
@@ -97,23 +96,27 @@ for isesh = 1:num_neurons
 			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(data_ST, CF);
 
 			% Add data to table
-			tables.Putative{ii} = sessions.Putative_Units{ineuron};
-			tables.CF(ii) = CF;
-			tables.CF_Group{ii} = CF_Group;
-			tables.MTF{ii} = MTF_shape;
-			tables.MTF_at200{ii} = at200;
-			tables.MTF_str(ii) = data_MTF.perc_change;
-			tables.SPL(ii) = spl;
-			tables.Type{ii} = type;
-			tables.binmode(ii) = param_ST{1}.binmode;
-			tables.F0(ii) = param_ST{1}.Delta_F;
-			tables.Width(ii) = width;
-			tables.Lim(ii) = lim;
-			tables.Prom(ii) = prom;
-			tables.Freq(ii) = freq;
-			tables.Q(ii) = freq/width;
-			tables.Q_log(ii) = log10(freq/width);
-			ii = ii+1;
+			if strcmp(type, 'Flat')
+				continue
+			else
+				tables.Putative{ii} = sessions.Putative_Units{ineuron};
+				tables.CF(ii) = CF;
+				tables.CF_Group{ii} = CF_Group;
+				tables.MTF{ii} = MTF_shape;
+				tables.MTF_at200{ii} = at200;
+				tables.MTF_str(ii) = data_MTF.perc_change;
+				tables.SPL(ii) = spl;
+				tables.Type{ii} = type;
+				tables.binmode(ii) = param_ST{1}.binmode;
+				tables.F0(ii) = param_ST{1}.Delta_F;
+				tables.Width(ii) = width;
+				tables.Lim(ii) = lim;
+				tables.Prom(ii) = prom;
+				tables.Freq(ii) = freq;
+				tables.Q(ii) = freq/width;
+				tables.Q_log(ii) = log10(freq/width);
+				ii = ii+1;
+			end
 		end
 	end
 	fprintf('%s done, %d percent done\n', putative, round(isesh/num_neurons*100))
@@ -123,6 +126,6 @@ end
 %% Save table
 
 % Save table
-writetable(tables,'peak_picking2.xlsx')
+writetable(tables,'peak_picking_excludeflat.xlsx')
 
 
