@@ -55,6 +55,7 @@ yline(0.1, 'k', LineWidth=linewidth)
 
 %% Recreate stimulus (1 rep) 
 
+% Generate stimulus 
 params{1}.Fs = 100000;
 params{1}.physio = 1;
 params{1}.mnrep = 1;
@@ -62,9 +63,29 @@ params{1}.dur = 0.3;
 params{1} = generate_ST(params{1});
 params{1}.num_stim = size(params{1}.stim, 1);
 Fs = 100000;
-stim = params{1}.stim;
 observed_rate = rate;
 r0 = spont;
+
+% Run AN model 
+model_params.type = 'SFIE';
+model_params.range = 1; % 1 = population model, 2 = single cell model
+model_params.species = 2; % 1 = cat, 2 = human
+model_params.BMF = 100;
+model_params.CFs = CF;
+model_params.nAN_fibers_per_CF = 10;
+model_params.cohc = 1; % (0-1 where 1 is normal)
+model_params.cihc = 1; % (0-1 where 1 is normal)
+model_params.nrep = 5; % how many times to run the AN model
+model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw implementation(See Zilany etal., 2009)
+model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - this is the 'noise' associated with spont. activity of AN fibers - see Zilany et al., 2009. "0" lets you "freeze" it.
+model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
+model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
+model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
+
+timerVal = tic;
+AN = modelAN(params{1}, model_params); % HSR for IC input
+elapsedTime = toc(timerVal)/60;
+disp(['Model took ' num2str(elapsedTime) ' minutes'])
 
 % % Plot spectrum of stimuli
 % for istim = 1:40
@@ -81,24 +102,37 @@ r0 = spont;
 % end
 
 %% fmincon
+type = 2; % 1: distance, 2: MSE
+stim = params{1}.stim;
+%stim = squeeze(AN.an_sout);
+timerVal = tic;
 
 % Fit gaussian
-init = [CF, 30, 0]; % Initial guess
-lb = [0, 0, 0]; % Lower bounds
-ub = [Inf, Inf, Inf]; % Upper bounds
+init = [CF, 30, 100]; % Initial guess
+lb = [CF/4, 0, 0]; % Lower bounds
+ub = [CF*4, 5000, Inf]; % Upper bounds
+
+options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
+	'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
+	'StepTolerance', 1e-16, 'display', 'off');
 gaussian_params = fmincon(@(p) ...
-	objective_function(p, 'gaussian', Fs, stim, observed_rate, r0), ...
-    init, [], [], [], [], lb, ub, []);
-
-%% Fit DoG model
-dog_init = [CF, 100, 200, 5000, 5000]; % Initial guess
-dog_lb = [0, 0, 0, 0, 0]; % Lower bounds
-dog_ub = [Inf, Inf, Inf, Inf, Inf]; % Upper bounds
-dog_params = fmincon(@(p) objective_function(p, 'dog', Fs, stim, observed_rate, r0), ...
-    dog_init, [], [], [], [], dog_lb, dog_ub, []);
+	dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
+    init, [], [], [], [], lb, ub, [], options);
 
 
-%% Plot result
+% Fit DoG model
+dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
+dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
+dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
+
+options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
+	'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
+	'StepTolerance', 1e-16, 'display', 'off');
+dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
+    dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
+disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
+
+% Plot result
 
 % Plot data 
 figure
@@ -131,12 +165,7 @@ f = linspace(0, Fs/2, 100000);
 nstim = size(stim, 1);
 dog_predicted = zeros(nstim, 1);
 for i = 1:nstim
-	fc = dog_params(1);
-	sigma_e = dog_params(2);
-	sigma_i = dog_params(3);
-	ge = dog_params(4);
-	gi = dog_params(5);
-	W = dog_model(f, fc, sigma_e, sigma_i, ge, gi);
+	W = dog_model(f, dog_params);
 	dog_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
 end
 plot(fpeaks./1000, dog_predicted, 'g', 'linewidth', linewidth)
@@ -153,86 +182,3 @@ text(0.05, 0.95, gaus_msg, 'Units', 'normalized', ...
 dog_msg = sprintf('DoG adjusted R^2=%0.02f', dog_adj_r_squared);
 text(0.05, 0.85, dog_msg, 'Units', 'normalized', ...
 	'VerticalAlignment', 'top', 'FontSize',16)
-
-%% FUNCTIONS 
-
-% Minimizing function 
-function distance = objective_function(params, model, Fs, stim, observed_rate, r0)
-    if strcmp(model, 'gaussian')
-        fc = params(1);
-        sigma = params(2);
-        g = params(3);
-        f = linspace(0, Fs/2, 100000);
-        W = gaussian_model(f, fc, sigma, g);
-    else % DoG model
-        fc = params(1);
-        sigma_e = params(2);
-        sigma_i = params(3);
-        ge = params(4);
-        gi = params(5);
-        f = linspace(0, Fs/2, 100000);
-        W = dog_model(f, fc, sigma_e, sigma_i, ge, gi);
-    end
-    
-	nstim = size(stim, 1);
-    predicted_rate = zeros(nstim, 1);
-    for i = 1:nstim
-        predicted_rate(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
-    end
-    
-    distance = sum(abs(predicted_rate - observed_rate)); % City-block distance
-	fprintf('Fc = %0.0f, Sigma = %0.2f, g = %0.2f\n', params(1), params(2), params(3))
-	fprintf('Dist = %0.2f\n', distance)
-
-	% figure
-	% plot(predicted_rate)
-end
-
-
-% Function to compute firing rate 
-function r = compute_firing_rate(stim, Fs, W, f, r0)
-    N = length(stim);
-    X = fft(stim);
-    P = abs(X/N).^2;
-    P = P(1:N/2+1);
-    P(2:end-1) = 2*P(2:end-1);
-    
-    f_signal = (0:(N/2))*Fs/N;
-    P_interp = interp1(f_signal, P, f, 'linear', 0);
-    
-    r = sum(W .* P_interp) + r0;
-    r = max(r, 0); % Half-wave rectification
-
-	% figure; hold on
-	% plot(f, P_interp)
-	% plot(f, W)
-	% ylim([0 0.0006])
-	% xlim([0 2000])
-	% disp(['Max P_interp: ', num2str(max(P_interp))]);
-    % disp(['Max W: ', num2str(max(W))]);
-    % disp(['Sum of W * P_interp: ', num2str(sum(W .* P_interp))]);
-end
-
-
-
-% Create Gaussian function 
-function W = gaussian_model(f, fc, sigma, g)
-    W = g * exp(-(f - fc).^2 / (2 * sigma^2));
-end
-
-
-% Difference of Gaussians (DoG) model
-function W = dog_model(f, fc, sigma_e, sigma_i, ge, gi)
-    W = ge * exp(-(f - fc).^2 / (2 * sigma_e^2)) - ...
-        gi * exp(-(f - fc).^2 / (2 * sigma_i^2));
-end
-
-
-% Adjusted R^2 function
-function adj_r_squared = calculate_adj_r_squared(observed, predicted, n_params)
-    n = length(observed);
-    SSE = sum((observed - predicted).^2);
-    SST = sum((observed - mean(observed)).^2);
-    adj_r_squared = 1 - (SSE / (n - n_params - 1)) / (SST / (n - 1));
-end
-
