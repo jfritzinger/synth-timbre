@@ -13,16 +13,16 @@ clear
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = 'data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 %%  Synthetic Timbre Data Table 
  
 % Initialize spreadsheet columns
-%modelpath = '/Volumes/Synth-Timbre/data/manuscript';
-modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+modelpath = '/Volumes/Synth-Timbre/data/manuscript';
+%modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
 varNames = ["Putative", "CF", "MTF", "BMF"...
 	"SPL", "SFIE_R", "SFIE_R2",...
 	"Energy_R", "Energy_R2", ...
