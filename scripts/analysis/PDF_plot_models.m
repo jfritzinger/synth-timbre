@@ -17,9 +17,9 @@ import mlreportgen.report.*
 [base, datapath, savepath, ppi] = getPaths();
 modelpath = '/Volumes/Synth-Timbre/data/manuscript';
 %modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
-sheetpath = 'scripts/data-cleaning';
+sheetpath = 'data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Initialize report
@@ -73,7 +73,7 @@ for isesh = 1:num_sessions
 		putative = sessions.Putative_Units{ineuron};
 		CF = sessions.CF(ineuron);
 		MTF_shape = sessions.MTF{ineuron};
-		load(fullfile(datapath, [putative '.mat']))
+		load(fullfile(datapath, 'neural_data', [putative '.mat']))
 
 		% Load in model data 
 		load(fullfile(modelpath,'SFIE_model', [putative '_SFIE.mat']), 'SFIE')
@@ -159,23 +159,29 @@ for isesh = 1:num_sessions
 			nexttile(4+ispl)
 			if bin200_MTF(ineuron, ispl)==1
 				param_ST = data(5+ispl, 2);
-				data_ST = analyzeST(param_ST);
+				data_ST = analyzeST(param_ST, CF);
 				data_ST = data_ST{1};
+				max_rate = max(data_ST.rate);
+				spont = data_RM.spont;
+				rate_subtracted = data_ST.rate - spont;
 
 				% Z-score 
-				rate = zscore(data_ST.rate);
-				rate_sm = zscore(data_ST.rates_sm);
+				rate = data_ST.rate; %zscore(data_ST.rate);
+				rate_sm = data_ST.rates_sm; %zscore(data_ST.rates_sm);
 				hold on
-				plot(data_ST.fpeaks,rate, 'linewidth', 0.9, 'Color',"#0072BD");
-				errorbar(data_ST.fpeaks,rate, 1/sqrt(30), 'linewidth', 0.9, 'Color',"#0072BD");
-				plot(data_ST.fpeaks,rate_sm, 'linewidth', 1.5,'Color','k');
-				ylim([-4 4])
+				plot(data_ST.fpeaks,rate, 'linewidth', 1.5, 'Color','k');
+				%errorbar(data_ST.fpeaks,rate, 1/sqrt(30), 'linewidth', 0.9, 'Color',"#0072BD");
+				%plot(data_ST.fpeaks,rate_sm, 'linewidth', 1.5,'Color','k');
+				%ylim([-4 4])
+				yline(data_RM.spont, 'k')
 
 				% Normalize and plot models
-				%plot(data_ST.fpeaks, zscore(energy{ispl}.rate), 'LineWidth',1.5, 'Color','#D55E00')
-				%plot(data_ST.fpeaks, zscore(SFIE{ispl}.rate), 'LineWidth',1.5, 'Color','#009E73')				
+				energy_rate = energy{ispl}.rate .* (max(rate_subtracted)/max(energy{ispl}.rate))+spont;
+
+				plot(data_ST.fpeaks, energy_rate, 'LineWidth',1.5, 'Color','#D55E00')
+				plot(data_ST.fpeaks, SFIE{ispl}.rate, 'LineWidth',1.5, 'Color','#009E73')				
 				%plot(data_ST.fpeaks, zscore(SFIE_pop{ispl}.rate), 'LineWidth',1.5, 'Color','#CC79A7')	
-				plot(data_ST.fpeaks, zscore(lat_inh{ispl}.rate), 'LineWidth',1.5, 'Color','#CC79A7')
+				plot(data_ST.fpeaks, lat_inh{ispl}.rate, 'LineWidth',1.5, 'Color','#CC79A7')
 
 				% Annotate SFIE model R^2
 				lefts = linspace(0.03, 0.8, 4);
@@ -187,12 +193,12 @@ for isesh = 1:num_sessions
 					'EdgeColor','none');
 
 				% Annotate energy model R^2
-				% message = sprintf('R^2 energy = %.02f', energy{ispl}.R2);
-				% annotation('textbox',[lefts(ispl) 0.35 0.2 0.0869],...
-				% 	'Color','k',...
-				% 	'String',message, ...
-				% 	'FontSize',8,...
-				% 	'EdgeColor','none');
+				message = sprintf('R^2 energy = %.02f', energy{ispl}.R2);
+				annotation('textbox',[lefts(ispl) 0.35 0.2 0.0869],...
+					'Color','k',...
+					'String',message, ...
+					'FontSize',8,...
+					'EdgeColor','none');
 
 				% Annotate SFIE pop model R^2
 % 				message = sprintf('R^2 SFIE pop = %.02f', SFIE_pop{ispl}.R2);
@@ -203,12 +209,12 @@ for isesh = 1:num_sessions
 % 					'EdgeColor','none');
 
 				% Annotate lateral inhibition model R^2
-				% message = sprintf('R^2 lat inh = %.02f', lat_inh{ispl}.R2);
-				% annotation('textbox',[lefts(ispl) 0.32 0.2 0.0869],...
-				% 	'Color','k',...
-				% 	'String',message, ...
-				% 	'FontSize',8,...
-				% 	'EdgeColor','none');
+				message = sprintf('R^2 lat inh = %.02f', lat_inh{ispl}.R2);
+				annotation('textbox',[lefts(ispl) 0.32 0.2 0.0869],...
+					'Color','k',...
+					'String',message, ...
+					'FontSize',8,...
+					'EdgeColor','none');
 
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
 			else
