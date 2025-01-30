@@ -19,7 +19,7 @@ model_type = 'Lat_Inh';
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, 'scripts', 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Find sessions for target synthetic timbre response
@@ -38,7 +38,7 @@ for isesh = 101:num_index
 	% Load in session
 	putative = sessions.Putative_Units{indices(isesh)};
 	CF = sessions.CF(indices(isesh));
-	load(fullfile(datapath, [putative '.mat']))
+	load(fullfile(datapath, 'neural_data', [putative '.mat']))
 	MTF_shape = sessions.MTF{indices(isesh)};
 	params_ST = data(6:9, 2);
 	if strcmp(MTF_shape, 'BS')
@@ -65,8 +65,13 @@ for isesh = 101:num_index
 		if isempty(params_ST{ispl})
 			% Did not record synthetic timbre response at this level 
 		else
-			data_ST = analyzeST(params_ST(ispl));
+			data_ST = analyzeST(params_ST(ispl), CF);
 			data_ST = data_ST{1};
+
+			% Get spont rate 
+			params_RM = data{2, 2};
+			data_RM = analyzeRM(params_RM);
+			spont = data_RM.spont;
 
 			% Set up stimuli
 			if strcmp(model_type, 'SFIE_pop')
@@ -110,6 +115,37 @@ for isesh = 101:num_index
 				% Run model
 				AN_temp = modelAN(params_ST{ispl}, model_params); % HSR for IC input
 				SFIE_temp = wrapperIC(AN_temp.an_sout, params_ST{ispl}, model_params); % SFIE output
+
+				% Run model to get spont 
+				params_RM.type = 'RM';
+				params_RM.dur = 0.2;
+				params_RM.ramp_dur = 0.01;
+				params_RM.reptim = 0.6;
+				params_RM.nrep = 3;
+				params_RM.freqs = [3000,3001, 1];
+				params_RM.spls = [];
+				params_RM.binmode = 2;
+				params_RM.onsetWin = 25;
+				params_RM.mnrep = 1;
+				params_RM.Fs = 100000;
+				params_RM = generate_RM(params_RM);
+				params_RM.num_stim = size(params_RM.stim, 1);
+
+				AN_spont = modelAN(params_RM, model_params);
+				SFIE_spont = wrapperIC(AN_spont.an_sout, params_RM, model_params);
+
+				figure
+				tiledlayout(3, 1)
+				nexttile
+				plot(squeeze(AN_spont.an_sout))
+				ylim([0 170])
+				title('AN')
+				nexttile
+				plot(squeeze(SFIE_spont.ic_BE))
+				title('BE')
+				nexttile
+				plot(squeeze(SFIE_spont.ic_BS))
+				title('BS')
 
 				% Plot
 				if strcmp(MTF_shape, 'BS')
@@ -159,12 +195,19 @@ for isesh = 101:num_index
 				impaired = 0; % 0 = not impaired; 1 = 'impaired'
 				pin_gamma = zeros(size(stimulus, 1), Fs*params_ST{ispl}.dur+0.1*Fs);
 				for istim = 1:size(stimulus, 1)
-					pin_gamma(istim,:) = gamma_filt(stimulus(istim,:),gamma_param,impaired);
+					pin_gamma(istim,:) = gamma_filt(stimulus(istim,:),gamma_param,impaired, 1);
 				end
 				pin_gamma = pin_gamma(:,1:params_ST{ispl}.dur*Fs);
 				energ_out = sqrt(mean(pin_gamma.^2,2));
 				[rate, rate_std] = plotST(params_ST{ispl}, energ_out, 0);
 				R_int = corrcoef(data_ST.rate,rate);
+
+				figure
+				tiledlayout(2, 1)
+				nexttile
+				plot(params_ST{ispl}.fpeaks, data_ST.rate)
+				nexttile
+				plot(params_ST{ispl}.fpeaks, rate)
 
 				energy{ispl}.energ_out = energ_out;
 				energy{ispl}.rate = rate;
@@ -273,6 +316,37 @@ for isesh = 101:num_index
 				latinh_temp = modelLateralSFIE(params_ST{ispl}, model_params,...
 					AN_temp.an_sout, AN_temp.an_sout_lo, AN_temp.an_sout_hi,...
 					'CS_params', lm_params);
+
+				% Run model to get spont 
+				params_RM.type = 'RM';
+				params_RM.dur = 0.2;
+				params_RM.ramp_dur = 0.01;
+				params_RM.reptim = 0.6;
+				params_RM.nrep = 3;
+				params_RM.freqs = [3000,3001, 1];
+				params_RM.spls = [];
+				params_RM.binmode = 2;
+				params_RM.onsetWin = 25;
+				params_RM.mnrep = 1;
+				params_RM.Fs = 100000;
+				params_RM = generate_RM(params_RM);
+				params_RM.num_stim = size(params_RM.stim, 1);
+
+				AN_spont = modelAN(params_RM, model_params);
+				SFIE_spont = wrapperIC(AN_spont.an_sout, params_RM, model_params);
+
+				figure
+				tiledlayout(3, 1)
+				nexttile
+				plot(squeeze(AN_spont.an_sout))
+				ylim([0 170])
+				title('AN')
+				nexttile
+				plot(squeeze(SFIE_spont.ic_BE))
+				title('BE')
+				nexttile
+				plot(squeeze(SFIE_spont.ic_BS))
+				title('BS')
 
 				% Plot
 				if strcmp(MTF_shape, 'BS') || strcmp(MTF_shape, 'BE')
