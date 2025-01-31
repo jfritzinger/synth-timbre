@@ -4,8 +4,7 @@ clear
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-tables_old = readtable(fullfile(datapath, "peak_picking.xlsx"));
-%tables_old.Q_log = log10(tables_old.Q);
+tables_old = readtable(fullfile(datapath,"LMM", "peak_picking_excludeflat.xlsx"));
 
 % Deal with NaNs
 %tables.Q(isnan(tables.Q)) = 0;
@@ -63,9 +62,11 @@ equation{12} = '~SPL*CF_Group*binmode+MTF*SPL+(1|Putative)';
 equation{13} = '~SPL*CF_Group*binmode+MTF*SPL+F0*CF_Group+(1|Putative)';
 equation{14} = '~SPL*CF_Group*binmode+MTF*SPL+MTF*CF_Group+F0*CF_Group+(1|Putative)';
 
-
 % JUST stimulus parameters 
 equation{15} = '~binmode*F0*SPL+(1|Putative)';
+
+% More
+equation{16} = '~SPL*CF_Group*MTF*binmode+(1|Putative)';
 
 
 %% Test 
@@ -89,7 +90,7 @@ disp('--------------------------------------------------------------------------
 
 %% 
 
-full_equation = ['Q' equation{2}]; 
+full_equation = ['Q_log' equation{16}]; 
 mdl = fitlme(tables, full_equation,'FitMethod','REML', 'DummyVarCoding','effects');
 R2 = mdl.Rsquared.Ordinary;
 disp(mdl)
