@@ -15,9 +15,9 @@ clear
 %% Synthetic Timbre
 
 % Load in spreadsheet
-[base, ~, ~, ~] = getPaths();
+[base, datapath, ~, ~] = getPaths();
 spreadsheet_name = 'model_r2_values_ST.xlsx';
-sessions = readtable(fullfile(base, 'scripts', 'analysis', spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Plot variance explained by the energy model (ST)
@@ -129,45 +129,81 @@ for ispl = 1:4
 
 	nexttile
 	hold on
-	%scatter(energy_R2, SFIE_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(energy_R2, SFIE_R2, 'filled', 'MarkerEdgeColor','k')
 	scatter(energy_R22, SFIE_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
 	%[x, y] = findRegressionLine(energy_R2, SFIE_R2);
 	%plot(x, y, 'b')
 	[x, y] = findRegressionLine(energy_R22, SFIE_R22);
-	plot(x, y, 'r')
-	xlabel('Energy R^2')
-	ylabel('SFIE R^2')
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('Energy R')
+	ylabel('SFIE R')
 	title(sprintf('%d dB SPL', spls(ispl)))
 
 	nexttile
 	hold on
-	%scatter(energy_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(energy_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
 	scatter(energy_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
 	%[x, y] = findRegressionLine(energy_R2, lat_inh_R2);
 	%plot(x, y, 'b')
 	[x, y] = findRegressionLine(energy_R22, lat_inh_R22);
-	plot(x, y, 'r')
-	xlabel('Energy R^2')
-	ylabel('Lateral Inh R^2')
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('Energy R')
+	ylabel('Lateral Inh R')
 
 	nexttile
 	hold on
-	%scatter(SFIE_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(SFIE_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
 	scatter(SFIE_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
 	%[x, y] = findRegressionLine(SFIE_R2, lat_inh_R2);
 	%plot(x, y, 'b')
 	[x, y] = findRegressionLine(SFIE_R22, lat_inh_R22);
-	plot(x, y, 'r')
-	xlabel('SFIE R^2')
-	ylabel('Lateral Inh R^2')
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('SFIE R')
+	ylabel('Lateral Inh R')
+	legend('BS', 'BE')
 end
 
 %% 3D Scatter Plot 
+% 
+% figure('position', [78,337,939,616])
+% tiledlayout(1, 4, 'TileIndexing','columnmajor')
+% spls = [43, 63, 73, 83];
+% for ispl = 1:4
+% 	isSPL = sessions.SPL == spls(ispl);
+% 
+% 	isMTF = strcmp(sessions.MTF, 'BS');
+% 	BS_ind = find(isMTF & isSPL);
+% 	SFIE_R2 = sessions.SFIE_R(BS_ind);
+% 	energy_R2 = sessions.Energy_R(BS_ind);
+% 	lat_inh_R2 = sessions.Lat_Inh_R(BS_ind);
+% 
+% 	isMTF = strcmp(sessions.MTF, 'BE');
+% 	BE_ind = find(isMTF & isSPL);
+% 	SFIE_R22 = sessions.SFIE_R(BE_ind);
+% 	energy_R22 = sessions.Energy_R(BE_ind);
+% 	lat_inh_R22 = sessions.Lat_Inh_R(BE_ind);
+% 
+% 	nexttile
+% 	hold on
+% 	scatter3(energy_R2, SFIE_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
+% 	scatter3(energy_R22, SFIE_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
+% 	xlabel('Energy R^2')
+% 	ylabel('SFIE R^2')
+% 	zlabel('Lat Inh R^2')
+% 	title(sprintf('%d dB SPL', spls(ispl)))
+% 	grid on
+% 
+% end
+
+%% Simplified scatter plots 
 
 figure('position', [78,337,939,616])
-tiledlayout(1, 4, 'TileIndexing','columnmajor')
+tiledlayout(1, 3, 'TileIndexing','columnmajor')
 spls = [43, 63, 73, 83];
-for ispl = 1:4
+for ispl = 2
 	isSPL = sessions.SPL == spls(ispl);
 
 	isMTF = strcmp(sessions.MTF, 'BS');
@@ -184,14 +220,44 @@ for ispl = 1:4
 
 	nexttile
 	hold on
-	scatter3(energy_R2, SFIE_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
-	scatter3(energy_R22, SFIE_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
-	xlabel('Energy R^2')
-	ylabel('SFIE R^2')
-	zlabel('Lat Inh R^2')
+	scatter(energy_R2, SFIE_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(energy_R22, SFIE_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
+	%[x, y] = findRegressionLine(energy_R2, SFIE_R2);
+	%plot(x, y, 'b')
+	[x, y] = findRegressionLine(energy_R22, SFIE_R22);
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('Energy R')
+	ylabel('SFIE R')
 	title(sprintf('%d dB SPL', spls(ispl)))
-	grid on
+	set(gca, 'fontsize', 16)
 
+	nexttile
+	hold on
+	scatter(energy_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(energy_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
+	%[x, y] = findRegressionLine(energy_R2, lat_inh_R2);
+	%plot(x, y, 'b')
+	[x, y] = findRegressionLine(energy_R22, lat_inh_R22);
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('Energy R')
+	ylabel('Lateral Inh R')
+	set(gca, 'fontsize', 16)
+
+	nexttile
+	hold on
+	scatter(SFIE_R2, lat_inh_R2, 'filled', 'MarkerEdgeColor','k')
+	scatter(SFIE_R22, lat_inh_R22, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceColor',"#D95319")
+	%[x, y] = findRegressionLine(SFIE_R2, lat_inh_R2);
+	%plot(x, y, 'b')
+	[x, y] = findRegressionLine(SFIE_R22, lat_inh_R22);
+	plot([-1 1], [-1 1], 'k')
+	%plot(x, y, 'r')
+	xlabel('SFIE R')
+	ylabel('Lateral Inh R')
+	legend('BS', 'BE')
+	set(gca, 'fontsize', 16)
 end
 
 %% Functions 
