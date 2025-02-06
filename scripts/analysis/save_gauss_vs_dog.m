@@ -68,52 +68,9 @@ for isesh = 1:num_sessions
 		observed_rate = rate;
 		r0 = spont;
 
-		% fmincon
-		type = 2; % 1: distance, 2: MSE
-		stim = params{1}.stim;
-		timerVal = tic;
+		[gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
-		% Fit gaussian
-		log_CF = log10(CF);
-		init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
-		lb = [log_CF-1,  0.001, 0]; % Lower bounds
-		ub = [log_CF+1,  4,     Inf]; % Upper bounds
-		% init = [CF, 30, 100]; % Initial guess
-		% lb = [CF/4, 0, 0]; % Lower bounds
-		% ub = [CF*4, 5000, Inf]; % Upper bounds
 
-		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^10, 'maxiterations', 500, 'ConstraintTolerance', 1e-10, ...
-			'StepTolerance', 1e-10, 'display', 'off');
-		gaussian_params = fmincon(@(p) ...
-			dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
-			init, [], [], [], [], lb, ub, [], options);
-		f = linspace(0, Fs/2, 100000);
-		nstim = size(stim, 1);
-		gaus_predicted = zeros(nstim, 1);
-		for i = 1:nstim
-			fc = gaussian_params(1);
-			sigma = gaussian_params(2);
-			g = gaussian_params(3);
-			W = gaussian_model(f, fc, sigma, g);
-			gaus_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
-		end
-
-		% Fit DoG model
-		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
-		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
-		dog_lb = [100,   100,     1, 1,  log_CF-1, log_CF-1]; % Lower bounds
-		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
-		% dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
-		% dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
-		% dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
-
-		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^10, 'maxiterations', 500, 'ConstraintTolerance', 1e-10, ...
-			'StepTolerance', 1e-10, 'display', 'off');
-		dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
-			dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
-		%disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
 		f = linspace(0, Fs/2, 100000);
 		nstim = size(stim, 1);
 		dog_predicted = zeros(nstim, 1);
