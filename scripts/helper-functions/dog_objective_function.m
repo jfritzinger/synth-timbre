@@ -20,7 +20,7 @@ function distance = dog_objective_function(params, model, Fs, stim, observed_rat
 	% if length(params)==3
 	% 	fprintf('Fc = %0.0f, Sigma = %0.2f, g = %0.2f\n', params(1), params(2), params(3))
 	% else
-	% 	fprintf('g_e=%0.0f, g_i=%0.0f, %c_e=%0.0f, %c_i=%0.0f, f_e=%0.0f, f_i=%0.0f\n',...
+	% 	fprintf('g_e=%0.0f, g_i=%0.0f, %c_e=%0.3f, %c_i=%0.3f, f_e=%0.3f, f_i=%0.3f\n',...
 		% 	params(1), params(2), 963, params(3), 963, params(4), params(5), params(5))
 	% end
 
@@ -30,7 +30,7 @@ function distance = dog_objective_function(params, model, Fs, stim, observed_rat
 	else % MSE
 		%mse = norm(observed_rate-predicted_rate,2)/norm(observed_rate); % Minimize squared error of Euclidian distance (L2)
 		distance = 1/length(observed_rate) * sum((observed_rate - predicted_rate).^2); % Compute the mean of the squared errors
-		%fprintf('MSE = %0.2f\n', distance)
+		fprintf('MSE = %0.2f\n', distance)
 	end
 
 	% if strcmp(model, 'gaussian')
@@ -39,6 +39,7 @@ function distance = dog_objective_function(params, model, Fs, stim, observed_rat
 	% 	hold on
 	% 	plot(observed_rate)
 	% 	plot(predicted_rate)
+	% 	x = 1;
 	% end
 
 end 
