@@ -9,10 +9,10 @@ function W = dog_model(fpeaks, DOGparams)
 	% Set Parameters
 	s_exc = DOGparams(1);
 	s_inh = DOGparams(2);
-	sigma_exc = DOGparams(3);
-	sigma_inh = DOGparams(4);
-	CF_exc = DOGparams(5);
-	CF_inh = DOGparams(6);
+	sigma_exc = 10^DOGparams(3);
+	sigma_inh = 10^DOGparams(4);
+	CF_exc = 10^DOGparams(5);
+	CF_inh = 10^DOGparams(6);
 	gauss_exc = normpdf(fpeaks, CF_exc, sigma_exc);
 	gauss_inh = normpdf(fpeaks, CF_inh, sigma_inh);
 	gauss_exc = s_exc*(gauss_exc./max(gauss_exc));
