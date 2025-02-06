@@ -11,10 +11,10 @@ clear
 
 %%
 
-%model_type = 'SFIE';
+model_type = 'SFIE';
 %model_type = 'Energy';
 %model_type = 'SFIE_pop';	
-model_type = 'Lat_Inh';
+%model_type = 'Lat_Inh';
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
@@ -93,6 +93,7 @@ for isesh = 101:num_index
 			end
 
 			if strcmp(model_type, 'SFIE')
+				%%
 
 				% Model parameters
 				model_params.type = 'SFIE';
@@ -134,22 +135,12 @@ for isesh = 101:num_index
 				AN_spont = modelAN(params_RM, model_params);
 				SFIE_spont = wrapperIC(AN_spont.an_sout, params_RM, model_params);
 
-				figure
-				tiledlayout(3, 1)
-				nexttile
-				plot(squeeze(AN_spont.an_sout))
-				ylim([0 170])
-				title('AN')
-				nexttile
-				plot(squeeze(SFIE_spont.ic_BE))
-				title('BE')
-				nexttile
-				plot(squeeze(SFIE_spont.ic_BS))
-				title('BS')
-
 				% Plot
 				if strcmp(MTF_shape, 'BS')
 					[rate, rate_std] = plotST(params_ST{ispl}, SFIE_temp.average_ic_sout_BS, 0);
+					rate = rate ./ (max(rate)/max(data_ST.rate));
+					rmse = calculateRMSE(rate, data_ST.rate);
+
 					SFIE{ispl}.rate = rate;
 					SFIE{ispl}.rate_std = rate_std;
 					SFIE{ispl}.fpeaks = params_ST{ispl}.fpeaks;
@@ -157,9 +148,23 @@ for isesh = 101:num_index
 					SFIE{ispl}.R = R(1, 2);
 					SFIE{ispl}.R2 = R(1, 2).^2;
 					SFIE{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, SFIE_temp.ic_BS, 0);
+					SFIE{ispl}.spont = SFIE_spont.average_ic_sout_BS;
+					SFIE{ispl}.rmse = rmse;
+
+					% Plot avg rate
+					% figure
+					% tiledlayout(2, 1)
+					% nexttile
+					% hold on
+					% plot(data_ST.rate)
+					% yline(spont)
+					% plot(rate)
 
 				elseif strcmp(MTF_shape, 'BE')
 					[rate, rate_std] = plotST(params_ST{ispl}, SFIE_temp.average_ic_sout_BE, 0);
+					rate = rate ./ (max(rate)/max(data_ST.rate));
+					rmse = calculateRMSE(rate, data_ST.rate);
+
 					SFIE{ispl}.rate = rate;
 					SFIE{ispl}.rate_std = rate_std;
 					SFIE{ispl}.fpeaks = params_ST{ispl}.fpeaks;
@@ -167,6 +172,9 @@ for isesh = 101:num_index
 					SFIE{ispl}.R = R(1, 2);
 					SFIE{ispl}.R2 = R(1, 2).^2;
 					SFIE{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, SFIE_temp.ic_BE, 0);
+					SFIE{ispl}.spont = SFIE_spont.average_ic_sout_BE;
+					SFIE{ispl}.rmse = rmse;
+
 				else
 					SFIE{ispl}.rate = [];
 					SFIE{ispl}.rate_std = [];
@@ -174,6 +182,8 @@ for isesh = 101:num_index
 					SFIE{ispl}.R = [];
 					SFIE{ispl}.R2 = [];
 					SFIE{ispl}.PSTH = [];
+					SFIE{ispl}.spont = [];
+					SFIE{ispl}.rmse = [];
 				end
 				SFIE{ispl}.MTF_shape = MTF_shape;
 				SFIE{ispl}.BMF = BMF;
@@ -188,6 +198,7 @@ for isesh = 101:num_index
 				AN{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, AN_temp.an_sout, 0);
 
 			elseif strcmp(model_type, 'Energy') % Energy model
+				%%
 
 				stimulus = [params_ST{ispl}.stim zeros(size(params_ST{ispl}.stim,1),0.1*Fs)];
 				tvals = (1:length(stimulus))/Fs;
@@ -202,12 +213,16 @@ for isesh = 101:num_index
 				[rate, rate_std] = plotST(params_ST{ispl}, energ_out, 0);
 				R_int = corrcoef(data_ST.rate,rate);
 
-				figure
-				tiledlayout(2, 1)
-				nexttile
-				plot(params_ST{ispl}.fpeaks, data_ST.rate)
-				nexttile
-				plot(params_ST{ispl}.fpeaks, rate)
+				% Scale 'properly'
+				max_rate = max(data_ST.rate)-spont;
+				rate = rate ./ (max(rate)/max_rate)+spont;
+				% figure
+				% hold on
+				% plot(params_ST{ispl}.fpeaks, data_ST.rate)
+				% yline(spont)
+				% plot(params_ST{ispl}.fpeaks, rate)
+
+				rmse = calculateRMSE(rate, data_ST.rate);
 
 				energy{ispl}.energ_out = energ_out;
 				energy{ispl}.rate = rate;
@@ -215,8 +230,10 @@ for isesh = 101:num_index
 				energy{ispl}.fpeaks = params_ST{ispl}.fpeaks;
 				energy{ispl}.R = R_int(1,2);
 				energy{ispl}.R2 =  R_int(1, 2).^2;
+				energy{ispl}.rmse = rmse;
 
 			elseif strcmp(model_type, 'SFIE_pop')
+				%%
 				
 				% Model parameters
 				model_params.type = 'SFIE';
@@ -277,7 +294,9 @@ for isesh = 101:num_index
 				AN_pop{ispl}.R2 =  R_int(1, 2).^2;
 				AN_pop{ispl}.CFs = AN_temp.CFs;
 				AN_pop{ispl}.temporal = squeeze(mean(AN_temp.an_sout, 1));
+			
 			elseif strcmp(model_type, 'Lat_Inh')
+				%%
 				if strcmp(MTF_shape, 'BS')
 					S = 0.25; % Strength, S = 
 					D = 0; % Delay, D = 
@@ -351,6 +370,9 @@ for isesh = 101:num_index
 				% Plot
 				if strcmp(MTF_shape, 'BS') || strcmp(MTF_shape, 'BE')
 					[rate, rate_std] = plotST(params_ST{ispl}, latinh_temp.avIC, 0);
+					rate = rate ./ (max(rate)/max(data_ST.rate));
+					rmse = calculateRMSE(rate, data_ST.rate);
+
 					lat_inh{ispl}.rate = rate;
 					lat_inh{ispl}.rate_std = rate_std;
 					lat_inh{ispl}.fpeaks = params_ST{ispl}.fpeaks;
@@ -358,6 +380,8 @@ for isesh = 101:num_index
 					lat_inh{ispl}.R = R(1, 2);
 					lat_inh{ispl}.R2 = R(1, 2).^2;
 					lat_inh{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, latinh_temp.ic, 0);
+					lat_inh{ispl}.rmse = rmse;
+
 				else
 					lat_inh{ispl}.rate = [];
 					lat_inh{ispl}.rate_std = [];
@@ -365,6 +389,7 @@ for isesh = 101:num_index
 					lat_inh{ispl}.R = [];
 					lat_inh{ispl}.R2 = [];
 					lat_inh{ispl}.PSTH = [];
+					lat_inh{ispl}.rmse = [];
 				end
 				lat_inh{ispl}.MTF_shape = MTF_shape;
 				lat_inh{ispl}.BMF = BMF;
@@ -387,15 +412,23 @@ for isesh = 101:num_index
 
 	% Save model
 	filename = [putative '_' model_type '.mat'];
-	if strcmp(model_type, 'energy')
-		save(fullfile('C:\DataFiles_JBF\Synth-Timbre\data\manuscript', 'energy_model', filename), 'params_ST', 'energy')
+	savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+	%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+	if strcmp(model_type, 'Energy')
+		save(fullfile(savepath, 'energy_model', filename), 'params_ST', 'energy')
 	elseif strcmp(model_type, 'SFIE')
-		save(fullfile('C:\DataFiles_JBF\Synth-Timbre\data\manuscript', 'SFIE_model', filename), 'params_ST', 'AN', 'SFIE', 'model_params')
+		save(fullfile(savepath, 'SFIE_model', filename), 'params_ST', 'AN', 'SFIE', 'model_params')
 	elseif strcmp(model_type, 'SFIE_pop')
-		save(fullfile('C:\DataFiles_JBF\Synth-Timbre\data\manuscript', 'SFIE_pop_model', filename), 'params_ST', 'AN_pop', 'SFIE_pop', 'model_params')
+		save(fullfile(savepath, 'SFIE_pop_model', filename), 'params_ST', 'AN_pop', 'SFIE_pop', 'model_params')
 	elseif strcmp(model_type, 'Lat_Inh')
-		save(fullfile('C:\DataFiles_JBF\Synth-Timbre\data\manuscript', 'lat_inh_model', filename), 'params_ST', 'lat_inh', 'AN_lat_inh', 'model_params')
+		save(fullfile(savepath, 'lat_inh_model', filename), 'params_ST', 'lat_inh', 'AN_lat_inh', 'model_params')
 	
 	end
 
+end
+
+%% Functions 
+
+function rmse = calculateRMSE(predicted, actual)
+    rmse = sqrt(mean((predicted - actual).^2));
 end
