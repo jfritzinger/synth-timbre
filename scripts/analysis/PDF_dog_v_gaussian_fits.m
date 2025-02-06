@@ -39,7 +39,7 @@ CF_list = sessions.CF(has_data);
 [~, order] = sort(CF_list);
 num_sessions = length(CF_list);
 linewidth = 0.75;
-fontsize = 5; %10;
+fontsize = 10;
 
 % Plot each neuron
 R2_dog_all = NaN(1, num_sessions);
@@ -96,47 +96,7 @@ for isesh = 1:num_sessions
 		observed_rate = rate;
 		r0 = spont;
 
-		% fmincon
-		type = 2; % 1: distance, 2: MSE
-		stim = params{1}.stim;
-		%stim = squeeze(AN.an_sout);
-		timerVal = tic;
-
-		% Fit gaussian
-		log_CF = log10(CF);
-		init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
-		lb = [log_CF-1,  0.1,   0]; % Lower bounds
-		ub = [log_CF+1,  4,     Inf]; % Upper bounds
-
-		% % Fit gaussian
-		% init = [CF, 30, 100]; % Initial guess
-		% lb = [CF/4, 0, 0]; % Lower bounds
-		% ub = [CF*4, 5000, Inf]; % Upper bounds
-
-		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-15, 'display', 'off');
-		gaussian_params = fmincon(@(p) ...
-			dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
-			init, [], [], [], [], lb, ub, [], options);
-
-		% Fit DoG model
-		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
-		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
-		dog_lb = [100,   100,     0.1,   0.1,  log_CF-1, log_CF-1]; % Lower bounds
-		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
-
-		% % Fit DoG model
-		% dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
-		% dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
-		% dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
-
-		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-15, 'display', 'off');
-		dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
-			dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
-		disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
+		[gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
 		% Plot data
 		fig = figure;
@@ -149,6 +109,7 @@ for isesh = 1:num_sessions
 		xlabel('Spectral Peak Freq. (kHz)')
 
 		% Plot gaussian
+		stim = params{1}.stim;
 		f = linspace(0, Fs/2, 100000);
 		nstim = size(stim, 1);
 		gaus_predicted = zeros(nstim, 1);
@@ -173,7 +134,7 @@ for isesh = 1:num_sessions
 		end
 		plot(fpeaks./1000, dog_predicted, 'g', 'linewidth', linewidth)
 		dog_adj_r_squared = calculate_adj_r_squared(observed_rate,...
-			dog_predicted, 5);
+			dog_predicted, 6);
 		legend('Data', 'CF', 'Spont', 'Gaussian', 'DoG', 'location', 'westoutside')
 		set(gca, 'FontSize',fontsize)
 
@@ -193,10 +154,45 @@ for isesh = 1:num_sessions
 		R2_dog_all(isesh) = dog_adj_r_squared;
 		R2_gauss_all(isesh) = gaussian_adj_r_squared;
 
+		% Get f-test for all
+		p_value = ftest(rate, gaus_predicted, dog_predicted);
+
+		% Struct to save out all data and fits 
+		dog_gauss_analysis.putative = putative;
+		dog_gauss_analysis.dog_predicted = dog_predicted;
+		dog_gauss_analysis.gaus_predicted = gaus_predicted;
+		dog_gauss_analysis.CF = CF;
+		dog_gauss_analysis.rate = observed_rate;
+		dog_gauss_analysis.R2_dog = dog_adj_r_squared;
+		dog_gauss_analysis.R2_gauss = gaussian_adj_r_squared;
+		dog_gauss_analysis.fpeaks = data_ST.fpeaks;
+		dog_gauss_analysis.spont = spont;
+		dog_gauss_analysis.rate_std = data_ST.rate_std;
+		dog_gauss_analysis.p_value = p_value;
+
+		filename = [putative '.mat'];
+		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+		%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+		save(fullfile(savepath, 'dog_model', filename), 'dog_gauss_analysis')
+
+		% Struct to save out all data and fits 
+		dog_analysis(isesh).putative = putative;
+		dog_analysis(isesh).dog_predicted = dog_predicted;
+		dog_analysis(isesh).gaus_predicted = gaus_predicted;
+		dog_analysis(isesh).CF = CF;
+		dog_analysis(isesh).rate = observed_rate;
+		dog_analysis(isesh).R2_dog = dog_adj_r_squared;
+		dog_analysis(isesh).R2_gauss = gaussian_adj_r_squared;
+		dog_analysis(isesh).fpeaks = data_ST.fpeaks;
+		dog_analysis(isesh).spont = spont;
+		dog_analysis(isesh).rate_std = data_ST.rate_std;
+		dog_analysis(isesh).p_value = p_value;
+
+		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
+
 		% Add to PDF
 		[plt1, images] = addtoSTPDF(images, fig, putative);
 		append(rpt, plt1);
-
 	end
 end
 
@@ -208,8 +204,8 @@ end
 rptview(rpt)
 
 %% 
-%
-%save('R2_DOG.mat', "R2_gauss_all", "R2_dog_all")
+
+save(fullfile(datapath, 'dog_analysis.mat'), "dog_analysis", "R2_gauss_all", "R2_dog_all")
 
 %% FUNCTIONS
 
@@ -217,7 +213,7 @@ function [img, images] = addtoSTPDF(images, fig, title)
 import mlreportgen.dom.*
 
 % Set figure size, recommended
-values = [3.5 1.5]; %[5.5, 3];
+values = [5.5, 3];
 fig.PaperSize = values;
 fig.PaperPosition = [0 0 values];
 fig.Units = 'inches';
