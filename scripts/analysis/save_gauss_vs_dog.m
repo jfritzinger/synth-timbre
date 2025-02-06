@@ -73,9 +73,13 @@ for isesh = 1:num_sessions
 		timerVal = tic;
 
 		% Fit gaussian
-		init = [CF, 30, 100]; % Initial guess
-		lb = [CF/4, 0, 0]; % Lower bounds
-		ub = [CF*4, 5000, Inf]; % Upper bounds
+		log_CF = log10(CF);
+		init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
+		lb = [log_CF-1,  0.001, 0]; % Lower bounds
+		ub = [log_CF+1,  4,     Inf]; % Upper bounds
+		% init = [CF, 30, 100]; % Initial guess
+		% lb = [CF/4, 0, 0]; % Lower bounds
+		% ub = [CF*4, 5000, Inf]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
@@ -95,9 +99,13 @@ for isesh = 1:num_sessions
 		end
 
 		% Fit DoG model
-		dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
-		dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
-		dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
+		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
+		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
+		dog_lb = [100,   100,     0.001, 0.001,  log_CF-1, log_CF-1]; % Lower bounds
+		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
+		% dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
+		% dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
+		% dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
@@ -121,6 +129,9 @@ for isesh = 1:num_sessions
 		R2_dog_all(isesh) = dog_adj_r_squared;
 		R2_gauss_all(isesh) = gaussian_adj_r_squared;
 
+		% Get f-test for all
+		p_value = ftest(rate, gaus_predicted, dog_predicted);
+
 		% Struct to save out all data and fits 
 		dog_analysis(isesh).putative = putative;
 		dog_analysis(isesh).dog_predicted = dog_predicted;
@@ -130,9 +141,12 @@ for isesh = 1:num_sessions
 		dog_analysis(isesh).R2_dog = dog_adj_r_squared;
 		dog_analysis(isesh).R2_gauss = gaussian_adj_r_squared;
 		dog_analysis(isesh).fpeaks = data_ST.fpeaks;
+		dog_analysis(isesh).spont = spont;
+		dog_analysis(isesh).rate_std = data_ST.rate_std;
+		dog_analysis(isesh).p_value = p_value;
 		
 	end
 end
 
-save('dog_analysis.mat', "dog_analysis", "R2_gauss_all", "R2_dog_all")
+save(fullfile(datapath, 'dog_analysis.mat'), "dog_analysis", "R2_gauss_all", "R2_dog_all")
 
