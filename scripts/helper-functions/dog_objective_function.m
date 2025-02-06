@@ -2,8 +2,8 @@ function distance = dog_objective_function(params, model, Fs, stim, observed_rat
 
 	f = linspace(0, Fs/2, 100000);
     if strcmp(model, 'gaussian')
-        fc = params(1);
-        sigma = params(2);
+        fc = 10^params(1);
+        sigma = 10^params(2);
         g = params(3);
         W = gaussian_model(f, fc, sigma, g);
     else % DoG model
@@ -33,9 +33,12 @@ function distance = dog_objective_function(params, model, Fs, stim, observed_rat
 		%fprintf('MSE = %0.2f\n', distance)
 	end
 
-	% figure
-	% hold on
-	% plot(observed_rate)
-	% plot(predicted_rate)
+	% if strcmp(model, 'gaussian')
+	% else
+	% 	figure
+	% 	hold on
+	% 	plot(observed_rate)
+	% 	plot(predicted_rate)
+	% end
 
 end 
