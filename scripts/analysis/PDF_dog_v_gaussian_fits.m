@@ -44,7 +44,7 @@ fontsize = 10;
 % Plot each neuron
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
-for isesh = 1:num_sessionsiop 
+for isesh = 1 %1:num_sessionsiop 
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -103,9 +103,15 @@ for isesh = 1:num_sessionsiop
 		timerVal = tic;
 
 		% Fit gaussian
-		init = [CF, 30, 100]; % Initial guess
-		lb = [CF/4, 0, 0]; % Lower bounds
-		ub = [CF*4, 5000, Inf]; % Upper bounds
+		log_CF = log10(CF);
+		init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
+		lb = [log_CF-1,  0.001, 0]; % Lower bounds
+		ub = [log_CF+1,  4,     Inf]; % Upper bounds
+
+		% % Fit gaussian
+		% init = [CF, 30, 100]; % Initial guess
+		% lb = [CF/4, 0, 0]; % Lower bounds
+		% ub = [CF*4, 5000, Inf]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
@@ -114,11 +120,16 @@ for isesh = 1:num_sessionsiop
 			dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
 			init, [], [], [], [], lb, ub, [], options);
 
-
 		% Fit DoG model
-		dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
-		dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
-		dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
+		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
+		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
+		dog_lb = [100,   100,     0.001, 0.001,  log_CF-1, log_CF-1]; % Lower bounds
+		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
+
+		% % Fit DoG model
+		% dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
+		% dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
+		% dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
@@ -134,7 +145,6 @@ for isesh = 1:num_sessionsiop
 			'linewidth', linewidth, 'color', 'b')
 		xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 		yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
-		title('Gaussian vs DoG Fits')
 		ylabel('Avg. Rate (sp/s)')
 		xlabel('Spectral Peak Freq. (kHz)')
 
@@ -143,8 +153,8 @@ for isesh = 1:num_sessionsiop
 		nstim = size(stim, 1);
 		gaus_predicted = zeros(nstim, 1);
 		for i = 1:nstim
-			fc = gaussian_params(1);
-			sigma = gaussian_params(2);
+			fc = 10^gaussian_params(1);
+			sigma = 10^gaussian_params(2);
 			g = gaussian_params(3);
 			W = gaussian_model(f, fc, sigma, g);
 			gaus_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
@@ -167,13 +177,16 @@ for isesh = 1:num_sessionsiop
 		legend('Data', 'CF', 'Spont', 'Gaussian', 'DoG', 'location', 'westoutside')
 		set(gca, 'FontSize',fontsize)
 
+		% Comparing based on how close the curves are to data
+		p_value = ftest(rate, gaus_predicted, dog_predicted);
+		title(sprintf('Gaussian vs DoG Fits, p=%0.4f', p_value))
 
 		% Annotations
-		gaus_msg = sprintf('Gaussian adjusted R^2=%0.02f', gaussian_adj_r_squared);
-		text(0.05, 0.95, gaus_msg, 'Units', 'normalized', ...
+		gaus_msg = sprintf('Gaussian R^{2}=%0.02f', gaussian_adj_r_squared);
+		text(0.05, 0.97, gaus_msg, 'Units', 'normalized', ...
 			'VerticalAlignment', 'top', 'FontSize',fontsize)
-		dog_msg = sprintf('DoG adjusted R^2=%0.02f', dog_adj_r_squared);
-		text(0.05, 0.85, dog_msg, 'Units', 'normalized', ...
+		dog_msg = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared);
+		text(0.05, 0.89, dog_msg, 'Units', 'normalized', ...
 			'VerticalAlignment', 'top', 'FontSize',fontsize)
 
 		% Get R^2 for all
