@@ -26,6 +26,7 @@ fontsize = 10;
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
 for isesh = 1:num_sessions
+	timerVal = tic;
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -82,8 +83,8 @@ for isesh = 1:num_sessions
 		% ub = [CF*4, 5000, Inf]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-16, 'display', 'off');
+			'MaxFunEvals', 10^10, 'maxiterations', 500, 'ConstraintTolerance', 1e-10, ...
+			'StepTolerance', 1e-10, 'display', 'off');
 		gaussian_params = fmincon(@(p) ...
 			dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
 			init, [], [], [], [], lb, ub, [], options);
@@ -101,18 +102,18 @@ for isesh = 1:num_sessions
 		% Fit DoG model
 		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
 		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
-		dog_lb = [100,   100,     0.001, 0.001,  log_CF-1, log_CF-1]; % Lower bounds
+		dog_lb = [100,   100,     1, 1,  log_CF-1, log_CF-1]; % Lower bounds
 		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
 		% dog_init = [20000, 10000, 100, 500,  CF, CF]; % Initial guess
 		% dog_lb = [100,   100,     10,  10,   CF/4, CF/4]; % Lower bounds
 		% dog_ub = [30000, 30000,   1000,1000, CF*4, CF*4]; % Upper bounds
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-16, 'display', 'off');
+			'MaxFunEvals', 10^10, 'maxiterations', 500, 'ConstraintTolerance', 1e-10, ...
+			'StepTolerance', 1e-10, 'display', 'off');
 		dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
 			dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
-		disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
+		%disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
 		f = linspace(0, Fs/2, 100000);
 		nstim = size(stim, 1);
 		dog_predicted = zeros(nstim, 1);
@@ -144,7 +145,9 @@ for isesh = 1:num_sessions
 		dog_analysis(isesh).spont = spont;
 		dog_analysis(isesh).rate_std = data_ST.rate_std;
 		dog_analysis(isesh).p_value = p_value;
-		
+
+		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
+		disp([putative ' took ' num2str(toc(timerVal)) ' seconds'])
 	end
 end
 

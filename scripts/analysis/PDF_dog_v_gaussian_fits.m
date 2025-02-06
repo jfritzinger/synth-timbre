@@ -38,13 +38,13 @@ index = find(has_data);
 CF_list = sessions.CF(has_data);
 [~, order] = sort(CF_list);
 num_sessions = length(CF_list);
-linewidth = 1;
-fontsize = 10;
+linewidth = 0.75;
+fontsize = 5; %10;
 
 % Plot each neuron
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
-for isesh = 1 %1:num_sessionsiop 
+for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -105,7 +105,7 @@ for isesh = 1 %1:num_sessionsiop
 		% Fit gaussian
 		log_CF = log10(CF);
 		init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
-		lb = [log_CF-1,  0.001, 0]; % Lower bounds
+		lb = [log_CF-1,  0.1,   0]; % Lower bounds
 		ub = [log_CF+1,  4,     Inf]; % Upper bounds
 
 		% % Fit gaussian
@@ -115,7 +115,7 @@ for isesh = 1 %1:num_sessionsiop
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-16, 'display', 'off');
+			'StepTolerance', 1e-15, 'display', 'off');
 		gaussian_params = fmincon(@(p) ...
 			dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
 			init, [], [], [], [], lb, ub, [], options);
@@ -123,7 +123,7 @@ for isesh = 1 %1:num_sessionsiop
 		% Fit DoG model
 		%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
 		dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
-		dog_lb = [100,   100,     0.001, 0.001,  log_CF-1, log_CF-1]; % Lower bounds
+		dog_lb = [100,   100,     0.1,   0.1,  log_CF-1, log_CF-1]; % Lower bounds
 		dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
 
 		% % Fit DoG model
@@ -133,7 +133,7 @@ for isesh = 1 %1:num_sessionsiop
 
 		options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
 			'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-			'StepTolerance', 1e-16, 'display', 'off');
+			'StepTolerance', 1e-15, 'display', 'off');
 		dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
 			dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
 		disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
@@ -208,8 +208,8 @@ end
 rptview(rpt)
 
 %% 
-
-save('R2_DOG.mat', "R2_gauss_all", "R2_dog_all")
+%
+%save('R2_DOG.mat', "R2_gauss_all", "R2_dog_all")
 
 %% FUNCTIONS
 
@@ -217,7 +217,7 @@ function [img, images] = addtoSTPDF(images, fig, title)
 import mlreportgen.dom.*
 
 % Set figure size, recommended
-values = [5.5, 3];
+values = [3.5 1.5]; %[5.5, 3];
 fig.PaperSize = values;
 fig.PaperPosition = [0 0 values];
 fig.Units = 'inches';
