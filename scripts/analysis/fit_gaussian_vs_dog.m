@@ -15,8 +15,12 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 linewidth = 1.5;
 
 % Load in data
-putative = 'R27_TT4_P8_N05'; % high CF 
+%putative = 'R27_TT4_P8_N05'; % high CF 
 %putative = 'R24_TT2_P13_N05'; % low CF
+%putative = 'R24_TT2_P12_N05';
+putative = 'R25_TT3_P9_N02';
+
+
 [base, datapath, savepath, ppi] = getPaths();
 filename = sprintf('%s.mat', putative);
 load(fullfile(datapath,'neural_data', filename)), 'data';
@@ -42,18 +46,6 @@ fpeaks = data_ST.fpeaks;
 spl = data_ST.spl;
 rate_sm = data_ST.rates_sm;
 max_rate = max(rate);
-
-% Plot
-% figure
-% hold on
-% rates_sm = smooth_rates(rate, rlb, rub, CF);
-% errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
-% 	'linestyle', 'none', 'linewidth', 0.8, 'color', 'b')
-% plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color','b')
-% plot(fpeaks./1000, rates_sm, 'linewidth', linewidth, 'color', 'k')
-% xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-% yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
-% yline(0.1, 'k', LineWidth=linewidth)
 
 
 %% Recreate stimulus (1 rep) 
@@ -85,72 +77,9 @@ model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
 model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
 model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
 
-%timerVal = tic;
-%AN = modelAN(params{1}, model_params); % HSR for IC input
-%elapsedTime = toc(timerVal)/60;
-%disp(['Model took ' num2str(elapsedTime) ' minutes'])
-
-% % Plot spectrum of stimuli
-% for istim = 1:40
-% 	figure
-% 	y = fft(stim(istim,:));
-% 	n = length(stim(istim,:)); % number of samples
-% 	fs = 100000;
-% 	f = (0:n-1)*(fs/n); % frequency range
-% 	power = abs(y).^2/n;
-% 	plot(f, power)
-% 	xlabel('Frequency')
-% 	ylabel('Power')
-% 	xlim([0 7000])
-% end
-
 %% fmincon
-type = 2; % 1: distance, 2: MSE
-stim = params{1}.stim;
-%stim = squeeze(AN.an_sout);
-timerVal = tic;
-
-% f_fit = log10(f_fit);
-% f_interp = linspace(f_fit(1), f_fit(end), 91)';
-% r_fit2 = interp1(f_fit, r_fit,f_interp, 'linear');
-% lb_CF = f_interp(1);
-% ub_CF = f_interp(end);
-% exc_init = 0.02 + (0.2 - 0.02) * rand(1);
-% inh_init = 0.1 + (0.5 - 0.1) * rand(1);
-% exc_CF_init = lb_CF + (ub_CF - lb_CF) * rand(1);
-% inh_CF_init = lb_CF + (ub_CF - lb_CF) * rand(1);
-% min_dif = f_fit(2)-f_fit(1);
-% x0 = [0.7, exc_init,  inh_init,   exc_CF_init,      inh_CF_init]; % Initial conditions
-% lb = [0,   min_dif/2,  min_dif/2, log10(tone_lo), log10(tone_lo)];
-% ub = [2,   3,     5,     log10(tone_hi), log10(tone_hi)];
-% 
-
-% Fit gaussian
-log_CF = log10(CF);
-init = [log_CF,  1.4,   100]; % Initial guess (CF, sigma, g)
-lb = [log_CF-1,  0.001, 0]; % Lower bounds
-ub = [log_CF+1,  4,     Inf]; % Upper bounds
-
-options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-	'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-	'StepTolerance', 1e-16, 'display', 'off');
-gaussian_params = fmincon(@(p) ...
-	dog_objective_function(p, 'gaussian', Fs, stim, observed_rate, r0, type), ...
-    init, [], [], [], [], lb, ub, [], options);
-
-
-% Fit DoG model
-%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
-dog_init = [20000, 10000, 2,     2.5,    log_CF, log_CF]; % Initial guess
-dog_lb = [100,   100,     0.001, 0.001,  log_CF-1, log_CF-1]; % Lower bounds
-dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
-
-options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-12, ...
-	'MaxFunEvals', 10^12, 'maxiterations', 1000, 'ConstraintTolerance', 1e-12, ...
-	'StepTolerance', 1e-16, 'display', 'off');
-dog_params = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
-    dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
-disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
+ 
+[gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
 %%
 
