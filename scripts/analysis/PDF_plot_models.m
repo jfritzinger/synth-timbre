@@ -24,7 +24,7 @@ num_data = size(sessions, 1);
 
 % Initialize report
 report_path = 'figures/pdfs/';
-filename = 'Model_LatInh';
+filename = 'Model_test';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s%s_%s.pdf', fullfile(base, report_path), datetime, filename);
@@ -65,7 +65,7 @@ num_sessions = length(CF_list);
 % Plot each neuron
 dips_p = NaN(num_sessions, 4);
 peaks_p = NaN(num_sessions, 4);
-for isesh = 1:num_sessions
+for isesh = 1 %:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -216,6 +216,38 @@ for isesh = 1:num_sessions
 					'FontSize',8,...
 					'EdgeColor','none');
 
+				% Calculate
+				sfie_temp = SFIE{ispl}.rate;
+				energy_temp =  energy{ispl}.rate;
+				lat_inh_temp =  lat_inh{ispl}.rate;
+				%sfie_pop_temp = SFIE_pop{ispl}.rate;
+
+				% Normalize to 1 (will not use this when models are fit to rate correctly)
+				sfie_temp = sfie_temp ./ max(sfie_temp);
+				energy_temp = energy_temp ./ max(energy_temp);
+				lat_inh_temp = lat_inh_temp ./ max(lat_inh_temp);
+				%sfie_pop_temp = sfie_pop_temp ./ max(sfie_pop_temp);
+				rate = data_ST.rate ./ max(data_ST.rate);
+
+				p_s_e = ftest(rate, energy_temp, sfie_temp); % F-test SFIE/energy
+				p_l_e = ftest(rate, energy_temp, lat_inh_temp); % F-test LatInh/energy
+				p_l_s = ftest(rate, lat_inh_temp, sfie_temp); % F-test LatInh/SFIE
+				%p_s_pop = ftest(rate, sfie_pop_temp', sfie_temp); % F-test SFIE/population SFIE
+
+				% Annotate 
+				message = sprintf('p_l_e=%.02f', p_l_e);
+				annotation('textbox',[lefts(ispl)+0.12 0.38 0.2 0.0869],...
+					'Color','k',...
+					'String',message, ...
+					'FontSize',8,...
+					'EdgeColor','none');
+				message = sprintf('p_s_e=%.02f', p_s_e);
+				annotation('textbox',[lefts(ispl)+0.12 0.35 0.2 0.0869],...
+					'Color','k',...
+					'String',message, ...
+					'FontSize',8,...
+					'EdgeColor','none');
+
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
 			else
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
@@ -240,8 +272,8 @@ for isesh = 1:num_sessions
 		p.WhiteSpace = "preserve";
 		append(rpt,p);
 
-		
-		% Add to PDF 
+
+		% Add to PDF
 		[plt1, images] = addtoSTPDF(images, fig, putative);
 		append(rpt, plt1); 
 	end

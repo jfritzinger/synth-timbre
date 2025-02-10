@@ -4,9 +4,8 @@ clear
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, "data-cleaning/", spreadsheet_name), 'PreserveVariableNames',true);
 
 %% Set up figure
 figure('Position',[77,128,1080,608])
