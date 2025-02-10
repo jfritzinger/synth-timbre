@@ -68,9 +68,22 @@ for isesh = 1:num_sessions
 		observed_rate = rate;
 		r0 = spont;
 
+		stim = params{1}.stim;
 		[gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
+		% Plot gaussian
+		f = linspace(0, Fs/2, 100000);
+		nstim = size(stim, 1);
+		gaus_predicted = zeros(nstim, 1);
+		for i = 1:nstim
+			fc = 10^gaussian_params(1);
+			sigma = 10^gaussian_params(2);
+			g = gaussian_params(3);
+			W = gaussian_model(f, fc, sigma, g);
+			gaus_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
+		end
 
+		% Calculate DoG
 		f = linspace(0, Fs/2, 100000);
 		nstim = size(stim, 1);
 		dog_predicted = zeros(nstim, 1);
@@ -102,6 +115,8 @@ for isesh = 1:num_sessions
 		dog_analysis(isesh).spont = spont;
 		dog_analysis(isesh).rate_std = data_ST.rate_std;
 		dog_analysis(isesh).p_value = p_value;
+		dog_analysis(isesh).dog_params = dog_params;
+		dog_analysis(isesh).gauss_params = gaussian_params;
 
 		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
 		disp([putative ' took ' num2str(toc(timerVal)) ' seconds'])
