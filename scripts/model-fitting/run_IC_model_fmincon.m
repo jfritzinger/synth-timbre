@@ -1,4 +1,4 @@
-function run_IC_model_fmincon(putative, data)
+function run_IC_model_fmincon(putative, data, CF)
 
 [~, computer] = system('hostname');
 if ismac
@@ -7,6 +7,7 @@ if ismac
 	% 	'-end')
 elseif contains(computer, 'I1') % I1
 	savepath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\manuscript\model-fits';
+    addpath('\\NSC-LCARNEY-H2\Projects_JBF\WB-TIN\scripts\helper-functions\', '-end')
 else
 	savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript\model-fits';
 	%addpath('C:\Projects_JBF\WB-TIN\scripts\helper-functions\', '-end')
