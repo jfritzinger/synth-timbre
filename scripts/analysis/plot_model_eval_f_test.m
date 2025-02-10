@@ -82,22 +82,22 @@ for isesh = 1:num_index
 
 	% F-test SFIE/energy
 	% [~,p,~,~] = vartest2(energy_temp,sfie_temp);
-	p = ftest(rate, energy_temp, sfie_temp);
+	p = model_ttest(rate, energy_temp, sfie_temp);
 	p_s_e(isesh) = log(p);
 
 	% F-test LatInh/energy
 	%[~,p,~,~] = vartest2(energy_temp,lat_inh_temp);
-	p = ftest(rate, energy_temp, lat_inh_temp);
+	p = model_ttest(rate, energy_temp, lat_inh_temp);
 	p_l_e(isesh) = log(p);
 	
 	% F-test LatInh/SFIE
 	%[~,p,~,~] = vartest2(lat_inh_temp,sfie_temp);
-	p = ftest(rate, lat_inh_temp, sfie_temp);
+	p = model_ttest(rate, lat_inh_temp, sfie_temp);
 	p_l_s(isesh) = log(p);
 
 	% F-test SFIE/population SFIE 
 	%[~,p,~,~] = vartest2(sfie_pop_temp,sfie_temp);
-	p = ftest(rate, sfie_pop_temp', sfie_temp);
+	p = model_ttest(rate, sfie_pop_temp', sfie_temp);
 	p_s_pop(isesh) = log(p);
 
 	fprintf('%s done, %d percent done\n', putative, round(isesh/num_index*100))
@@ -153,16 +153,3 @@ end
 
 % -------------------------------------------------------------------------
 
-function p_value = ftest(data, prediction1, prediction2)
-% Assuming you have these variables:
-% data: 40x1 vector of observed data
-% gaussian_prediction: 40x1 vector of Gaussian model predictions
-% dog_prediction: 40x1 vector of DoG model predictions
-
-%mse_A = immse(data, prediction1);
-%mse_B = immse(data, prediction2);
-squared_errors_A = (data - prediction1).^2;
-squared_errors_B = (data - prediction2).^2;
-[~, p_value, ~, ~] = ttest(squared_errors_A, squared_errors_B);
-
-end
