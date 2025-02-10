@@ -28,7 +28,8 @@ iWB = 1;
 putative_timbre = sessions.Putative_Units{ind_WB(iWB)};
 putative = sessions.WBTIN_Units{ind_WB(iWB)};
 CF = sessions.CF(ind_WB(iWB));
-base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02 - Code/WB-TIN/data/2024-manuscript/Neural_Data';
+%base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02 - Code/WB-TIN/data/2024-manuscript/Neural_Data';
+base = 'C:\Users\jfritzinger\Box\02 - Code\WB-TIN\data\2024-manuscript\Neural_Data';
 load(fullfile(base, [putative '.mat']), 'data');
 mkdir(savepath, putative_timbre)
 
@@ -56,15 +57,15 @@ params{2}.num_stim = size(params{2}.stim, 1);
 %% Run AN model
 
 paramCF = 0.125:0.125:1.5;
-run_AN_model(params, CF, paramCF, putative);
+run_AN_model(params, CF, paramCF, putative_timbre);
 
 %% Run IC model
 
-run_IC_model_fmincon(putative, data)
+run_IC_model_fmincon(putative_timbre, data, CF)
 
 
 %% Run PDF results and evaluate fits 
 
-get_best_fit_model(putative, CF)
-pdf_evaluate_fits(putative, CF)
+get_best_fit_model(putative_timbre, CF)
+pdf_evaluate_fits(putative_timbre, CF)
 
