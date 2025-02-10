@@ -171,8 +171,9 @@ for isesh = 1:num_sessions
 		dog_gauss_analysis.p_value = p_value;
 
 		filename = [putative '.mat'];
-		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+		%savepath = '/Volumes/Synth-Timbre/data/manuscript/';
 		%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+        savepath = '\\NSC-LCARNEY-H2\DataFiles_JBF\Synth-Timbre\data\manuscript';
 		save(fullfile(savepath, 'dog_model', filename), 'dog_gauss_analysis')
 
 		% Struct to save out all data and fits 
