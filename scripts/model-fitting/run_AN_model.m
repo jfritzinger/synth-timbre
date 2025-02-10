@@ -4,7 +4,7 @@ function run_AN_model(params, CF, paramCF, putative)
 if ismac
 	savepath = '/Volumes/Synth-Timbre/data/manuscript/model-fits';
 elseif contains(computer, 'I1') % I1
-	savepath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\manuscript\model-fits';
+	savepath = '\\NSC-LCARNEY-H2\DataFiles_JBF\Synth-Timbre\data\manuscript\model-fits';
 else
 	savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript\model-fits';
 end
