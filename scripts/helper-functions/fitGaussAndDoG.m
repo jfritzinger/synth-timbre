@@ -21,7 +21,7 @@ gaussian_params = fmincon(@(p) ...
 
 % Fit DoG model
 best_fval = Inf;
-for istarts = 1:15
+for istarts = 1:10
 
 	g_exc_init = 100 + (100000 - 100) * rand(1);
 	g_inh_init = 100 + (100000 - 100) * rand(1);
