@@ -104,6 +104,26 @@ for isesh = 1:num_sessions
 		p_value = ftest(rate, gaus_predicted, dog_predicted);
 
 		% Struct to save out all data and fits 
+		dog_gauss_analysis.putative = putative;
+		dog_gauss_analysis.dog_predicted = dog_predicted;
+		dog_gauss_analysis.gaus_predicted = gaus_predicted;
+		dog_gauss_analysis.CF = CF;
+		dog_gauss_analysis.rate = observed_rate;
+		dog_gauss_analysis.R2_dog = dog_adj_r_squared;
+		dog_gauss_analysis.R2_gauss = gaussian_adj_r_squared;
+		dog_gauss_analysis.fpeaks = data_ST.fpeaks;
+		dog_gauss_analysis.spont = spont;
+		dog_gauss_analysis.rate_std = data_ST.rate_std;
+		dog_gauss_analysis.p_value = p_value;
+		dog_gauss_analysis.dog_params = dog_params;
+		dog_gauss_analysis.gauss_params = gaussian_params;
+
+		filename = [putative '.mat'];
+		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+		%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+		save(fullfile(savepath, 'dog_model', filename), 'dog_gauss_analysis')
+
+		% Struct to save out all data and fits 
 		dog_analysis(isesh).putative = putative;
 		dog_analysis(isesh).dog_predicted = dog_predicted;
 		dog_analysis(isesh).gaus_predicted = gaus_predicted;
