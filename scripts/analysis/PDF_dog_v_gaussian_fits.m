@@ -169,6 +169,8 @@ for isesh = 1:num_sessions
 		dog_gauss_analysis.spont = spont;
 		dog_gauss_analysis.rate_std = data_ST.rate_std;
 		dog_gauss_analysis.p_value = p_value;
+		dog_gauss_analysis.dog_params = dog_params;
+		dog_gauss_analysis.gauss_params = gaussian_params;
 
 		filename = [putative '.mat'];
 		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
@@ -187,6 +189,8 @@ for isesh = 1:num_sessions
 		dog_analysis(isesh).spont = spont;
 		dog_analysis(isesh).rate_std = data_ST.rate_std;
 		dog_analysis(isesh).p_value = p_value;
+		dog_analysis(isesh).dog_params = dog_params;
+		dog_analysis(isesh).gauss_params = gaussian_params;
 
 		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
 
