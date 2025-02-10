@@ -11,10 +11,10 @@ clear
 
 %%
 
-model_type = 'SFIE';
+%model_type = 'SFIE';
 %model_type = 'Energy';
 %model_type = 'SFIE_pop';	
-%model_type = 'Lat_Inh';
+model_type = 'Lat_Inh';
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
@@ -33,7 +33,7 @@ bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
 has_data = bin200(:,1) | bin200(:,2) | bin200(:,3) | bin200(:,4);
 indices = find(has_data);
 num_index = length(indices);
-for isesh = 101:num_index
+for isesh = 1:num_index
 
 	% Load in session
 	putative = sessions.Putative_Units{indices(isesh)};
@@ -341,7 +341,7 @@ for isesh = 101:num_index
 				params_RM.dur = 0.2;
 				params_RM.ramp_dur = 0.01;
 				params_RM.reptim = 0.6;
-				params_RM.nrep = 3;
+				params_RM.nrep = 1;
 				params_RM.freqs = [3000,3001, 1];
 				params_RM.spls = [];
 				params_RM.binmode = 2;
@@ -354,18 +354,18 @@ for isesh = 101:num_index
 				AN_spont = modelAN(params_RM, model_params);
 				SFIE_spont = wrapperIC(AN_spont.an_sout, params_RM, model_params);
 
-				figure
-				tiledlayout(3, 1)
-				nexttile
-				plot(squeeze(AN_spont.an_sout))
-				ylim([0 170])
-				title('AN')
-				nexttile
-				plot(squeeze(SFIE_spont.ic_BE))
-				title('BE')
-				nexttile
-				plot(squeeze(SFIE_spont.ic_BS))
-				title('BS')
+% 				figure
+% 				tiledlayout(3, 1)
+% 				nexttile
+% 				plot(squeeze(AN_spont.an_sout))
+% 				ylim([0 170])
+% 				title('AN')
+% 				nexttile
+% 				plot(squeeze(SFIE_spont.ic_BE))
+% 				title('BE')
+% 				nexttile
+% 				plot(squeeze(SFIE_spont.ic_BS))
+% 				title('BS')
 
 				% Plot
 				if strcmp(MTF_shape, 'BS') || strcmp(MTF_shape, 'BE')
@@ -381,6 +381,7 @@ for isesh = 101:num_index
 					lat_inh{ispl}.R2 = R(1, 2).^2;
 					lat_inh{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, latinh_temp.ic, 0);
 					lat_inh{ispl}.rmse = rmse;
+					lat_inh{ispl}.spont = SFIE_spont.avIC;
 
 				else
 					lat_inh{ispl}.rate = [];
@@ -390,6 +391,7 @@ for isesh = 101:num_index
 					lat_inh{ispl}.R2 = [];
 					lat_inh{ispl}.PSTH = [];
 					lat_inh{ispl}.rmse = [];
+					lat_inh{ispl}.spont = [];
 				end
 				lat_inh{ispl}.MTF_shape = MTF_shape;
 				lat_inh{ispl}.BMF = BMF;
@@ -402,6 +404,7 @@ for isesh = 101:num_index
 				AN_lat_inh{ispl}.R = R(1, 2);
 				AN_lat_inh{ispl}.R2 = R(1, 2).^2;
 				AN_lat_inh{ispl}.PSTH = plotST_PSTH(params_ST{ispl}, AN_temp.an_sout, 0);
+				AN_lat_inh{ispl}.spont = mean(AN_spont.average_AN_sout);
 
 			end
 
@@ -412,8 +415,8 @@ for isesh = 101:num_index
 
 	% Save model
 	filename = [putative '_' model_type '.mat'];
-	savepath = '/Volumes/Synth-Timbre/data/manuscript/';
-	%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+	%savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+	savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
 	if strcmp(model_type, 'Energy')
 		save(fullfile(savepath, 'energy_model', filename), 'params_ST', 'energy')
 	elseif strcmp(model_type, 'SFIE')
