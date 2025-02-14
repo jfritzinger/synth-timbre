@@ -1,4 +1,4 @@
-function get_best_fit_model(putative, CF)
+function get_best_fit_model(putative, CF, putative_timbre)
 
 [~, computer] = system('hostname');
 if ismac
@@ -6,7 +6,8 @@ if ismac
 	addpath('/Users/jfritzinger/Projects/WB-TIN/scripts/helper-functions',...
 		'-end')
 elseif contains(computer, 'I1') % I1
-	modelpath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\model-fits';
+    modelpath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\manuscript\model-fits';
+    addpath('\\NSC-LCARNEY-H2\Projects_JBF\WB-TIN\scripts\helper-functions\', '-end')
 else
 	modelpath = 'C:\DataFiles_JBF\WB-TIN\data\model-fits';
 	addpath('C:\Projects_JBF\WB-TIN\scripts\helper-functions\', '-end')
@@ -22,12 +23,12 @@ data_rates = analyze_data(data, CF); % Analyze data and put in correct form
 %% Load in AN response
 
 % Load in AN
-filename = sprintf('%s_AN.mat', putative);
-load(fullfile(modelpath, putative, filename), 'params', 'AN', 'model_params')
+filename = sprintf('%s_AN.mat', putative_timbre);
+load(fullfile(modelpath, putative_timbre, filename), 'params', 'AN', 'model_params')
 
 % Load in IC parameter values 
-filename = sprintf('%s_IC.mat', putative);
-load(fullfile(modelpath, putative, filename), 'fit_params_all')
+filename = sprintf('%s_IC.mat', putative_timbre);
+load(fullfile(modelpath, putative_timbre, filename), 'fit_params_all')
 
 %% Evaluate model fits  
 
@@ -103,6 +104,6 @@ AN_best = AN(paramCF, :);
 %% Save model and best parameters
 
 filename = sprintf('%s_BestModel.mat', putative);
-save(fullfile(modelpath, putative, filename),...
+save(fullfile(modelpath, putative_timbre, filename),...
 	'AN_best', "IC_best", "model_params", "params", "fit_params")
 

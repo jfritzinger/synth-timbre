@@ -1,4 +1,4 @@
-function pdf_evaluate_fits(putative, CF)
+function pdf_evaluate_fits(putative, CF, putative_timbre)
 
 %% evaluate_fits
 
@@ -8,7 +8,7 @@ if ismac
 	addpath('/Users/jfritzinger/Projects/WB-TIN/scripts/helper-functions',...
 		'-end')
 elseif contains(computer, 'I1') % I1
-	modelpath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\model-fits';
+    modelpath = '\\NSC-LCARNEY-H2\Synth-Timbre\data\manuscript\model-fits';
 else
 	modelpath = 'C:\DataFiles_JBF\WB-TIN\data\model-fits';
 	addpath('C:\Projects_JBF\WB-TIN\scripts\helper-functions\', '-end')
@@ -23,12 +23,12 @@ data_rates = analyze_data(data, CF); % Analyze data and put in correct form
 %% Load in AN response
 
 % Load in AN
-filename = sprintf('%s_AN.mat', putative);
-load(fullfile(modelpath, putative, filename), 'params', 'AN', 'model_params')
+filename = sprintf('%s_AN.mat', putative_timbre);
+load(fullfile(modelpath, putative_timbre, filename), 'params', 'AN', 'model_params')
 
 % Load in IC parameter values 
-filename = sprintf('%s_IC.mat', putative);
-load(fullfile(modelpath, putative, filename), 'fit_params_all')
+filename = sprintf('%s_IC.mat', putative_timbre);
+load(fullfile(modelpath, putative_timbre, filename), 'fit_params_all')
 
 %% Set up PDF
 
@@ -45,8 +45,8 @@ else
 end
 
 filename = 'Pearson';
-report_name = fullfile(modelpath, putative, ...
-	sprintf('%s_%s.pdf', putative, filename));
+report_name = fullfile(modelpath, putative_timbre, ...
+	sprintf('%s_%s.pdf', putative_timbre, filename));
 rpt = Document(report_name, 'pdf'); %initialize report document as pdf
 open(rpt);
 pm = rpt.CurrentPageLayout;
@@ -61,8 +61,7 @@ pm.PageMargins.Right = '0.2in';
 
 % Evaluate model fits  
 data_MTF = data_rates(1:26);
-data_TIN = data_rates(27:29);
-data_WB = data_rates(30:end);
+data_WB = data_rates(27:end);
 
 num_paramCF = size(AN, 1);
 for iparamCF = 1:num_paramCF
@@ -145,27 +144,27 @@ for iparamCF = 1:num_paramCF
 
 	% Plot NB-TIN
 	nexttile
-	hold on
-	num_SNRs = 3;
-	SNRs = [-inf params{2}.SNR];
-	x = repmat(1:num_SNRs, 1, 1);
-	plot(x, data_TIN, 'LineWidth',1.5);
-	plot(x,model_TIN, 'LineWidth',1.5);
-	xlabel('SNR');
-	xticks(1:num_SNRs)
-	xticklabels([-inf 30 40])
-	xlim([0 num_SNRs+1])
-	ylabel('Spike rate (sp/s)')
-	y = ylim;
-	ylim([0,y(2)])
-	legend('Data', 'Model', 'Location','best')
-	r = corrcoef(model_TIN, data_TIN);
-	message = sprintf('R=%0.2f', r(1,2));
-	text(0.05, 0.95, message, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top')
+% 	hold on
+% 	num_SNRs = 3;
+% 	SNRs = [-inf params{2}.SNR];
+% 	x = repmat(1:num_SNRs, 1, 1);
+% 	plot(x, data_TIN, 'LineWidth',1.5);
+% 	plot(x,model_TIN, 'LineWidth',1.5);
+% 	xlabel('SNR');
+% 	xticks(1:num_SNRs)
+% 	xticklabels([-inf 30 40])
+% 	xlim([0 num_SNRs+1])
+% 	ylabel('Spike rate (sp/s)')
+% 	y = ylim;
+% 	ylim([0,y(2)])
+% 	legend('Data', 'Model', 'Location','best')
+% 	r = corrcoef(model_TIN, data_TIN);
+% 	message = sprintf('R=%0.2f', r(1,2));
+% 	text(0.05, 0.95, message, 'Units', 'normalized', ...
+% 			'VerticalAlignment', 'top')
 
 	nexttile
-	param = params{3};
+	param = params{2};
 	freqs = param.fpeaks;
 	hold on
 	yline(mean(data_WB(1)),'Color','k', 'LineWidth',2);
