@@ -7,7 +7,7 @@ timerVal = tic;
 
 % Fit gaussian
 best_fval = Inf;
-for istarts = 1:50
+for istarts = 1
 	log_CF = log10(CF);
 	s_init = 1 + (4 - 1) * rand(1);
 	g_init = 1000*rand(1);
@@ -31,7 +31,7 @@ gaussian_params = best_x;
 
 % Fit DoG model
 best_fval = Inf;
-for istarts = 1:10
+for istarts = 1:50
 
 	g_exc_init = 100 + (100000 - 100) * rand(1);
 	g_inh_init = 100 + (100000 - 100) * rand(1);
@@ -43,9 +43,9 @@ for istarts = 1:10
 	dog_lb = [100,   100,     1,     1,  log_CF-1, log_CF-1]; % Lower bounds
 	dog_ub = [100000, 100000, 4,     4,      log_CF+1, log_CF+1]; % Upper bounds
 
-	options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-10, ...
-		'MaxFunEvals', 10^10, 'maxiterations', 500, 'ConstraintTolerance', 1e-10, ...
-		'StepTolerance', 1e-10, 'display', 'off');
+	options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-15, ...
+		'MaxFunEvals', 10^15, 'maxiterations', 800, 'ConstraintTolerance', 1e-15, ...
+		'StepTolerance', 1e-15, 'display', 'off');
 	[dog_params, fval] = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
 		dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
 	
