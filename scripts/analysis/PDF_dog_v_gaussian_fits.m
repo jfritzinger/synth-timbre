@@ -96,13 +96,13 @@ for isesh = 1:num_sessions
 		observed_rate = rate;
 		r0 = spont;
 
-		[gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
+		[gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
 		% Plot data
 		fig = figure;
 		hold on
 		errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
-			'linewidth', linewidth, 'color', 'b')
+			'linewidth', linewidth, 'color', 'k')
 		xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 		yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
 		ylabel('Avg. Rate (sp/s)')
@@ -135,11 +135,24 @@ for isesh = 1:num_sessions
 		plot(fpeaks./1000, dog_predicted, 'g', 'linewidth', linewidth)
 		dog_adj_r_squared = calculate_adj_r_squared(observed_rate,...
 			dog_predicted, 6);
-		legend('Data', 'CF', 'Spont', 'Gaussian', 'DoG', 'location', 'westoutside')
 		set(gca, 'FontSize',fontsize)
 
+		% Plot DoG2
+		f = linspace(0, Fs/2, 100000);
+		nstim = size(stim, 1);
+		dog_predicted2 = zeros(nstim, 1);
+		for i = 1:nstim
+			W = dog_model(f, dog_params2);
+			dog_predicted2(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
+		end
+		plot(fpeaks./1000, dog_predicted2, 'b', 'linewidth', linewidth)
+		dog_adj_r_squared2 = calculate_adj_r_squared(observed_rate,...
+			dog_predicted2, 6);
+		set(gca, 'FontSize',fontsize)
+		legend('Data', 'CF', 'Spont', 'Gaussian', 'DoG','DoG2', 'location', 'westoutside')
+
 		% Comparing based on how close the curves are to data
-		p_value = ftest(rate, gaus_predicted, dog_predicted);
+		p_value = ftest(rate, gaus_predicted, dog_predicted2);
 		title(sprintf('Gaussian vs DoG Fits, p=%0.4f', p_value))
 
 		% Annotations
@@ -149,6 +162,10 @@ for isesh = 1:num_sessions
 		dog_msg = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared);
 		text(0.05, 0.89, dog_msg, 'Units', 'normalized', ...
 			'VerticalAlignment', 'top', 'FontSize',fontsize)
+		dog_msg2 = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared2);
+		text(0.05, 0.78, dog_msg2, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',fontsize)
+		
 
 		% Get R^2 for all
 		R2_dog_all(isesh) = dog_adj_r_squared;
@@ -160,37 +177,43 @@ for isesh = 1:num_sessions
 		% Struct to save out all data and fits 
 		dog_gauss_analysis.putative = putative;
 		dog_gauss_analysis.dog_predicted = dog_predicted;
+		dog_gauss_analysis.dog_predicted2 = dog_predicted2;
 		dog_gauss_analysis.gaus_predicted = gaus_predicted;
 		dog_gauss_analysis.CF = CF;
 		dog_gauss_analysis.rate = observed_rate;
 		dog_gauss_analysis.R2_dog = dog_adj_r_squared;
+		dog_gauss_analysis.R2_dog2 = dog_adj_r_squared2;
 		dog_gauss_analysis.R2_gauss = gaussian_adj_r_squared;
 		dog_gauss_analysis.fpeaks = data_ST.fpeaks;
 		dog_gauss_analysis.spont = spont;
 		dog_gauss_analysis.rate_std = data_ST.rate_std;
 		dog_gauss_analysis.p_value = p_value;
 		dog_gauss_analysis.dog_params = dog_params;
+		dog_gauss_analysis.dog_params2 = dog_params2;
 		dog_gauss_analysis.gauss_params = gaussian_params;
 
 		filename = [putative '.mat'];
-		%savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
 		%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
-        savepath = '\\NSC-LCARNEY-H2\DataFiles_JBF\Synth-Timbre\data\manuscript';
+        %savepath = '\\NSC-LCARNEY-H2\DataFiles_JBF\Synth-Timbre\data\manuscript';
 		save(fullfile(savepath, 'dog_model', filename), 'dog_gauss_analysis')
 
 		% Struct to save out all data and fits 
 		dog_analysis(isesh).putative = putative;
 		dog_analysis(isesh).dog_predicted = dog_predicted;
+		dog_analysis(isesh).dog_predicted2 = dog_predicted2;
 		dog_analysis(isesh).gaus_predicted = gaus_predicted;
 		dog_analysis(isesh).CF = CF;
 		dog_analysis(isesh).rate = observed_rate;
 		dog_analysis(isesh).R2_dog = dog_adj_r_squared;
+		dog_analysis(isesh).R2_dog2 = dog_adj_r_squared2;
 		dog_analysis(isesh).R2_gauss = gaussian_adj_r_squared;
 		dog_analysis(isesh).fpeaks = data_ST.fpeaks;
 		dog_analysis(isesh).spont = spont;
 		dog_analysis(isesh).rate_std = data_ST.rate_std;
 		dog_analysis(isesh).p_value = p_value;
 		dog_analysis(isesh).dog_params = dog_params;
+		dog_analysis(isesh).dog_params2 = dog_params2;
 		dog_analysis(isesh).gauss_params = gaussian_params;
 
 		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
