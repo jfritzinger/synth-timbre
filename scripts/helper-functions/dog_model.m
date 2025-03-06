@@ -7,17 +7,30 @@ function W = dog_model(fpeaks, DOGparams)
     % W = excGauss - inhGauss;
 
 	% Set Parameters
-	s_exc = DOGparams(1);
-	s_inh = DOGparams(2);
-	sigma_exc = 10^DOGparams(3);
-	sigma_inh = 10^DOGparams(4);
-	CF_exc = 10^DOGparams(5);
-	CF_inh = 10^DOGparams(6);
-	gauss_exc = normpdf(fpeaks, CF_exc, sigma_exc);
-	gauss_inh = normpdf(fpeaks, CF_inh, sigma_inh);
-	gauss_exc = s_exc*(gauss_exc./max(gauss_exc));
-	gauss_inh = s_inh*(gauss_inh./max(gauss_inh));
-	W = gauss_exc - gauss_inh;
+	if length(DOGparams)==6
+		s_exc = DOGparams(1);
+		s_inh = DOGparams(2);
+		sigma_exc = 10^DOGparams(3);
+		sigma_inh = 10^DOGparams(4);
+		CF_exc = 10^DOGparams(5);
+		CF_inh = 10^DOGparams(6);
+		gauss_exc = normpdf(fpeaks, CF_exc, sigma_exc);
+		gauss_inh = normpdf(fpeaks, CF_inh, sigma_inh);
+		gauss_exc = s_exc*(gauss_exc./max(gauss_exc));
+		gauss_inh = s_inh*(gauss_inh./max(gauss_inh));
+		W = gauss_exc - gauss_inh;
+	else
+		s_exc = DOGparams(1);
+		s_inh = DOGparams(2);
+		sigma_exc = 10^DOGparams(3);
+		sigma_inh = 10^DOGparams(4);
+		CF = 10^DOGparams(5);
+		gauss_exc = normpdf(fpeaks, CF, sigma_exc);
+		gauss_inh = normpdf(fpeaks, CF, sigma_inh);
+		gauss_exc = s_exc*(gauss_exc./max(gauss_exc));
+		gauss_inh = s_inh*(gauss_inh./max(gauss_inh));
+		W = gauss_exc - gauss_inh;
+	end
 
 	% Plot to test 
 	% figure

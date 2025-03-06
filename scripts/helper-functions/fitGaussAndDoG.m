@@ -1,4 +1,4 @@
-function [gaussian_params, dog_params] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0)
+function [gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0)
 % fitGausAndDoG
 
 type = 2; % 1: distance, 2: MSE
@@ -7,7 +7,7 @@ timerVal = tic;
 
 % Fit gaussian
 best_fval = Inf;
-for istarts = 1
+for istarts = 1:15
 	log_CF = log10(CF);
 	s_init = 1 + (4 - 1) * rand(1);
 	g_init = 1000*rand(1);
@@ -31,7 +31,7 @@ gaussian_params = best_x;
 
 % Fit DoG model
 best_fval = Inf;
-for istarts = 1:50
+for istarts = 1:15
 
 	g_exc_init = 100 + (100000 - 100) * rand(1);
 	g_inh_init = 100 + (100000 - 100) * rand(1);
@@ -55,6 +55,33 @@ for istarts = 1:50
 	end
 end
 dog_params = best_x;
+disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
+
+best_fval = Inf;
+for istarts = 1:15
+
+	g_exc_init = 100 + (100000 - 100) * rand(1);
+	g_inh_init = 100 + (100000 - 100) * rand(1);
+	s_exc_nit = 1 + (4 - 1) * rand(1);
+	s_inh_init = 1 + (4 - 1) * rand(1);
+
+	%			g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
+	dog_init = [g_exc_init, g_inh_init, s_exc_nit, s_inh_init, log_CF]; % Initial guess
+	dog_lb = [100,   100,     1,     1,  log_CF-1]; % Lower bounds
+	dog_ub = [100000, 100000, 4,     4,      log_CF+1]; % Upper bounds
+
+	options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-15, ...
+		'MaxFunEvals', 10^15, 'maxiterations', 800, 'ConstraintTolerance', 1e-15, ...
+		'StepTolerance', 1e-15, 'display', 'off');
+	[dog_params2, fval] = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
+		dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
+	
+	if fval < best_fval
+		best_x = dog_params2;
+		best_fval = fval;
+	end
+end
+dog_params2 = best_x;
 disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
 
 
