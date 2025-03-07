@@ -85,21 +85,30 @@ histogram(qs(:,1)-qs(:,4))
 %% Older plots 
 
 figure('position', [890,461,775,305])
-tiledlayout(1, 2, 'Padding','compact', 'TileSpacing','compact')
+tiledlayout(1, 3, 'Padding','compact', 'TileSpacing','compact')
 spls = [43, 63, 73, 83];
 differences = NaN(length(qs), 1);
 for ii = 1:length(qs)
-	if ~isnan(qs(ii,3)) && ~isnan(qs(ii,1))
+
+
+	if ~isnan(qs(ii,4)) && ~isnan(qs(ii,1))
+		differences(ii) = qs((ii),4)-qs((ii),1);
+	elseif ~isnan(qs(ii,4)) && ~isnan(qs(ii,2))
+		differences(ii) = qs((ii),4)-qs((ii),2);
+	elseif ~isnan(qs(ii,3)) && ~isnan(qs(ii,1))
 		differences(ii) = qs((ii),3)-qs((ii),1);
 	elseif ~isnan(qs(ii,2)) && ~isnan(qs(ii,1))
 		differences(ii) = qs((ii),2)-qs((ii),1);
 	elseif ~isnan(qs(ii,3)) && ~isnan(qs(ii,2))
 		differences(ii) = qs((ii),3)-qs((ii),2);
 	end
+
 end
 decrease = find(sign(differences)==-1);
 increase = find(sign(differences)==1);
+same = 0;
 
+% Increase 
 nexttile
 hold on
 plot(spls, qs(increase,:)', 'color', [0.85,0.11,0.38, 0.6], 'LineWidth',1.5)
@@ -115,6 +124,23 @@ plot(spls, median(qs(increase,:), 'omitnan'), '--k', 'LineWidth',2)
 % [~, ~, stats] = anova1(qs(increase,:));
 % multcompare(stats)
 
+% Stay the same 
+% nexttile
+% hold on
+% plot(spls, qs(same,:)', 'color',[0.12,0.53,0.90, 0.6], 'LineWidth',1.5)
+% xticks(spls)
+% set(gca, 'fontsize', 18)
+% title(['Broadening Peak (n=' num2str(length(same)) ')'])
+% xlabel('Level (dB SPL)')
+% box on
+% xlim([40 86])
+% yticklabels([])
+% plot(spls, mean(qs(same,:), 'omitnan'), 'k', 'LineWidth',2)
+% plot(spls, median(qs(same,:), 'omitnan'), '--k', 'LineWidth',2)
+% legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+% 	'Mean', 'Median', 'fontsize', 18)
+
+% Decrease 
 nexttile
 hold on
 plot(spls, qs(decrease,:)', 'color',[0.12,0.53,0.90, 0.6], 'LineWidth',1.5)
@@ -127,9 +153,9 @@ xlim([40 86])
 yticklabels([])
 plot(spls, mean(qs(decrease,:), 'omitnan'), 'k', 'LineWidth',2)
 plot(spls, median(qs(decrease,:), 'omitnan'), '--k', 'LineWidth',2)
-legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '','Mean', 'Median', 'fontsize', 18)
-% [~, ~, stats] = anova1(qs(decrease,:));
-% multcompare(stats)
+legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+	'Mean', 'Median', 'fontsize', 18)
+
 
 %% CURRENT 
 
@@ -195,93 +221,247 @@ for igroup = 1:3
 end
 
 %% Plot 
-% 
-% qs_new_log = qs_log - qs_log(:,1);
-% qs_new = qs - qs(:,1);
-% figure('position', [756,106,586,831])
-% spls = [43, 63, 73, 83];
-% differences2 = NaN(length(qs_new), 1);
-% for ii = 1:length(qs_new)
-% 	if ~isnan(qs_new(ii,1))
-% 		diff_temp = qs_new(ii,:) - qs_new(ii,1);
-% 	elseif ~isnan(qs_new(ii,2))
-% 		diff_temp = qs_new(ii,:) - qs_new(ii,2);
-% 	elseif ~isnan(qs_new(ii,3))
-% 		diff_temp = qs_new(ii,:) - qs_new(ii,3);
-% 	end
-% 	[max_diff, max_index] = max(abs(diff_temp));
-% 	differences2(ii) = diff_temp(max_index);
-% end
-% decrease = find(sign(differences2)==-1);
-% increase = find(sign(differences2)==1);
-% 
-% hold on
-% yline(0)
-% plot(spls, qs_new(increase,:)', 'color', [0.85,0.11,0.38, 0.6], 'LineWidth',1.5)
-% plot(spls, qs_new(decrease,:)', 'color',[0.12,0.53,0.90, 0.6], 'LineWidth',1.5)
-% xticks(spls)
-% set(gca, 'fontsize', 18)
-% xlabel('Level (dB SPL)')
-% ylabel('Q')
-% box on
-% xlim([40 86])
-% plot(spls, mean(qs_new(increase,:), 'omitnan'), 'k', 'LineWidth',2)
-% plot(spls, median(qs_new(increase,:), 'omitnan'), '--k', 'LineWidth',2)
-% plot(spls, mean(qs_new(decrease,:), 'omitnan'), 'k', 'LineWidth',2)
-% plot(spls, median(qs_new(decrease,:), 'omitnan'), '--k', 'LineWidth',2)
+
+qs_new_log = qs_log - qs_log(:,1);
+qs_new = qs - qs(:,1);
+figure('position', [756,106,586,831])
+spls = [43, 63, 73, 83];
+differences2 = NaN(length(qs_new), 1);
+for ii = 1:length(qs_new)
+	if ~isnan(qs_new(ii,1))
+		diff_temp = qs_new(ii,:) - qs_new(ii,1);
+	elseif ~isnan(qs_new(ii,2))
+		diff_temp = qs_new(ii,:) - qs_new(ii,2);
+	elseif ~isnan(qs_new(ii,3))
+		diff_temp = qs_new(ii,:) - qs_new(ii,3);
+	end
+	[max_diff, max_index] = max(abs(diff_temp));
+	differences2(ii) = diff_temp(max_index);
+end
+decrease = find(sign(differences2)==-1);
+increase = find(sign(differences2)==1);
+
+hold on
+yline(0)
+plot(spls, qs_new(increase,:)', 'color', [0.85,0.11,0.38, 0.6], 'LineWidth',1.5)
+plot(spls, qs_new(decrease,:)', 'color',[0.12,0.53,0.90, 0.6], 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+xlabel('Level (dB SPL)')
+ylabel('Q')
+box on
+xlim([40 86])
+plot(spls, mean(qs_new(increase,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs_new(increase,:), 'omitnan'), '--k', 'LineWidth',2)
+plot(spls, mean(qs_new(decrease,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs_new(decrease,:), 'omitnan'), '--k', 'LineWidth',2)
 
 %% Linear regression for each neuron to check significance 
-% 
-% x = 1:4;
-% num_neurons = size(qs, 1);
-% p_values = zeros(num_neurons, 1);
-% slopes = zeros(num_neurons, 1);
-% for i = 1:num_neurons
-% 
-% 	y = qs_log(i, :)';
-%     tbl = table(x', y, 'VariableNames', {'X', 'Q'});
-%     %mdl = fitlm(tbl, 'Q ~ X');
-% 	mdl = fitlm(tbl,'Q ~ X + X^2');
-% 
-%     p_values(i) = mdl.Coefficients.pValue(2); % p-value
-%     slopes(i) = mdl.Coefficients.Estimate(2); % slope
-% 
-% 	% Plot
-% 	% figure
-% 	% plot(x, y)
-% 	% hold on
-% 	% y_fit = predict(mdl, table(x', 'VariableNames', {'X'}));
-% 	% plot(x, y_fit, 'r-', 'LineWidth', 2);
-% end
-% 
-% alpha = 0.05; % Significance level
-% significant_neurons = sum(p_values < alpha);
-% 
-% increasing_neurons = sum(slopes > 0 & p_values < alpha);
-% decreasing_neurons = sum(slopes < 0 & p_values < alpha);
-% 
-% fprintf('Total neurons with significant changes: %d\n', significant_neurons);
-% fprintf('Neurons with significant increase: %d\n', increasing_neurons);
-% fprintf('Neurons with significant decrease: %d\n', decreasing_neurons);
+
+x = 1:4;
+num_neurons = size(qs, 1);
+p_values = zeros(num_neurons, 1);
+slopes = zeros(num_neurons, 1);
+qs_log_nonzero = qs_log;
+qs_log_nonzero(qs_log_nonzero==0) = NaN;
+for i = 1:num_neurons
+
+	y = qs_log_nonzero(i, :)';
+    tbl = table(x', y, 'VariableNames', {'X', 'Q'});
+    mdl = fitlm(tbl, 'Q ~ X');
+	%mdl = fitlm(tbl,'Q ~ X + X^2');
+
+    p_values(i) = mdl.Coefficients.pValue(2); % p-value
+    slopes(i) = mdl.Coefficients.Estimate(2); % slope
+
+	% Plot
+	figure
+	plot(x, y)
+	hold on
+	y_fit = predict(mdl, table(x', 'VariableNames', {'X'}));
+	plot(x, y_fit, 'r-', 'LineWidth', 2);
+end
+
+alpha = 0.05; % Significance level
+significant_neurons = sum(p_values < alpha);
+
+increasing_neurons = sum(slopes > 0 & p_values < alpha);
+decreasing_neurons = sum(slopes < 0 & p_values < alpha);
+
+fprintf('Total neurons with significant changes: %d\n', significant_neurons);
+fprintf('Neurons with significant increase: %d\n', increasing_neurons);
+fprintf('Neurons with significant decrease: %d\n', decreasing_neurons);
 
 %% Another plot 
-% 
-% 
-% figure('position', [890,461,775,305])
-% tiledlayout(1, 2, 'Padding','compact', 'TileSpacing','compact')
-% spls = [43, 63, 73, 83];
-% 
-% nexttile
-% hold on
-% plot(spls, qs_log', 'color', [0.85,0.11,0.38, 0.6], 'LineWidth',1.5)
-% xticks(spls)
-% set(gca, 'fontsize', 18)
-% xlabel('Level (dB SPL)')
-% ylabel('Q')
-% box on
-% xlim([40 86])
-% plot(spls, mean(qs(increase,:), 'omitnan'), 'k', 'LineWidth',2)
-% plot(spls, median(qs(increase,:), 'omitnan'), '--k', 'LineWidth',2)
+
+
+figure('position', [890,461,775,305])
+tiledlayout(1, 2, 'Padding','compact', 'TileSpacing','compact')
+spls = [43, 63, 73, 83];
+
+nexttile
+hold on
+plot(spls, qs_log', 'color', [0.85,0.11,0.38, 0.6], 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+xlabel('Level (dB SPL)')
+ylabel('Q')
+box on
+xlim([40 86])
+plot(spls, mean(qs(increase,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs(increase,:), 'omitnan'), '--k', 'LineWidth',2)
 % [~, ~, stats] = anova1(qs(increase,:));
 % multcompare(stats)
+
+%% ANOTHER PLOT 3/7/25
+
+% Get matrix of units with 43, 63, 83 dB 
+qs2 = qs(:,[1,2,4]);
+rows_with_nan = any(isnan(qs2),2);
+qs2(rows_with_nan,:) = [];
+x = [43, 63, 83];
+
+% Try 1: Criteria using slope
+for ii = 1:length(qs2)
+
+	y = qs2(ii, :)';
+    tbl = table(x', y, 'VariableNames', {'X', 'Q'});
+    mdl = fitlm(tbl, 'Q ~ X');
+    slopes(ii) = mdl.Coefficients.Estimate(2); % slope
+
+	% % Plot
+	% figure
+	% plot(x, y)
+	% hold on
+	% y_fit = predict(mdl, table(x', 'VariableNames', {'X'}));
+	% plot(x, y_fit, 'r-', 'LineWidth', 2);
+end
+criteria = 0.03;
+same = slopes<criteria & slopes > -1*criteria;
+decrease = slopes<-1*criteria;
+increase = slopes>criteria;
+
+figure('position', [890,461,775,305])
+tiledlayout(1, 3, 'Padding','compact', 'TileSpacing','compact')
+spls = [43, 63, 83];
+
+% Increase 
+nexttile
+hold on
+plot(spls, qs2(increase,:)', 'color', [27,158,119]/256, 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+title(['Sharpening Peak (n=' num2str(sum(increase)) ')'])
+xlabel('Level (dB SPL)')
+ylabel('Q')
+box on
+xlim([40 86])
+plot(spls, mean(qs2(increase,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs2(increase,:), 'omitnan'), '--k', 'LineWidth',2)
+
+
+% Stay the same 
+nexttile
+hold on
+plot(spls, qs2(same,:)', 'color',[217,95,2]/256, 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+title(['No Change (n=' num2str(sum(same)) ')'])
+xlabel('Level (dB SPL)')
+box on
+xlim([40 86])
+yticklabels([])
+plot(spls, mean(qs2(same,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs2(same,:), 'omitnan'), '--k', 'LineWidth',2)
+legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+	'Mean', 'Median', 'fontsize', 18)
+
+% Decrease 
+nexttile
+hold on
+plot(spls, qs2(decrease,:)', 'color',[117,112,179]/256, 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+title(['Broadening Peak (n=' num2str(sum(decrease)) ')'])
+xlabel('Level (dB SPL)')
+box on
+xlim([40 86])
+yticklabels([])
+plot(spls, mean(qs2(decrease,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs2(decrease,:), 'omitnan'), '--k', 'LineWidth',2)
+legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+	'Mean', 'Median', 'fontsize', 18)
+
+[~, ~, stats] = anova1(qs2(increase,:));
+multcompare(stats)
+[~, ~, stats] = anova1(qs2(same,:));
+multcompare(stats)
+[~, ~, stats] = anova1(qs2(decrease,:));
+multcompare(stats)
+
+
+%% 
+
+% Try 2: Criteria using % change 
+max_q = max(qs2, [], 2);
+min_q = min(qs2, [], 2);
+difference = max_q - min_q;
+changed = min_q ./ max_q * 100;
+
+same = changed>50;
+increase = changed<50;
+
+figure('position', [890,461,775,305])
+tiledlayout(1, 3, 'Padding','compact', 'TileSpacing','compact')
+spls = [43, 63, 83];
+
+% Increase 
+nexttile
+hold on
+plot(spls, qs2(increase,:)', 'color', [27,158,119]/256, 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+title(['Sharpening Peak (n=' num2str(sum(increase)) ')'])
+xlabel('Level (dB SPL)')
+ylabel('Q')
+box on
+xlim([40 86])
+plot(spls, mean(qs2(increase,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs2(increase,:), 'omitnan'), '--k', 'LineWidth',2)
+% [~, ~, stats] = anova1(qs(increase,:));
+% multcompare(stats)
+
+% Stay the same 
+nexttile
+hold on
+plot(spls, qs2(same,:)', 'color',[217,95,2]/256, 'LineWidth',1.5)
+xticks(spls)
+set(gca, 'fontsize', 18)
+title(['No Change (n=' num2str(sum(same)) ')'])
+xlabel('Level (dB SPL)')
+box on
+xlim([40 86])
+yticklabels([])
+plot(spls, mean(qs2(same,:), 'omitnan'), 'k', 'LineWidth',2)
+plot(spls, median(qs2(same,:), 'omitnan'), '--k', 'LineWidth',2)
+legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+	'Mean', 'Median', 'fontsize', 18)
+
+% Decrease 
+% nexttile
+% hold on
+% plot(spls, qs2(decrease,:)', 'color',[117,112,179]/256, 'LineWidth',1.5)
+% xticks(spls)
+% set(gca, 'fontsize', 18)
+% title(['Broadening Peak (n=' num2str(sum(decrease)) ')'])
+% xlabel('Level (dB SPL)')
+% box on
+% xlim([40 86])
+% yticklabels([])
+% plot(spls, mean(qs2(decrease,:), 'omitnan'), 'k', 'LineWidth',2)
+% plot(spls, median(qs2(decrease,:), 'omitnan'), '--k', 'LineWidth',2)
+% legend('', '', '', '', '', '', '', '', '', '','','','','','','', '', '',...
+% 	'Mean', 'Median', 'fontsize', 18)
+
+
 
