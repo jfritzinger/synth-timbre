@@ -13,26 +13,26 @@ tiledlayout(2, 3, 'TileSpacing','compact')
 linewidth = 1.5;
 
 %% Plot
-for ineuron = 1:6
+for ineuron = 3:6
 	switch ineuron
 		case 1
-			putative = 'R24_TT2_P13_N03'; % BS
-			%putative = 'R24_TT1_P12_N01'; % Low CF
+			%putative = 'R24_TT2_P13_N03'; % BS
+			putative = 'R24_TT1_P12_N01'; % Low CF
 		case 2
-			putative = 'R27_TT2_P8_N02'; % BS
-			%putative = 'R27_TT3_P1_N01'; % Low CF
+			%putative = 'R27_TT2_P8_N02'; % BS
+			putative = 'R27_TT3_P1_N01'; % Low CF
 		case 3
-			putative = 'R24_TT2_P13_N05'; % BS
-			%putative = 'R27_TT2_P8_N02'; % Med CF
+			%putative = 'R24_TT2_P13_N05'; % BS
+			putative = 'R27_TT2_P8_N02'; % Med CF
 		case 4
-			putative = 'R27_TT3_P7_N08'; % BE
-			%putative = 'R27_TT2_P8_N03'; % Med CF
+			%putative = 'R27_TT3_P7_N08'; % BE
+			putative = 'R27_TT2_P8_N03'; % Med CF
 		case 5
-			putative = 'R27_TT3_P7_N14'; % BE
-			%putative = 'R27_TT4_P8_N10'; % High CF
+			%putative = 'R27_TT3_P7_N14'; % BE
+			putative = 'R27_TT4_P8_N10'; % High CF
 		case 6
-			putative = 'R29_TT3_P5_N10'; % BE
-			%putative = 'R25_TT4_P8_N05'; % High CF
+			%putative = 'R29_TT3_P5_N10'; % BE
+			putative = 'R25_TT4_P8_N05'; % High CF
 	end
 
 	% Load in data
@@ -85,7 +85,7 @@ for ineuron = 1:6
 		errorbar(fpeaks, rate, rate_std/sqrt(30), 'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{ind})
 		plot(fpeaks, rate, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
 		%plot(fpeaks, rate_sm, 'linewidth', linewidth, 'color', data_colors{ind})
-		label{1} = [num2str(params{order(ind)}.spl) ' dB SPL'];
+		%label{1} = [num2str(params{order(ind)}.spl) ' dB SPL'];
 		%label_ind = label_ind+1;
 
 		plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)];
@@ -94,10 +94,15 @@ for ineuron = 1:6
 		yline(spont, 'k', LineWidth=linewidth)
 		%yline(data_RM.spont, 'Color','k', 'LineWidth',2)
 		%label(label_ind+1) = {'Spont'};
+
+
+		[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(data_ST{order(ind)}, CF);
+		Q(ind) = freq/width;
+
 	end
 	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)];
 	xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-	label{label_ind} = 'Estimated CF';
+	%label{label_ind} = 'Estimated CF';
 	%yline(data_RM.spont, 'Color','k', 'LineWidth',2)
 	%label(label_ind+1) = {'Spont'};
 	xlabel('Spectral Peak  Frequency (Hz)')
@@ -107,6 +112,25 @@ for ineuron = 1:6
 	grid on
 	%title('Synthetic Timbre', 'FontSize',18);
 	%legend(label)
+
+	% Add Q:
+	tbl = table([43, 63,73, 83]', Q', 'VariableNames', {'X', 'Q'});
+	mdl = fitlm(tbl, 'Q ~ X');
+	slope = mdl.Coefficients.Estimate(2); % slope
+
+	criteria = 0.03; % backwards because starting from high level
+	if slope<criteria && slope > -1*criteria
+		changing = 'no change';
+	elseif slope<-1*criteria
+		changing = 'sharpening';
+	else
+		changing = 'broadning';
+	end
+
+	label = sprintf('Q43=%0.2f, Q63=%0.2f, Q83=%0.2f, %s', Q(1), ...
+		Q(2), Q(3), changing);
+	text(0.05, 0.95, label, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',16)
 
 end
 
