@@ -8,11 +8,11 @@ clear
 
 % Load in spreadsheet
 [base, datapath, ~, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = '/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
-savepath = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02 - Code/Synth-Timbre/data/manuscript/STRF_Models';
+savepath = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02 - Code/Synth-Timbre/data/2025-manuscript/STRF_Models';
 %savepath = 'C:\Users\jfritzinger\Box\02 - Code\Synth-Timbre\data\manuscript\STRF_Models';
 
 
@@ -65,45 +65,44 @@ for ispl = 1:2
 			load(fullfile(datapath, 'RM_predictions', [filename '.mat']), "RM_R2")
 
 			% General analysis
-			% data_STRF = analyzeSTRF(params_STRF);
+			data_STRF = analyzeSTRF(params_STRF);
 			data_ST = analyzeST(param_ST, CF);
 			param_ST = param_ST{1};
 			data_ST = data_ST{1};
 
 			%% Plot 
-			
-			%tiledlayout(1, 2)
+			tiledlayout(1, 2)
 
 			% Plot STRF
-			% nexttile
-			% STRF_mat = data_STRF.H2ex_strf-data_STRF.H2in_strf;
-			% imagesc(data_STRF.t, data_STRF.f./1000, STRF_mat, data_STRF.clims_strf);
-			% set(gca,'Ydir','normal','XLim',data_STRF.tlims,'YLim',[param_ST.fpeaks(2) param_ST.fpeaks(end)]./1000)
-			% hold on
-			% yline(CF/1000, '--', 'Color', [0.3 0.3 0.3], 'LineWidth',2)
-			% colormap(redblue)
-			% grid on
-			% xlabel('Time (s)');
-			% ylabel('Frequency (kHz)')
+			nexttile
+			STRF_mat = data_STRF.H2ex_strf-data_STRF.H2in_strf;
+			imagesc(data_STRF.t, data_STRF.f./1000, STRF_mat, data_STRF.clims_strf);
+			set(gca,'Ydir','normal','XLim',data_STRF.tlims,'YLim',[param_ST.fpeaks(2) param_ST.fpeaks(end)]./1000)
+			hold on
+			yline(CF/1000, '--', 'Color', [0.3 0.3 0.3], 'LineWidth',2)
+			colormap(redblue)
+			grid on
+			xlabel('Time (s)');
+			ylabel('Frequency (kHz)')
 
 			% Plot real response
-			%nexttile
-			% figure('Position',[3,632,623,273])
-			% hold on
-			% errorbar(data_ST.fpeaks,data_ST.rate,data_ST.rate_std/(sqrt(param_ST.nrep)), 'LineWidth',1.5);
-			% plot(data_ST.fpeaks,(STRFmodel.avModel.*STRFmodel.ratio), 'LineWidth',1.5);
-			% plot(data_ST.fpeaks, RM_R2.rate_RM, 'LineWidth',1.5);
-			% xline(CF, '--', 'Color', [0.3 0.3 0.3], 'LineWidth',2)
-			% xlim([param_ST.fpeaks(1) param_ST.fpeaks(end)]);
-			% grid on
-			% xlabel('Tone Frequency (Hz)')
-			% ylabel('Avg Rate (sp/s)')
-			% ylim([0 STRFmodel.max_all+7])
-			% xticklabels(xticks/1000)
-			% title('STRF and RM Predictions')
-			% hLeg = legend({'Data', sprintf('STRF, R^2=%0.2f', STRFmodel.R2),...
-			% 	sprintf('RM, R^2=%0.2f',RM_R2.R2)}, 'Location','eastoutside');
-			% hLegend.ItemTokenSize = [6,6];
+			nexttile
+			figure('Position',[3,632,623,273])
+			hold on
+			errorbar(data_ST.fpeaks,data_ST.rate,data_ST.rate_std/(sqrt(param_ST.nrep)), 'LineWidth',1.5);
+			plot(data_ST.fpeaks,(STRFmodel.avModel.*STRFmodel.ratio), 'LineWidth',1.5);
+			plot(data_ST.fpeaks, RM_R2.rate_RM, 'LineWidth',1.5);
+			xline(CF, '--', 'Color', [0.3 0.3 0.3], 'LineWidth',2)
+			xlim([param_ST.fpeaks(1) param_ST.fpeaks(end)]);
+			grid on
+			xlabel('Tone Frequency (Hz)')
+			ylabel('Avg Rate (sp/s)')
+			ylim([0 STRFmodel.max_all+7])
+			xticklabels(xticks/1000)
+			title('STRF and RM Predictions')
+			hLeg = legend({'Data', sprintf('STRF, R^2=%0.2f', STRFmodel.R2),...
+				sprintf('RM, R^2=%0.2f',RM_R2.R2)}, 'Location','eastoutside');
+			hLegend.ItemTokenSize = [6,6];
 
 
 			%% Create matrix of values 

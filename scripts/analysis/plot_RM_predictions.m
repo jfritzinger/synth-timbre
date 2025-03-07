@@ -5,9 +5,9 @@ clear
 
 % Load in spreadsheet
 [base, datapath, ~, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = '/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 %% 
