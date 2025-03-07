@@ -16,14 +16,14 @@ import mlreportgen.report.*
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = 'data-cleaning';
 spreadsheet_name = 'PutativeTable2.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Initialize report
 report_path = 'figures/pdfs/';
-filename = 'PeakPicking_Zscore';
+filename = 'PeakPicking_Q_changes';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s%s_%s.pdf', fullfile(base, report_path), datetime, filename);
@@ -196,7 +196,7 @@ for isesh = 1:num_sessions
 				patch([lo_limit lo_limit hi_limit hi_limit],[-4 4 4 -4], 'r', 'FaceAlpha',0.05, 'EdgeColor', 'none');
 
 				% Calculate the peak/dip/flat 
-				[peaks, dips, type, prom, width, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF);
+				[peaks, dips, type, prom, width, lim, bounds_freq, halfheight, freq] = peakFinding(data_ST, CF);
 
 				% Plots
 				scatter(peaks.locs, peaks.pks, 'filled', 'r')
@@ -233,15 +233,37 @@ for isesh = 1:num_sessions
 			title(plottitle)
 			grid on
 			set(gca, 'fontsize', fontsize)
+
+			if ispl == 1
+				Q(1) = freq/width;
+			elseif ispl == 2
+				Q(2) = freq/width;
+			elseif ispl == 4
+				Q(3) = freq/width;
+			end
 		end
 
-		label = '';
+		% Add Q:
+		tbl = table([43, 63, 83]', Q', 'VariableNames', {'X', 'Q'});
+		mdl = fitlm(tbl, 'Q ~ X');
+		slope = mdl.Coefficients.Estimate(2); % slope
+
+		criteria = 0.03;
+		if slope<criteria && slope > -1*criteria
+			changing = 'no change';
+		elseif slope<-1*criteria
+			changing = 'decreasing';
+		else
+			changing = 'increasing';
+		end
+
+		label = sprintf('Q43=%0.2f, Q63=%0.2f, Q83=%0.2f, %s', Q(1), ...
+			Q(2), Q(3), changing);
 		p = Paragraph(label);
 		p.FontSize = "14pt";
 		p.WhiteSpace = "preserve";
 		append(rpt,p);
-
-		
+	
 		% Add to PDF 
 		[plt1, images] = addtoSTPDF(images, fig, putative);
 		append(rpt, plt1); 
