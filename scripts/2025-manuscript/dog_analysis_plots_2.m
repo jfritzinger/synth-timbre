@@ -4,7 +4,7 @@ clear
 %% Load in fits  
 
 [base, datapath] = getPaths();
-load(fullfile(datapath, 'dog_analysis.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
+load(fullfile(datapath, 'dog_analysis2.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
 
 
 %% Plot example fit 
@@ -27,7 +27,7 @@ spont = data_RM.spont;
 nexttile
 hold on
 plot(dog_analysis(ind).fpeaks, dog_analysis(ind).rate, 'k','LineWidth',2);
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted, ...
+plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, ...
 	'LineWidth',2, 'color', 'b');
 plot(dog_analysis(ind).fpeaks, dog_analysis(ind).gaus_predicted,...
 	'LineWidth',2, 'color', '#1b9e77');
@@ -76,13 +76,13 @@ good_fit = [dog_analysis.R2_dog]>0.5;
 
 
 % Plot 
-all_dog_params = [dog_analysis(good_fit).dog_params];
-all_dog_params = reshape(all_dog_params, 6,[])';
+all_dog_params = [dog_analysis(good_fit).dog_params2];
+all_dog_params = reshape(all_dog_params, 5,[])'; % 6 for OG
 CFs = [dog_analysis(good_fit).CF];
 
 % Un-log CF_exc, CF_inh
 CF_exc = 10.^all_dog_params(:,5);
-CF_inh = 10.^all_dog_params(:,6);
+%CF_inh = 10.^all_dog_params(:,6);
 s_exc = 10.^all_dog_params(:,3);
 s_inh = 10.^all_dog_params(:,4);
 g_exc = all_dog_params(:,1);
@@ -90,7 +90,7 @@ g_inh = all_dog_params(:,2);
 
 figure('Position',[560,12,609,836])
 tiledlayout(3, 2)
-for ii = 1:6
+for ii = 1:5
 	nexttile 
 	if ii == 5
 		scatter(CFs, CF_exc, 'filled')
@@ -99,11 +99,11 @@ for ii = 1:6
 		plot([10,10000], [10 10000], 'k')
 		xlim([300 10000])
 	elseif ii == 6
-		scatter(CFs, CF_inh, 'filled')
-		ylabel('CF inh (Hz)')
-		hold on 
-		plot([10,10000], [10 10000], 'k')
-		xlim([300 10000])
+		% scatter(CFs, CF_inh, 'filled')
+		% ylabel('CF inh (Hz)')
+		% hold on 
+		% plot([10,10000], [10 10000], 'k')
+		% xlim([300 10000])
 	elseif ii == 3
 		scatter(CFs, s_exc, 'filled')
 		ylabel('sigma exc (Hz)')
@@ -165,11 +165,11 @@ set(gca, 'xscale', 'log')
 xlabel('CF exc')
 ylabel('# neurons')
 
-nexttile
-histogram(CF_inh, edges)
-set(gca, 'xscale', 'log')
-xlabel('CF inh')
-ylabel('# neurons')
+% nexttile
+% histogram(CF_inh, edges)
+% set(gca, 'xscale', 'log')
+% xlabel('CF inh')
+% ylabel('# neurons')
 %%
 figure
 histogram(s_inh./s_exc, edges)
