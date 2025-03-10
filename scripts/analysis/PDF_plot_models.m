@@ -24,7 +24,7 @@ num_data = size(sessions, 1);
 
 % Initialize report
 report_path = 'figures/pdfs/';
-filename = 'Model_test';
+filename = 'Models';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s%s_%s.pdf', fullfile(base, report_path), datetime, filename);
@@ -65,7 +65,7 @@ num_sessions = length(CF_list);
 % Plot each neuron
 dips_p = NaN(num_sessions, 4);
 peaks_p = NaN(num_sessions, 4);
-for isesh = 1 %:num_sessions
+for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -176,16 +176,22 @@ for isesh = 1 %:num_sessions
 				yline(data_RM.spont, 'k')
 
 				% Normalize and plot models
-				energy_rate = energy{ispl}.rate .* (max(rate_subtracted)/max(energy{ispl}.rate))+spont;
+				energy_rate = energy{ispl}.rate; % .* (max(rate_subtracted)/max(energy{ispl}.rate))+spont;
+				SFIE_rate = SFIE{ispl}.rate .* (max_rate/max(SFIE{ispl}.rate));
+				lat_inh_rate = lat_inh{ispl}.rate .* (max_rate/max(lat_inh{ispl}.rate));
 
 				plot(data_ST.fpeaks, energy_rate, 'LineWidth',1.5, 'Color','#D55E00')
-				plot(data_ST.fpeaks, SFIE{ispl}.rate, 'LineWidth',1.5, 'Color','#009E73')				
+				plot(data_ST.fpeaks, SFIE_rate, 'LineWidth',1.5, 'Color','#009E73')				
 				%plot(data_ST.fpeaks, zscore(SFIE_pop{ispl}.rate), 'LineWidth',1.5, 'Color','#CC79A7')	
-				plot(data_ST.fpeaks, lat_inh{ispl}.rate, 'LineWidth',1.5, 'Color','#CC79A7')
+				plot(data_ST.fpeaks, lat_inh_rate, 'LineWidth',1.5, 'Color','#CC79A7')
+
+				% RMSE
+				SFIE_rmse = rmse(rate, SFIE_rate);
+				latinh_rmse = rmse(rate, lat_inh_rate);
 
 				% Annotate SFIE model R^2
 				lefts = linspace(0.03, 0.8, 4);
-				message = sprintf('R^2 SFIE = %.02f', SFIE{ispl}.R2);
+				message = sprintf('R^2 SFIE = %.02f, %.2f', SFIE{ispl}.R2, SFIE_rmse);
 				annotation('textbox',[lefts(ispl) 0.38 0.2 0.0869],...
 					'Color','k',...
 					'String',message,...
@@ -193,7 +199,7 @@ for isesh = 1 %:num_sessions
 					'EdgeColor','none');
 
 				% Annotate energy model R^2
-				message = sprintf('R^2 energy = %.02f', energy{ispl}.R2);
+				message = sprintf('R^2 energy = %.02f, %.2f', energy{ispl}.R2, energy{ispl}.rmse);
 				annotation('textbox',[lefts(ispl) 0.35 0.2 0.0869],...
 					'Color','k',...
 					'String',message, ...
@@ -209,7 +215,7 @@ for isesh = 1 %:num_sessions
 % 					'EdgeColor','none');
 
 				% Annotate lateral inhibition model R^2
-				message = sprintf('R^2 lat inh = %.02f', lat_inh{ispl}.R2);
+				message = sprintf('R^2 lat inh = %.02f, %.2f', lat_inh{ispl}.R2, latinh_rmse);
 				annotation('textbox',[lefts(ispl) 0.32 0.2 0.0869],...
 					'Color','k',...
 					'String',message, ...
@@ -235,18 +241,18 @@ for isesh = 1 %:num_sessions
 				%p_s_pop = ftest(rate, sfie_pop_temp', sfie_temp); % F-test SFIE/population SFIE
 
 				% Annotate 
-				message = sprintf('p_l_e=%.02f', p_l_e);
-				annotation('textbox',[lefts(ispl)+0.12 0.38 0.2 0.0869],...
-					'Color','k',...
-					'String',message, ...
-					'FontSize',8,...
-					'EdgeColor','none');
-				message = sprintf('p_s_e=%.02f', p_s_e);
-				annotation('textbox',[lefts(ispl)+0.12 0.35 0.2 0.0869],...
-					'Color','k',...
-					'String',message, ...
-					'FontSize',8,...
-					'EdgeColor','none');
+				% message = sprintf('p_l_e=%.02f', p_l_e);
+				% annotation('textbox',[lefts(ispl)+0.12 0.38 0.2 0.0869],...
+				% 	'Color','k',...
+				% 	'String',message, ...
+				% 	'FontSize',8,...
+				% 	'EdgeColor','none');
+				% message = sprintf('p_s_e=%.02f', p_s_e);
+				% annotation('textbox',[lefts(ispl)+0.12 0.35 0.2 0.0869],...
+				% 	'Color','k',...
+				% 	'String',message, ...
+				% 	'FontSize',8,...
+				% 	'EdgeColor','none');
 
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
 			else
