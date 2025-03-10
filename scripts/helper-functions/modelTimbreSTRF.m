@@ -1,4 +1,4 @@
-function [R2, avModel, stdModel, ratio, max_all] = modelTimbreSTRF(param, data_STRF, data)
+function [R2, avModel, stdModel, ratio, max_all] = modelTimbreSTRF(param, data_STRF, data, type)
 % Function that uses STRF to predict responses to WBTIN
 % J. Fritzinger, created 7/10/23
 
@@ -13,8 +13,16 @@ param.physio = 1;
 [param] = generate_ST(param);
 
 % Calculate the spectrogram of a stimulus
-windowLength = 200; %50; % Length of the analysis window (in samples)
-noverlap = 199; %49; % Overlap size between consecutive windows (in samples)
+if type == 1
+	windowLength = 200; %50; % Length of the analysis window (in samples)
+	noverlap = 199; %49; % Overlap size between consecutive windows (in samples)
+elseif type == 2
+	windowLength = 50; % Length of the analysis window (in samples)
+	noverlap = 49; % Overlap size between consecutive windows (in samples)
+else
+	windowLength = 200; %50; % Length of the analysis window (in samples)
+	noverlap = 100; %49; % Overlap size between consecutive windows (in samples)
+end
 nfft = 960; % Length of the FFT
 
 % Convolve STRF and the stimulus
