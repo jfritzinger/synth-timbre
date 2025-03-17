@@ -24,16 +24,16 @@ num_data = size(sessions, 1);
 modelpath = '/Volumes/Synth-Timbre/data/manuscript';
 %modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
 varNames = ["Putative", "CF", "MTF", "BMF"...
-	"SPL", "SFIE_R", "SFIE_R2",...
-	"Energy_R", "Energy_R2", ...
+	"SPL", "SFIE_R", "SFIE_R2","SFIE_rmse",...
+	"Energy_R", "Energy_R2", "Energy_rmse", ...
 	"SFIE_Pop_R", "SFIE_Pop_R2", ...
-	"Lat_Inh_R", "Lat_Inh_R2", ...
+	"Lat_Inh_R", "Lat_Inh_R2", "Lat_Inh_rmse", ...
 	"p_s_e", "p_l_e", "p_l_s", "p_s_pop"];
 varTypes = ["string", "double", "string", "double"...
+	"double", "double", "double","double", ...
 	"double", "double", "double", ...
-	"double", "double", ...
 	"double", "double",...
-	"double", "double", ...
+	"double", "double", "double", ...
 	"double", "double", "double", "double"];
 est_num_rows = 429; % set to number larger than
 num_cols = length(varNames);
@@ -96,6 +96,13 @@ for isesh = 1:num_index
 			% F-test SFIE/population SFIE
 			p_s_pop = ftest(rate, sfie_pop_temp', sfie_temp);
 
+
+			% Normalize rmse to max/mean rate 
+			sfie_temp = SFIE{ispl}.rmse ./ mean(rate);
+			energy_rmse =  energy{ispl}.rmse ./ mean(rate);
+			lat_inh_temp = lat_inh{ispl}.rmse ./ mean(rate);
+
+
 			% Fill out table
 			tables.Putative{ii} = sessions.Putative_Units{indices(isesh)};
 			tables.CF(ii) = sessions.CF(indices(isesh));
@@ -104,12 +111,15 @@ for isesh = 1:num_index
 			tables.SPL(ii) = spls(ispl);
 			tables.SFIE_R(ii) = SFIE{ispl}.R;
 			tables.SFIE_R2(ii) = SFIE{ispl}.R2;
+			tables.SFIE_rmse(ii) = SFIE{ispl}.rmse;
 			tables.Energy_R(ii) = energy{ispl}.R;
 			tables.Energy_R2(ii) = energy{ispl}.R2;
+			tables.Energy_rmse(ii) = energy{ispl}.rmse;
 			tables.SFIE_Pop_R(ii) = SFIE_pop{ispl}.R;
 			tables.SFIE_Pop_R2(ii) = SFIE_pop{ispl}.R2;
 			tables.Lat_Inh_R(ii) = lat_inh{ispl}.R;
 			tables.Lat_Inh_R2(ii) = lat_inh{ispl}.R2;
+			tables.Lat_Inh_rmse(ii) = lat_inh{ispl}.rmse;
 			tables.p_s_e(ii) = p_s_e;
 			tables.p_l_e(ii) = p_l_e;
 			tables.p_l_s(ii) = p_l_s;
@@ -121,7 +131,7 @@ for isesh = 1:num_index
 end
 
 % Save table
-writetable(tables,'model_r2_values_ST.xlsx')
+writetable(tables,'model_r2_values_ST2.xlsx')
 
 
 
