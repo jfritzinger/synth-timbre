@@ -224,6 +224,7 @@ for ii = 1:3
 	hLeg = legend(leg, 'FontSize',legsize);
 	hLeg.ItemTokenSize = [15,6];
 	hLeg.Box = 'off';
+	ylim([0 15])
 
 end
 
