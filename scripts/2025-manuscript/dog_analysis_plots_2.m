@@ -3,18 +3,25 @@ clear
 
 %% Load in fits  
 
-[base, datapath] = getPaths();
-load(fullfile(datapath, 'dog_analysis2.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
-
+[base, datapath, ~, ppi] = getPaths();
+load(fullfile(datapath, 'dog_analysis.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
 
 %% Plot example fit 
 
-figure('Position',[53,540,450,500])
-tiledlayout(2, 1)
-fontsize = 16;
+figure('Position',[53,540,8*ppi,7*ppi])
+tiledlayout(2, 2)
+fontsize = 12;
+legsize = 10;
+labelsize = 20;
+
+%% Plot example
+
 
 % Example: R24_TT2_P13_N02, CF = 1150Hz, BS
-putative = 'R24_TT2_P13_N02';
+%putative = 'R29_TT4_P5_N02'; 
+%putative = 'R24_TT2_P13_N02';
+%putative = 'R25_TT3_P9_N01';
+putative = 'R27_TT3_P8_N01';
 ind = cellfun(@(d) strcmp(d, putative), {dog_analysis.putative});
 
 % Load in to get spont rate
@@ -26,21 +33,52 @@ spont = data_RM.spont;
 % Plot 
 nexttile
 hold on
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).rate, 'k','LineWidth',2);
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, ...
-	'LineWidth',2, 'color', 'b');
+plot(dog_analysis(ind).fpeaks, dog_analysis(ind).rate, 'k','LineWidth',1);
+% plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, ...
+% 	'LineWidth',2, 'color', 'b');
+plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted, ...
+	'LineWidth',1, 'color', 'b');
 plot(dog_analysis(ind).fpeaks, dog_analysis(ind).gaus_predicted,...
-	'LineWidth',2, 'color', '#1b9e77');
+	'LineWidth',1, 'color', '#1b9e77');
 xline(dog_analysis(ind).CF, '--', 'LineWidth',2)
 yline(spont, 'k')
 ylabel('Avg. Rate (sp/s)')
 xlabel('Spectral Peak Freq. (Hz)')
 title('Example Fit')
 set(gca, 'fontSize', fontsize)
-hleg = legend('Data', 'DoG', 'Gaussian', 'CF', 'fontsize', 16);
+hleg = legend('Data', 'DoG', 'Gaussian', 'CF', 'fontsize', legsize);
 hleg.ItemTokenSize = [16, 6];
 grid on
 xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)])
+
+
+%% Plot filters 
+
+% Plot DoG Parameters
+nexttile
+DOGparams = dog_analysis(ind).dog_params;
+W = dog_model(dog_analysis(ind).fpeaks, DOGparams);
+hold on
+plot(dog_analysis(ind).fpeaks/1000,W, 'color', 'b')
+xline(dog_analysis(ind).CF/1000, '--', 'linewidth', 2)
+
+Fs = 100000;
+Gparams = dog_analysis(ind).gauss_params;
+f = linspace(0, Fs/2, 100000);
+fc = 10^Gparams(1);
+sigma = 10^Gparams(2);
+g = Gparams(3);
+W = gaussian_model(f, fc, sigma, g);
+hold on
+plot(f/1000,W, 'color', '#1b9e77')
+
+% Plot labels
+title('DoG Filter')
+set(gca, 'fontsize', fontsize)
+ylabel('Amplitude')
+xlabel('Frequency (Hz)')
+xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)]/1000)
+set(gca, 'xscale', 'log')
 
 %% Plot adjusted R^2 values 
 
@@ -48,10 +86,10 @@ sig = [dog_analysis.p_value]<0.05;
 notsig = [dog_analysis.p_value]>0.05;
 
 nexttile
-scatter(R2_gauss_all(sig), R2_dog_all(sig),60, 'filled',...
+scatter(R2_gauss_all(sig), R2_dog_all(sig),30, 'filled',...
 	'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.6, 'MarkerFaceColor','b')
 hold on
-scatter(R2_gauss_all(notsig), R2_dog_all(notsig), 60, 'filled',...
+scatter(R2_gauss_all(notsig), R2_dog_all(notsig), 30, 'filled',...
 	'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.6, 'MarkerFaceColor',[0.4 0.4 0.4])
 xlim([0 1])
 ylim([0 1])
@@ -61,132 +99,54 @@ grid on
 plot([0 1], [0 1], 'k')
 xlabel('Gaussian Adjusted R^2')
 ylabel('DoG Adjusted R^2')
-title('DoG vs Gaussian Comparison')
+title('Fit Comparison')
 set(gca, 'fontSize', fontsize)
 msg = sprintf('%d sig.', sum(sig));
 msg2 = sprintf('%d not sig.', sum(notsig));
-legend(msg, msg2, 'Location','southeast')
+legend(msg, msg2, 'Location','southeast', 'fontsize', legsize)
+set(gca, 'fontsize', fontsize)
 
 
 %% Plot DoG parameter values 
-% DoG params: g_exc, g_inh, s_exc, s_inh,  CF_exc, CF_inh
 
 % Get good fits
 good_fit = [dog_analysis.R2_dog]>0.5;
 
-
 % Plot 
-all_dog_params = [dog_analysis(good_fit).dog_params2];
-all_dog_params = reshape(all_dog_params, 5,[])'; % 6 for OG
+all_dog_params = [dog_analysis(good_fit).dog_params];
+all_dog_params = reshape(all_dog_params, 6,[])'; % 6 for OG
 CFs = [dog_analysis(good_fit).CF];
 
 % Un-log CF_exc, CF_inh
 CF_exc = 10.^all_dog_params(:,5);
-%CF_inh = 10.^all_dog_params(:,6);
+CF_inh = 10.^all_dog_params(:,6);
 s_exc = 10.^all_dog_params(:,3);
 s_inh = 10.^all_dog_params(:,4);
 g_exc = all_dog_params(:,1);
 g_inh = all_dog_params(:,2);
 
-figure('Position',[560,12,609,836])
-tiledlayout(3, 2)
-for ii = 1:5
-	nexttile 
-	if ii == 5
-		scatter(CFs, CF_exc, 'filled')
-		ylabel('CF exc (Hz)')
-		hold on 
-		plot([10,10000], [10 10000], 'k')
-		xlim([300 10000])
-	elseif ii == 6
-		% scatter(CFs, CF_inh, 'filled')
-		% ylabel('CF inh (Hz)')
-		% hold on 
-		% plot([10,10000], [10 10000], 'k')
-		% xlim([300 10000])
-	elseif ii == 3
-		scatter(CFs, s_exc, 'filled')
-		ylabel('sigma exc (Hz)')
-		hold on
-		plot([10,10000], [10 10000], 'k')
-		xlim([300 10000])
-		ylim([0 10^5])
-	elseif ii == 4
-		scatter(CFs, s_inh, 'filled')
-		ylabel('sigma inh (Hz)')
-		hold on
-		plot([10,10000], [10 10000], 'k')
-		xlim([300 10000])
-		ylim([0 10^5])
-	elseif ii == 2
-		scatter(CFs, all_dog_params(:,ii), 'filled')
-		ylabel('g inh')
-		title('Inhibitory Parameters')
-	else
-		scatter(CFs, all_dog_params(:,ii), 'filled')
-		ylabel('g exc')
-		title('Excitatory Parameters')
-	end
-	xlabel('CF')
-	set(gca, 'xscale', 'log')
-	set(gca, 'yscale', 'log')
-	set(gca, 'fontsize', 16)
-end
-
-%% Histograms 
-
-figure
-tiledlayout(3, 2)
-
-nexttile
-histogram(g_exc, 21)
-ylabel('# neurons')
-
-nexttile
-histogram(g_inh, 21)
-ylabel('# neurons')
-
-nexttile
-edges = 10.^linspace(log10(10),log10(10000),21);
-histogram(s_exc, edges)
-set(gca, 'xscale', 'log')
-xlabel('sigma exc')
-ylabel('# neurons')
-
-nexttile
-histogram(s_inh, edges)
-set(gca, 'xscale', 'log')
-xlabel('sigma inh')
-ylabel('# neurons')
-
-nexttile
-histogram(CF_exc, edges)
-set(gca, 'xscale', 'log')
-xlabel('CF exc')
-ylabel('# neurons')
-
-% nexttile
-% histogram(CF_inh, edges)
-% set(gca, 'xscale', 'log')
-% xlabel('CF inh')
-% ylabel('# neurons')
-%%
-figure
-histogram(s_inh./s_exc, edges)
-
-%%
 % Scatter plot of ratio of inhibition to excitation sigma and strengths 
 ratio_sigma = log10(s_inh./s_exc);
 ratio_g = log10(g_inh./g_exc);
-figure
+nexttile
 hold on
-scatter(ratio_sigma, ratio_g, 'filled')
+scatter(ratio_sigma, ratio_g, 30, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.5)
 xline(0)
 yline(0)
 % xlim([-12 6])
 % ylim([-6 6.1])
 xlabel('Log Bandwidth Ratio (\sigma_i_n_h/\sigma_e_x_c)')
 ylabel('Log Strength Ratio (g_i_n_h/g_e_x_c)')
+title('Fit Parameter Ratios')
 
+%% Annotate 
 
+% Set annotations
+left = [0.03 0.51 0.03 0.51];
+bottom = [0.95 0.95 0.47 0.47];
+label = {'A', 'B', 'C', 'D'};
+for ii = 1:4
+	annotation('textbox',[left(ii) bottom(ii) 0.0826 0.0385],'String',label{ii},...
+		'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+end
 
