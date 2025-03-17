@@ -4,7 +4,7 @@ clear
 %% Load in fits  
 
 [base, datapath] = getPaths();
-load(fullfile(datapath, 'dog_analysis2.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
+load(fullfile(datapath, 'dog_analysis.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
 
 
 %% Plot example fit 
@@ -26,7 +26,7 @@ spont = data_RM.spont;
 nexttile
 hold on
 plot(dog_analysis(ind).fpeaks, dog_analysis(ind).rate, 'LineWidth',2);
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, 'LineWidth',2);
+%plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, 'LineWidth',2);
 plot(dog_analysis(ind).fpeaks, dog_analysis(ind).gaus_predicted, 'LineWidth',2);
 xline(dog_analysis(ind).CF, '--')
 yline(spont, 'k')
@@ -57,7 +57,7 @@ p_all = NaN(num_sesh, 1);
 CF_all = NaN(num_sesh, 1);
 for ii = 1:num_sesh
 
-	current_dog = dog_analysis(ii).dog_predicted2;
+	current_dog = dog_analysis(ii).dog_predicted; %2;
 	current_gauss = dog_analysis(ii).gaus_predicted;
 	rate = dog_analysis(ii).rate;
 	CF_all(ii) = dog_analysis(ii).CF;
