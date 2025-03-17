@@ -5,7 +5,8 @@ clear
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-tables = readtable(fullfile(datapath, "peak_picking2.xlsx"));
+%tables = readtable(fullfile(datapath, "peak_picking2.xlsx"));
+tables = readtable(fullfile(datapath,"LMM", "peak_picking_excludeflat.xlsx"));
 
 %% Scatter plot of CF vs HHBW (all MTF)
 

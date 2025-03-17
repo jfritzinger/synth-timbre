@@ -4,7 +4,8 @@ clear
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-tables = readtable(fullfile(datapath, "peak_picking2.xlsx"));
+%tables = readtable(fullfile(datapath, "peak_picking2.xlsx"));
+tables = readtable(fullfile(datapath,"LMM", "peak_picking_excludeflat.xlsx"));
 
 
 %% Analysis
@@ -89,17 +90,3 @@ for ispl = 1:4
 
 end
 
-
-%% Plot
-% MTF = categorical(MTF);
-% figure
-% hold on
-% xline(0)
-% yline(0)
-% gscatter(slope, q, MTF, 'filled')
-% % xlim([-7 7])
-% % ylim([-7 7])
-% 
-% xlabel('MTF max slope')
-% ylabel('Q_2_5')
-% title('Quantification of peak sharpness vs MTF slope')
