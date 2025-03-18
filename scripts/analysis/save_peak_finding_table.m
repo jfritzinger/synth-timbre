@@ -93,7 +93,8 @@ for isesh = 1:num_neurons
 			peak_fsm = data_ST.fpeaks(peaksm_ind);
 
 			% Find peaks & prominence values
-			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(data_ST, CF);
+			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
+				data_ST, CF, 'Rate', param_ST{1});
 
 			% Add data to table
 			if strcmp(type, 'Flat')
