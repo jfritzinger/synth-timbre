@@ -44,7 +44,7 @@ xline(dog_analysis(ind).CF, '--', 'LineWidth',2)
 yline(spont, 'k')
 ylabel('Avg. Rate (sp/s)')
 xlabel('Spectral Peak Freq. (Hz)')
-title('Example Fit')
+title('Example Neuron Predictions')
 set(gca, 'fontSize', fontsize)
 hleg = legend('Data', 'DoG', 'Gaussian', 'CF', 'fontsize', legsize);
 hleg.ItemTokenSize = [16, 6];
@@ -73,7 +73,7 @@ hold on
 plot(f/1000,W, 'color', '#1b9e77')
 
 % Plot labels
-title('DoG Filter')
+title('DoG and Gaussian Kernels')
 set(gca, 'fontsize', fontsize)
 ylabel('Amplitude')
 xlabel('Frequency (Hz)')
