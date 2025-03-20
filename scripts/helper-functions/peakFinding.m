@@ -1,16 +1,21 @@
-function [peaks, dips, type, prom, width, lim, bounds_freq, halfheight, freq] = peakFinding(data_ST, CF)
+function [peaks, dips, type, prom, width, lim, bounds_freq, ...
+	halfheight, freq] = peakFinding(data_ST, CF, type, param)
 
-% Z-score
-%rate = zscore(data_ST.rate);
-rate_sm = zscore(data_ST.rates_sm);
+if strcmp(type, 'Rate') % Z-score rate
+	rate_sm = zscore(data_ST.rates_sm);
+else % z-score VS
+	temporal = analyzeST_Temporal(param, data_ST);
+	num_fpeaks = length(param.fpeaks);
+	rate_sm = zscore(smooth_rates(temporal.VS,zeros(num_fpeaks, 1),...
+					ones(num_fpeaks, 1), CF));
+end
 
 % Cut down to +/- one octave range
 hi_limit = CF*2;
 lo_limit = CF/2;
 indices = data_ST.fpeaks > lo_limit & data_ST.fpeaks < hi_limit;
-rates = rate_sm(indices);
-%rates = rate(indices);
 fpeaks = data_ST.fpeaks(indices);
+rates = rate_sm(indices);
 
 % Find peak
 [pks,locs,peak_w,peak_p] = findpeaks(rates,...
