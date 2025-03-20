@@ -12,7 +12,7 @@ sessions = readtable(fullfile(datapath, 'data-cleaning', ...
 num_data = size(sessions, 1);
 
 % Initialize report
-filename = 'VectorStrength_BS_63';
+filename = 'VectorStrength_63';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s/pdfs/%s_%s.pdf', savepath, datetime, filename);
@@ -40,7 +40,7 @@ bin200(:,1) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB);
 bin200(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB);
 bin200(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB);
 bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
-bin200_MTF = bin200 & isMTF;
+bin200_MTF = bin200; % & isMTF;
 has_data = bin200_MTF(:,1) | bin200_MTF(:,2) | bin200_MTF(:,3) | bin200_MTF(:,4);
 index = find(has_data);
 
@@ -50,7 +50,7 @@ CF_list = sessions.CF(has_data);
 num_sessions = length(CF_list);
 
 % Plot each neuron
-for isesh = 1:num_sessions
+for isesh = 3 %1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -156,6 +156,15 @@ for isesh = 1:num_sessions
 				num_fpeaks = length(param.fpeaks);
 				plot(param.fpeaks, smooth_rates(temporal.VS,zeros(num_fpeaks, 1),...
 					ones(num_fpeaks, 1), CF), 'k')
+
+				% Plot only on-harmonic points
+				F0 = param.Delta_F;
+				fpeaks_ind = find(mod(param.fpeaks, F0)==0);
+				fpeaks_harm = param.fpeaks(fpeaks_ind);
+				plot(fpeaks_harm, temporal.VS(fpeaks_ind))
+				leg{ileg} = 'Harmonic';
+				ileg = ileg + 1;
+
 			end
 		end
 		plot_range = [param_ST{1}.fpeaks(1) param_ST{1}.fpeaks(end)];
@@ -169,7 +178,8 @@ for isesh = 1:num_sessions
 		grid on
 		ylim([0 1])
 		set(gca, 'fontsize', fontsize)
-		legend(leg, 'Location','eastoutside')
+		hLeg = legend(leg, 'Location','eastoutside');
+		hLeh.ItemTokenSize = [10,10];
 		clear leg
 
 		% Add to PDF 
