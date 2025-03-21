@@ -193,35 +193,58 @@ ylabel('Avg. Rate (sp/s)')
 
 %% IC BE Plot
 h(6) = subplot(5, 5, 17:20);
+
+fs = params.Fs;
+spike_hist = squeeze(SFIE.ic_BE);
+VS = calcVS(params, spike_hist, fs);
+yyaxis right
+plot(CFs, VS, 'linewidth', 2, 'Color','#d95f02')
+ylabel('Sync to 200 Hz                            ')
+
+yyaxis left
 hold on
-plot(CFs, avBE, 'linewidth', 2, 'color', [0, 0.4470, 0.7410]);
+plot(CFs, avBE, 'linewidth', 2, 'color', 'k'); %[0, 0.4470, 0.7410]);
 set(gca,'fontsize',font_size)
 grid on
 set(gca, 'XScale', 'log')
 xlim(plot_range)
 ylim([0 50])
 xticks(ticks)
-yticks([0 30 60])
+yticks([0 25 50])
 xticklabels([])
 xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
 xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
 xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+ax = gca;
+ax.YAxis(1).Color = 'k';
 
 %% IC BS Plot
 h(7) = subplot(5, 5, 22:25);
+
+% IC temporal plot 
+fs = params.Fs;
+spike_hist = squeeze(SFIE.ic_BS);
+VS = calcVS(params, spike_hist, fs);
+yyaxis right
+plot(CFs, VS, 'linewidth', 2, 'Color','#d95f02')
+
+yyaxis left
 hold on
-plot(CFs, avBS, 'linewidth', 2, 'color', [0, 0.4470, 0.7410]);
+plot(CFs, avBS, 'linewidth', 2, 'color', 'k'); %[0, 0.4470, 0.7410]);
 set(gca,'fontsize',font_size)
 grid on
 set(gca, 'XScale', 'log')
 xlim(plot_range)
 ylim([0 50])
 xticks(ticks)
-yticks([0 30 60])
+yticks([0 25 50])
 xlabel('CF (Hz)')
 xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
 xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
 xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+ax = gca;
+ax.YAxis(1).Color = 'k';
+
 
 %% Plot MTFs
 % clear params
@@ -336,73 +359,75 @@ bottom(3) = 0.43;
 bottom(4) = 0.23;
 height = 0.135;
 
-% set(h(1), 'Position',[0.41 0.448 0.13 0.124]);
-% set(h(2), 'Position',[0.58 0.448 0.13 0.124]);
-% set(h(3), 'Position',[0.75 0.448 0.13 0.124]);
-% set(h(4), 'Position',[0.33 0.797 0.655 0.124]);
-% set(h(5), 'Position',[0.33 0.616 0.655 0.124]);
-% set(h(6), 'Position',[0.33 0.272 0.655 0.124]);
-% set(h(7), 'Position',[0.33 0.101 0.655 0.124]);
-% set(h(8), 'Position',[0.17 0.272 0.123 0.124]);
-% set(h(9), 'Position',[0.17 0.101 0.123 0.124]);
+set(h(4), 'Position',[0.27 bottom(1) 0.655 height]);
+set(h(5), 'Position',[0.27 bottom(2) 0.655 height]);
 
-set(h(4), 'Position',[0.3 bottom(1) 0.655 height]);
-set(h(5), 'Position',[0.3 bottom(2) 0.655 height]);
+set(h(1), 'Position',[0.35 bottom(3) 0.13 height]);
+set(h(2), 'Position',[0.52 bottom(3) 0.13 height]);
+set(h(3), 'Position',[0.69 bottom(3) 0.13 height]);
 
-set(h(1), 'Position',[0.38 bottom(3) 0.13 height]);
-set(h(2), 'Position',[0.55 bottom(3) 0.13 height]);
-set(h(3), 'Position',[0.72 bottom(3) 0.13 height]);
+set(h(8), 'Position',[0.11 bottom(4) 0.123 height]);
+set(h(6), 'Position',[0.27 bottom(4) 0.655 height]);
 
-set(h(8), 'Position',[0.14 bottom(4) 0.123 height]);
-set(h(6), 'Position',[0.3 bottom(4) 0.655 height]);
-
-set(h(9), 'Position',[0.14 bottom(5) 0.123 height]);
-set(h(7), 'Position',[0.3 bottom(5) 0.655 height]);
+set(h(9), 'Position',[0.11 bottom(5) 0.123 height]);
+set(h(7), 'Position',[0.27 bottom(5) 0.655 height]);
 
 %% Labels / Annotations / Positions 
 titlesize = 18; 
 
-annotation('textbox',[0.3 0.84 0.15 0.1], 'String','Stimulus',...
+annotation('textbox',[0.27 0.84 0.15 0.1], 'String','Stimulus',...
 	'FontSize',titlesize,'EdgeColor','none', 'Rotation',90, ...
 	'FitBoxToText','off', 'FontWeight','bold');
-annotation('textbox', [0.3 0.66 0.15 0.1],'String','AN Rate',...
+annotation('textbox', [0.27 0.66 0.15 0.1],'String','AN Rate',...
 	'FontSize',titlesize,'FitBoxToText','off',...
 	'EdgeColor','none', 'Rotation',90, 'FontWeight','bold');
-annotation('textbox',[0.3 0.43 0.2 0.1],'String','AN Temporal',...
+annotation('textbox',[0.27 0.43 0.2 0.1],'String','AN Temporal',...
 	'FontSize',titlesize,'FitBoxToText','off',...
 	'EdgeColor','none', 'Rotation',90, 'FontWeight','bold');
-annotation('textbox',[0.17 0.11 0.15 0.1],'String','IC BS',...
+annotation('textbox',[0.14 0.11 0.15 0.1],'String','IC BS',...
 	'FontSize',titlesize, 'FontWeight','bold',...
 	'FitBoxToText','off','EdgeColor','none', 'Rotation',90);
-annotation('textbox',[0.17 0.27 0.15 0.1],'String','IC BE',...
+annotation('textbox',[0.14 0.27 0.15 0.1],'String','IC BE',...
 	'FontSize',titlesize,'FitBoxToText','off',...
 	'EdgeColor','none', 'Rotation',90, 'FontWeight','bold');
 
 % Create lines
-annotation('line',[0.442 0.535],[0.43 0.361],'Color',[0.4 0.4 0.4],...
+annotation('line',[0.412 0.505],[0.43 0.361],'Color',[0.4 0.4 0.4],...
 	'LineWidth',2,'LineStyle',':');
-annotation('line',[0.442 0.53],[0.566 0.637],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
-
-annotation('line',[0.765 0.660],[0.43 0.361],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
-annotation('line',[0.765 0.660],[0.566 0.637],'Color',[0.4 0.4 0.4],...
+annotation('line',[0.412 0.50],[0.566 0.637],'Color',[0.4 0.4 0.4],...
 	'LineWidth',2,'LineStyle',':');
 
-annotation('line',[0.603 0.603],[0.566 0.637],'Color',[0.4 0.4 0.4],...
+annotation('line',[0.735 0.630],[0.43 0.361],'Color',[0.4 0.4 0.4],...
+	'LineWidth',2,'LineStyle',':');
+annotation('line',[0.735 0.630],[0.566 0.637],'Color',[0.4 0.4 0.4],...
+	'LineWidth',2,'LineStyle',':');
+
+annotation('line',[0.573 0.573],[0.566 0.637],'Color',[0.4 0.4 0.4],...
 	'LineWidth',2,'LineStyle','--');
-annotation('line',[0.603 0.603],[0.43 0.361],'Color',[0.4 0.4 0.4],...
+annotation('line',[0.573 0.573],[0.43 0.361],'Color',[0.4 0.4 0.4],...
 	'LineWidth',2,'LineStyle','--');
 
 % Set annotations
 labelsize = 24;
-annotation('textbox',[0.14 bottom(1)+0.135 0.0826 0.0385],'String',{'A'},...
+annotation('textbox',[0.11 bottom(1)+0.135 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.14 bottom(2)+0.135 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0.11 bottom(2)+0.135 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.14 bottom(3)+0.135 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0.11 bottom(3)+0.135 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.02 bottom(4)+0.135 0.0826 0.0385],'String',{'D'},...
+annotation('textbox',[0 bottom(4)+0.135 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.02 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
+annotation('textbox',[0 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+
+%% FUNCTIONS
+
+function R = calcVS(params, spike_hist, fs)
+t = linspace(0, 0.25, fs*0.25);
+f = 200;
+onsetwin = 0.05; % ms
+for ii = 1:100
+	r = spike_hist(ii, onsetwin*fs:params.dur*fs-1);
+	R(ii) = abs(1/sum(r) * sum(r .* exp(1i * 2*pi * f .* t)));
+end
+end
