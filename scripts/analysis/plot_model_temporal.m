@@ -146,7 +146,8 @@ xlabel('CF (Hz)')
 % IC temporal plot 
 fs = params.Fs;
 spike_hist = squeeze(SFIE.ic_BE);
-VS = calcFFT(spike_hist, params, fs);
+%VS = calcFFT(spike_hist, params, fs);
+VS = calcVS(params, spike_hist, fs);
 nexttile
 plot(CFs, VS, 'linewidth', 2, 'color', '#d95f02')
 xlim(plot_range)
@@ -154,7 +155,7 @@ xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
 set(gca, 'XScale', 'log')
 xticks(ticks)
 ylabel('|fft| @ 200 Hz')
-ylim([0 100])
+%ylim([0 100])
 set(gca,'fontsize',font_size)
 title('BE: fft @ 200 Hz')
 xlabel('CF (Hz)')
@@ -178,7 +179,8 @@ ylabel('Avg. Rate (sp/s)')
 % IC temporal plot 
 fs = params.Fs;
 spike_hist = squeeze(SFIE.ic_BS);
-VS = calcFFT(spike_hist, params, fs);
+%VS = calcFFT(spike_hist, params, fs);
+VS = calcVS(params, spike_hist, fs);
 nexttile
 plot(CFs, VS, 'linewidth', 2, 'Color','#d95f02')
 xlim(plot_range)
@@ -186,40 +188,142 @@ xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
 set(gca, 'XScale', 'log')
 xticks(ticks)
 ylabel('|fft| @ 200 Hz')
-ylim([0 100])
+%ylim([0 100])
 set(gca,'fontsize',font_size)
 title('BS: fft @ 200 Hz')
 xlabel('CF (Hz)')
 
-%% FUNCTIONS 
+%% Calculate PSTHs and period histograms for model PSTH 
 
-function VS = calcFFT(spike_hist, params, fs)
+figure('Position',[1700,173,463,1048])
+tiledlayout(1, 6, 'TileSpacing','compact', 'Padding','compact')
 
-freq = 200;
+for ii = 1:2
+	if ii == 1
+		spike_hist = squeeze(SFIE.ic_BE);
+		name = 'BE';
+	else
+		spike_hist = squeeze(SFIE.ic_BS);
+		name = 'BS';
+	end
+
+	nexttile([1, 2])
+	hold on
+	max_rate = max(spike_hist, [], 'all')/2;
+	onsetwin = 0.05;
+	for j = 1:100
+
+		% Plot PSTHs
+		spike_wo_onset = spike_hist(j, onsetwin*fs:params.dur*fs-1);
+		t = linspace(0.05, 0.3, fs*0.25);
+		offset = max_rate * (j-1);
+		plot(t, spike_wo_onset + offset);
+	end
+	ylim([0 max_rate*100])
+	xlabel('Time (s)')
+	box on
+	yticks(linspace(max_rate/2, max_rate*100-max_rate/2, 100))
+	yticklabels(round(CFs))
+	xlim([0.05 0.3])
+	grid on
+	title([name ', PSTH (excluding onset)'])
+	set(gca, 'fontsize',12)
+
+	% Calculate period histogram
+	nexttile
+	max_rate = max(spike_hist, [], 'all')/2;
+	onsetwin = 0.05;
+	hold on
+	for j = 1:100
+
+		% Plot PSTHs
+		spike_wo_onset = spike_hist(j, onsetwin*fs:params.dur*fs-1);
+		t = linspace(0.05, 0.3, fs*0.25);
+
+		freq = 200; % Stimulus frequency in Hz
+		period = 1 / freq; % Period in ms
+		samples_per_period = fs*period;
+
+		period_hist = reshape(spike_wo_onset, samples_per_period,[]);
+		avg = mean(period_hist, 2);
+		t_period = linspace(0, period, fs*period);
+
+		offset = max_rate * (j-1);
+		patch([t_period flip(t_period)],[avg+offset; ...
+			repmat(offset,samples_per_period, 1)], 'k')
+
+	end
+	ylim([0 max_rate*100])
+	xlabel('Time (s)')
+	box on
+	yticks(linspace(max_rate/2, max_rate*100-max_rate/2, 100))
+	yticklabels(round(CFs))
+	xlim([0 0.005])
+	xticks(0:0.001:0.005)
+	grid on
+	title([name ', Period Histogram'])
+	set(gca, 'fontsize',12)
+end
+
+%% FUNCTIONS --------------------------------------------------------------
+
+function R = calcVS(params, spike_hist, fs)
+t = linspace(0, 0.25, fs*0.25);
+f = 200;
+onsetwin = 0.05; % ms
 for ii = 1:100
-
-	% Cut to integer # of cycles (50 cycles, excluding onset)
-	onsetwin = 0.05; % ms
-	spike_wo_onset = spike_hist(ii, onsetwin*fs:params.dur*fs-1);
-
-	% Take FFT 
-	L = length(spike_wo_onset);
-	Y = fft(spike_wo_onset);
-	P2 = abs(Y/L);
-	P1 = P2(1:L/2+1);
-	P1(2:end-1) = 2*P1(2:end-1);
-	f = fs/L*(0:(L/2));
-
-	% Get FFT at 200 Hz 
-	ind = f==freq;
-	VS(ii) = P1(ind);
-
-	% Example plot 
-	% figure
-	% plot(f,P1,"LineWidth",1.5) 
-	% hold on
-	% xline(200, '--')
-	% xlim([0 1500])
-
+	r = spike_hist(ii, onsetwin*fs:params.dur*fs-1);
+	R(ii) = abs(1/sum(r) * sum(r .* exp(1i * 2*pi * f .* t)));
 end
 end
+
+% -------------------------------------------------------------------------
+% 
+% function VS = calcFFT(spike_hist, params, fs)
+% 
+% freq = 200;
+% for ii = 1 %:100
+% 
+% 	% Cut to integer # of cycles (50 cycles, excluding onset)
+% 	onsetwin = 0.05; % ms
+% 	spike_wo_onset = spike_hist(ii, onsetwin*fs:params.dur*fs-1);
+% 
+% 	% Remove DC component 
+% 	%spike_centered = spike_wo_onset - mean(spike_wo_onset);
+% 
+% 	% Get bin width
+% 	t = linspace(0, 0.25, fs*0.25);
+% 	bin_width = t(2) - t(1);
+% 
+% 	% Get number of bins
+% 	L = length(spike_wo_onset);
+% 
+% 	% Take FFT 
+% 	Y = fft(spike_centered);
+% 	P2 = abs(Y)/L; % Normalize by signal length
+% 	amp = abs(Y)/L; % Normalize by signal length
+% 
+% 	% Get FFT at 200 Hz 
+% 	P1 = P2(1:L/2+1);
+% 	P1(2:end-1) = 2*P1(2:end-1);
+% 	f = fs/L*(0:(L/2));
+% 	ind = f==freq;
+% 	VS(ii) = P1(ind);
+% 
+% 	% Get Fourier component at 200 Hz
+% 	total_spikes = fft; % Convert to total spikes/sec
+% 	amp2(ii,:) = (2 * amp) / total_spikes; % Factor of 2 for single-sided spectrum
+% 	vec_str(ii,:) = amp2(ind); % Factor of 2 for single-sided spectrum
+% 
+% 
+% 	% Example plot 
+% 	% figure
+% 	% plot(f,P1,"LineWidth",1.5) 
+% 	% hold on
+% 	% xline(200, '--')
+% 	% xlim([0 1500])
+% 
+% 	disp(['VS1 = ' num2str(VS(ii))])
+% 	disp(['VS2 = ' num2str(vec_str(ii))])
+% end
+% end
