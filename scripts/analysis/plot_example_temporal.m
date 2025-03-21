@@ -107,3 +107,4 @@ ylabel('Vector Strength')
 legend('VS', 'Smoothed VS')
 set(gca, 'fontsize', 12)
 title('Example neuron VS, BS')
+
