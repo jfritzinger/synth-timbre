@@ -6,18 +6,20 @@ for i_fpeak = 1:num_fpeaks
 	% Calculate rasters
 	x = data_ST.spike_times{i_fpeak};
 	y = data_ST.spike_reps{i_fpeak};
-	x = x(x<0.3e6);
-	y = y(x<0.3e6);
+	valid = x<0.3e6;
+	x = x(valid);
+	y = y(valid);
 
 	% PSTH and smoothed PSTH
-	[PSTH, t] = histcounts(x, 50);
+	edges = linspace(0, 300000,501);
+	[PSTH, t] = histcounts(x, edges);
 	PSTH_smooth = smooth(PSTH);
 
 	% Calculate period histogram
 	% Cut off onset 
 	freq = 200; % Stimulus frequency in Hz
 	period = 1000 / freq; % Period in ms
-	num_bins = 20; % Number of bins for histogram
+	num_bins = 30; % Number of bins for histogram
 	wrapped_times = mod(x/1000, period); % Wrap spike times to one period
 	edges = linspace(0, period, num_bins+1); % Bin edges
 	counts = histcounts(wrapped_times, edges); % Create histogram
@@ -38,7 +40,11 @@ for i_fpeak = 1:num_fpeaks
 	phases = 2 * pi * mod(spike_times, period) / period;
 	VS = abs(mean(exp(1i * phases)));
 	%vectors = exp(-1i*2*pi*200*spike_times/1000); % same equation
-	%sync(j) = abs(mean(vectors)); % same equation	
+	%sync(j) = abs(mean(vectors)); % same equation
+
+	period = 1000 / 400;
+	phases = 2 * pi * mod(spike_times, period) / period;
+	VS_400 = abs(mean(exp(1i * phases)));
 
 	% Save outputs
 	temporal.x{i_fpeak} = x;
@@ -49,6 +55,7 @@ for i_fpeak = 1:num_fpeaks
 	temporal.p_hist(i_fpeak,:) = counts;
 	temporal.t_hist = edges;
 	temporal.VS(i_fpeak) = VS;
+	temporal.VS_400(i_fpeak) = VS_400;
 end
 
 end
