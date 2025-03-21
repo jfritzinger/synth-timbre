@@ -1,4 +1,4 @@
-function data  = analyzeST(params, CF)
+function data = analyzeST(params, CF)
 %
 % Function that takes in the synthetic timbre parameters and raw data and
 % outputs a struct containing the processed average rates, temporal
