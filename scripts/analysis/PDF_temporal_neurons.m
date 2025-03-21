@@ -12,7 +12,7 @@ sessions = readtable(fullfile(datapath, 'data-cleaning', ...
 num_data = size(sessions, 1);
 
 % Initialize report
-filename = 'VectorStrength_63';
+filename = 'VectorStrength_63_400';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s/pdfs/%s_%s.pdf', savepath, datetime, filename);
@@ -50,7 +50,7 @@ CF_list = sessions.CF(has_data);
 num_sessions = length(CF_list);
 
 % Plot each neuron
-for isesh = 3 %1:num_sessions
+for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -156,14 +156,18 @@ for isesh = 3 %1:num_sessions
 				num_fpeaks = length(param.fpeaks);
 				plot(param.fpeaks, smooth_rates(temporal.VS,zeros(num_fpeaks, 1),...
 					ones(num_fpeaks, 1), CF), 'k')
+				plot(param.fpeaks, temporal.VS_400)
+				leg{ileg} = '400 Hz';
+				ileg = ileg + 1;
+
 
 				% Plot only on-harmonic points
-				F0 = param.Delta_F;
-				fpeaks_ind = find(mod(param.fpeaks, F0)==0);
-				fpeaks_harm = param.fpeaks(fpeaks_ind);
-				plot(fpeaks_harm, temporal.VS(fpeaks_ind))
-				leg{ileg} = 'Harmonic';
-				ileg = ileg + 1;
+				% F0 = param.Delta_F;
+				% fpeaks_ind = find(mod(param.fpeaks, F0)==0);
+				% fpeaks_harm = param.fpeaks(fpeaks_ind);
+				% plot(fpeaks_harm, temporal.VS(fpeaks_ind))
+				% leg{ileg} = 'Harmonic';
+				% ileg = ileg + 1;
 
 			end
 		end
