@@ -96,10 +96,18 @@ for isesh = 1:num_neurons
 			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
 				data_ST, CF, 'Rate', param_ST{1});
 
+			% Calculate thresholds 
+			fpeaks = param_ST{1}.fpeaks;
+			rate = data_ST.rate;
+			rate_std = data_ST.rate_std;
+			[threshold_percent, threshold_freq, slope_rate, d_prime] = calculateThresholds(...
+				fpeaks, rate, rate_std, CF);
+
+
 			% Add data to table
-			if strcmp(type, 'Flat')
-				continue
-			else
+			% if strcmp(type, 'Flat')
+			% 	continue
+			% else
 				tables.Putative{ii} = sessions.Putative_Units{ineuron};
 				tables.CF(ii) = CF;
 				tables.CF_Group{ii} = CF_Group;
@@ -116,8 +124,12 @@ for isesh = 1:num_neurons
 				tables.Freq(ii) = freq;
 				tables.Q(ii) = freq/width;
 				tables.Q_log(ii) = log10(freq/width);
+				tables.D_prime(ii) = d_prime;
+				tables.Threshold(ii) = threshold_percent;
+				tables.Thresh_Freq{ii} = threshold_freq;
+				tables.Slope_Rate{ii} = slope_rate;
 				ii = ii+1;
-			end
+			% end
 		end
 	end
 	fprintf('%s done, %d percent done\n', putative, round(isesh/num_neurons*100))
@@ -127,6 +139,6 @@ end
 %% Save table
 
 % Save table
-writetable(tables,'peak_picking_excludeflat.xlsx')
+writetable(tables,'peak_picking_w_thresholds.xlsx')
 
 
