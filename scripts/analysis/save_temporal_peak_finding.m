@@ -13,7 +13,8 @@ clear
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable2.xlsx';
-sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name),...
+	'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Create table
