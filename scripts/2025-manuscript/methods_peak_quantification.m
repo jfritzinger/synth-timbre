@@ -45,13 +45,13 @@ for ineuron = 1:3
 	indices = data_ST.fpeaks > lo_limit & data_ST.fpeaks < hi_limit;
 	
 	% Calculate the peak/dip/flat
-	[peaks, dips, type, prom, ~, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF);
+	[peaks, dips, type, prom, ~, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF, 'Rate', []);
 
 	% Plots
 	h(ineuron) = subplot(2, 3, ineuron);
 	patch([lo_limit lo_limit hi_limit hi_limit]./1000,[-4 4 4 -4], 'r', 'FaceAlpha',0.05, 'EdgeColor', 'none');
 	hold on
-	plot(data_ST.fpeaks./1000,rate, 'linewidth', 0.9, 'Color',"#0072BD");
+	plot(data_ST.fpeaks./1000,rate, 'linewidth', 0.9, 'Color','k'); %"#0072BD");
 	errorbar(data_ST.fpeaks./1000,rate, 1/sqrt(30), 'linewidth', 0.9, 'Color',"#0072BD");
 	plot(data_ST.fpeaks./1000,rate_sm, 'linewidth', 1.5,'Color','k');
 	ylim([-4 4])
@@ -119,7 +119,7 @@ for ineuron = 1:2
 	rate_sm = data_ST.rates_sm;
 	max_rate = max(rate);
 
-	[peaks, dips, type, prom, ~, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF);
+	[peaks, dips, type, prom, ~, lim, bounds_freq, halfheight] = peakFinding(data_ST, CF, 'Rate', []);
 	rate = zscore(data_ST.rate);
 	rate_sm = zscore(data_ST.rates_sm);
 
