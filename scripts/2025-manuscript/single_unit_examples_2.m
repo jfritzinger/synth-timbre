@@ -14,10 +14,11 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 %% Set up figure
 
 linewidth = 1.5;
-figure('Position',[4,295,796,612])
+figure('Position',[4,295,8*ppi,6.5*ppi])
 %tiledlayout(3, 3)
 data_colors = {'#03882F', '#82BB95'};
-legsize = 12;
+legsize = 10;
+fontsize = 12;
 
 %% Plot
 
@@ -76,7 +77,7 @@ for ineuron = 1:9
 
 	% Figure parameters
 	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
-	set(gca, 'Fontsize', 14) %, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
+	set(gca, 'Fontsize', fontsize) %, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
 	xlim(plot_range);
 	grid on
 	ylim([0 max_rate+5])
@@ -110,10 +111,10 @@ for ineuron = 1:9
 	% Labeling MTF Type
 	if ineuron == 9
 		text(0.05, 0.85, MTF_shape, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',16)
+			'VerticalAlignment', 'top', 'FontSize',legsize)
 	else
 		text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',16)
+			'VerticalAlignment', 'top', 'FontSize',legsize)
 	end
 	
 	% Parameters
@@ -191,12 +192,17 @@ for ineuron = 1:9
 		hold on
 		stem(shifted_harms(iharm)/1000, level(iharm), '-', 'Marker',...
 			'none', 'LineWidth', 1, 'Color', [0.7 0.7 0.7]);
+		if ismember(ineuron, [1, 2, 4, 5, 7, 8])
+			yticklabels([])
+		else
+			ylabel('Mag. (dB SPL)')
+		end
 	end
 	% Plot 
 	plot(shifted_harms/1000, level, '--', 'LineWidth', 1, 'Color', [0.4 0.4 0.4]);
-	ylim([0 120])
+	ylim([0 90])
 	h(ineuron).YAxis(1).Color = 'k';
-	h(ineuron).YAxis(2).Color = 'w';
+	h(ineuron).YAxis(2).Color = [0.4 0.4 0.4];
 end
 
 
@@ -204,28 +210,38 @@ end
 %% Set locations
 
 % Titles
-titles_x = {'Low CF', 'Medium CF', 'High CF'};
-locs = linspace(0.18, 0.8, 3);
-for ii = 1:3
-	annotation('textbox',[locs(ii) 0.93 0.4 0.0459],...
-		'String',titles_x{ii},...
-		'FontSize',18,'EdgeColor','none', ...
-		'FontWeight','bold');
-end
+% titles_x = {'Low CF', 'Medium CF', 'High CF'};
+% locs = linspace(0.18, 0.8, 3);
+% for ii = 1:3
+% 	annotation('textbox',[locs(ii) 0.93 0.4 0.0459],...
+% 		'String',titles_x{ii},...
+% 		'FontSize',18,'EdgeColor','none', ...
+% 		'FontWeight','bold');
+% end
+
+% titles_y = {'Sloping', 'Dip', 'Peak'};
+% locs = linspace(0.13, 0.81, 3);
+% for ii = 1:3
+% 	annotation('textbox',[0.06 locs(ii) 0.126 0.0459],...
+% 		'String',titles_y{ii}, ...
+% 		'FontSize',20,'EdgeColor','none', 'Rotation',90, ...
+% 		'FontWeight','bold');
+% end
 
 titles_y = {'Sloping', 'Dip', 'Peak'};
-locs = linspace(0.13, 0.81, 3);
+locs = linspace(0.3, 0.93, 3);
 for ii = 1:3
-	annotation('textbox',[0.06 locs(ii) 0.126 0.0459],...
-		'String',titles_y{ii}, ...
-		'FontSize',20,'EdgeColor','none', 'Rotation',90, ...
-		'FontWeight','bold');
+	annotation('textbox',[0.31 locs(ii) 0.4 0.0459],...
+		'String',titles_y{ii},...
+		'FontSize',16,'EdgeColor','none', ...
+		'FontWeight','bold', 'HorizontalAlignment', 'center');
 end
 
-left = repmat(linspace(0.12, 0.72, 3), 1, 3);
+
+left = repmat(linspace(0.1, 0.69, 3), 1, 3);
 bottom = repmat(linspace(0.1, 0.73, 3), 3, 1);
 bottom = fliplr(reshape(bottom, 1, 9));
-width = 0.24;
+width = 0.23;
 height = 0.20;
 
 for ii = 1:9
@@ -233,7 +249,7 @@ for ii = 1:9
 end
 
 % Set annotations
-labelsize = 24;
+labelsize = 20;
 annotation('textbox',[0.01 0.95 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[0.01 0.63 0.0826 0.0385],'String',{'B'},...
