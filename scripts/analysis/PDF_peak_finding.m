@@ -218,7 +218,6 @@ for isesh = 1:num_sessions
 				message = sprintf('Width: %0.0f Hz', width);
 				text(0.05, 0.94, message, 'Units', 'normalized', ...
 					'VerticalAlignment', 'top', 'FontSize',fontsize)
-
 				plottitle = [num2str(spls(ispl)) ' dB SPL, '];
 			else
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
