@@ -44,7 +44,7 @@ has_data = bin200_MTF(:,1) | bin200_MTF(:,2) | bin200_MTF(:,3) | bin200_MTF(:,4)
 indices = find(has_data);
 num_index = length(indices);
 ii = 1;
-for imtype = 3
+for imtype = 2
 	for isesh = 1:num_index
 
 		% Load in data
@@ -73,6 +73,14 @@ for imtype = 3
 				% Analysis
 				data_ST = datas_ST{ispl};
 				param_ST = data(5+ispl, 2);
+
+				if CF<2000
+					CF_Group = 'Low';
+				elseif CF>=2000 && CF<4000
+					CF_Group = 'Med';
+				else
+					CF_Group = 'High';
+				end
 				if ~isempty(param_ST{1})
 					data_ST.rates_sm = data_ST.rate;
 
@@ -92,8 +100,9 @@ for imtype = 3
 					tables.Putative{ii} = sessions.Putative_Units{indices(isesh)};
 					tables.Model{ii} = model_type;
 					tables.CF(ii) = sessions.CF(indices(isesh));
-					tables.MTF{ii} = data_ST.MTF_shape;
-					tables.BMF(ii) = data_ST.BMF;
+					tables.CF_Group{ii} = CF_Group;
+					%tables.MTF{ii} = data_ST.MTF_shape;
+					%tables.BMF(ii) = data_ST.BMF;
 					tables.SPL(ii) = spls(ispl);
 					tables.R(ii) = data_ST.R;
 					tables.R2(ii) = data_ST.R2;
