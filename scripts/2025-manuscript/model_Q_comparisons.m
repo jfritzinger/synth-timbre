@@ -1,4 +1,5 @@
 %% model_Q_comparisons
+clear 
 
 %% Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
@@ -8,12 +9,11 @@ spreadsheet_name = 'PutativeTable.xlsx';
 sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 
 %% Plot Q
-figure('Position',[560,594,695,254])
-tiledlayout(2, 2)
-hold on
-fontsize = 12;
 
-nexttile
+figure('Position',[560,594,8*ppi,2.5*ppi])
+fontsize = 10;
+
+h(1) = subplot(1, 3, 1);
 colors = [0 0.4470 0.7410; 0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;0.4940 0.1840 0.5560];
 for ii = 1:4
 	if ii == 1
@@ -71,7 +71,10 @@ set(gca, 'YScale', 'log')
 xticks([0 200 500 1000 2000 5000 10000]/1000)
 yticks([0.2 0.5 1 2 5 10 20 50 100 200 500 1000 2000])
 grid on
-legend('Data', '', 'Energy', '', 'SFIE','',  'Broad Inh.', '', 'Location','northwest')
+hleg = legend('Data', '', 'Energy', '', 'SFIE','',  'Broad Inh.', '',...
+	'Location','northwest');
+hleg.ItemTokenSize = [8,8];
+hleg.Box = 'off';
 set(gca, 'fontsize', fontsize)
 ylabel('Q')
 box off
@@ -135,24 +138,22 @@ for ii = 1:4
 	all_decrease(ii) = sum(decrease);
 end
 
-nexttile
+h(2) = subplot(1, 3, 2);
 all_Q = [all_increase; all_same; all_decrease]';
 bh = bar(all_Q, 'stacked');
 xticklabels({'Data', 'Energy', 'SFIE', 'Broad Inh.'})
-bh(1).FaceColor = '#1b9e77';   %blue
+bh(1).FaceColor = '#1b9e77'; %blue
 bh(2).FaceColor = '#d95f02'; %light blue
 bh(3).FaceColor = '#7570b3'; %pink
 ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Sharpen', 'No Change', 'Broaden', 'Location','north',...
 	'numcolumns', 2);
-ylim([0 130])
+hleg.ItemTokenSize = [8,8];
+ylim([0 150])
+yticks([0 25 50 75 100])
 box off 
-
-%% 
-nexttile
-ylabel('Threshold')
-
+grid on
 
 %% 
 
@@ -213,7 +214,7 @@ for ii = 1:4
 	all_decrease(ii) = sum(decrease);
 end
 
-nexttile
+h(3) = subplot(1, 3, 3);
 all_Q = [all_increase; all_same; all_decrease]';
 bh = bar(all_Q, 'stacked');
 xticklabels({'Data', 'Energy', 'SFIE', 'Broad Inh.'})
@@ -224,5 +225,36 @@ ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Increase', 'No Change', 'Decrease', 'Location','north',...
 	'numcolumns', 2);
-ylim([0 150])
+hleg.ItemTokenSize = [8,8];
+ylim([0 160])
+yticks([0 25 50 75 100])
 box off 
+grid on
+%% Arrange and annotate
+
+bottom = 0.2;
+left = [0.07 0.39 0.73];
+height = 0.65;
+width = 0.25;
+
+for ii = 1:3
+	set(h(ii), 'position', [left(ii) bottom width height])
+end
+
+%% Set annotations
+
+labelsize = 20;
+left = [0.01 0.67];
+bottom = [0.97 0.97];
+label = {'A', 'B'};
+for ii = 1:2
+	annotation('textbox',[left(ii) bottom(ii) 0.0826 0.0385],'String',label{ii},...
+		'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+end
+
+annotation('textbox',[0.27 0.93 0.1826 0.0385],'String','Salience (Q)',...
+		'FontWeight','bold','FontSize',16,'EdgeColor','none');
+annotation('textbox',[0.77 0.93 0.1826 0.0385],'String','Threshold',...
+		'FontWeight','bold','FontSize',16,'EdgeColor','none');
+
+
