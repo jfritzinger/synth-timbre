@@ -3,7 +3,7 @@
 clear
 
 % Load in spreadsheet
-[base, datapath, savepath, ppi] = getPaths();
+[~, datapath, savepath, ppi] = getPaths();
 sheetpath = 'data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
 sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
@@ -12,6 +12,13 @@ num_data = size(sessions, 1);
 % Load in spreadsheet with peak information
 spreadsheet_name = 'peak_picking.xlsx';
 table = readtable(fullfile(datapath, spreadsheet_name));
+
+%% Set up figure
+figure('position', [60,30,7*ppi,9*ppi])
+backgroundcolor =  [0.8 0.8 0.8];
+fontsize = 11;
+titlesize = 12;
+legsize = 10;
 
 %% Plot imagesc of all BS responses sorted by CF
 
@@ -104,21 +111,13 @@ end
 
 %% Plot
 
-% Set up figure
-figure('position', [60,30,966,867])
-backgroundcolor =  [0.8 0.8 0.8];
-tiledlayout(5, 3, 'TileIndexing','columnmajor')
-types = {'Peak', 'Dip', 'Flat'};
-fontsize = 14;
-titlesize = 18;
-
+types = {'Peak', 'Dip', 'Slope'};
 for ii = 1:3
 
 	% Order by CF
 	if ii == 1
 		[~, max_ind] = sort(CFs1);
 		CF_order = array_z1(max_ind,:);
-		%CFs_ordered = CF_names(max_ind);
 	elseif ii == 2
 		[~, max_ind] = sort(CFs2);
 		CF_order = array_z2(max_ind,:);
@@ -130,12 +129,10 @@ for ii = 1:3
 	% Plot images 
 	if ii == 1
 		h(1) = subplot(5, 3, [1 4 7 10]);
-		%nexttile([5, 1])
 	elseif ii == 2
 		h(3) = subplot(5, 3, 2);
 	else
-		h(5) = subplot(5, 3, 3);
-		%nexttile
+		h(5) = subplot(5, 3, 8);
 	end
 	hh = imagesc(f, 1:size(CF_order, 1), CF_order);
 	xline(0, 'k')
@@ -161,7 +158,7 @@ for ii = 1:3
 	elseif ii == 2
 		h(4) = subplot(5, 3, 5);
 	else
-		h(6) = subplot(5, 3, 6);
+		h(6) = subplot(5, 3, 11);
 	end
 	%nexttile
 	hold on
@@ -169,149 +166,291 @@ for ii = 1:3
 		patch([f,NaN],[CF_order(iii,:),NaN],'w','EdgeColor','k','LineWidth',1.5,'EdgeAlpha',0.2);
 	end
 	if ii == 1
-		xlabel('Spectral Peak Freq w.r.t. Peak (Oct.)')
+		xlabel({'Spectral Peak Freq';'w.r.t. Peak (Oct.)'})
 	elseif ii == 2
-		xlabel('Spectral Peak Freq w.r.t. Dip (Oct.)')
+		xlabel({'Spectral Peak Freq';'w.r.t. Dip (Oct.)'})
 	else
-		xlabel('Spectral Peak Freq w.r.t. CF (Oct.)')
+		xlabel({'Spectral Peak Freq';'w.r.t. CF (Oct.)'})
 	end
 	xline(0, 'k')
 	yline(0, 'k')
 	xlim([-1 1])
 	ylim([-2.2 2.7])
 	ylabel('Z-score')
-	set(gca, 'fontsize', 14)
-
-end
-
-% Plot MTF values 
-spl = [43, 63, 73, 83];
-ispl = 2;
-isSPL = table.SPL == spl(ispl);
-index = isSPL;
-
-MTF_types = table.MTF(index);
-CFs = table.CF(index);
-types = table.Type(index);
-for iMTF = 1:2
-	h(6+iMTF) = subplot(5, 3, [7+iMTF 10+iMTF]);
-	if iMTF == 1
-		ind_MTF = strcmp(MTF_types, 'BS');
-	elseif iMTF == 2
-		ind_MTF = strcmp(MTF_types, 'BE');
-	elseif iMTF == 3
-		ind_MTF = contains(MTF_types, 'H');
-	else
-		ind_MTF = strcmp(MTF_types, 'F');
-	end
-
-	for itype = 1:3
-
-		if itype == 1
-			ind = strcmp(types, 'Peak');
-		elseif itype == 2
-			ind = strcmp(types, 'Dip');
-		else
-			ind = strcmp(types, 'Flat');
-		end
-		CFs_new = CFs(ind&ind_MTF);
-		x = itype * ones(1, length(CFs_new));
-
-		hold on
-		swarmchart(x, CFs_new./1000, 'filled', 'MarkerEdgeColor','k')
-		ylabel('CF (kHz)')
-		xlabel('Quantification')
-		xticks([1, 2, 3])
-		xticklabels({'Peak', 'Dip', 'Flat'})
-		yline(2, ':')
-		yline(4, ':')
-		set(gca, 'yscale', 'log')
-		ylim([0.3 10])
-		yticks([0.1 0.2 0.5 1 2 5 10])
-	end
-	set(gca, 'FontSize', fontsize)
-	title(MTF_types{iMTF}, 'fontsize', titlesize)
 end
 
 % Plot histogram  
 spl = [43, 63, 73, 83];
-types = {'Flat', 'Peak', 'Dip'};
+types = {'Slope', 'Peak', 'Dip'};
 isBin = table.binmode == 2;
-for ispl = 2
-	isSPL = table.SPL == spl(ispl);
+ispl = 2;
+isSPL = table.SPL == spl(ispl);
+for iMTF = 1:4
 
-	for iMTF = 1:4
-
-		if iMTF == 1
-			MTF_target = 'BS';
-			isMTF = strcmp(table.MTF, MTF_target);
-		elseif iMTF == 2
-			MTF_target = 'BE';
-			isMTF = strcmp(table.MTF, MTF_target);
-		elseif iMTF == 3
-			MTF_target = 'Hybrid';
-			isMTF = contains(table.MTF, 'H');
-		else
-			MTF_target = 'F';
-			isMTF = strcmp(table.MTF, MTF_target);
-		end
-		index = isSPL & isMTF & isBin;
-
-		num_dip = sum(cellfun(@(s) strcmp(s, 'Dip'), table.Type(index)));
-		num_peak = sum(cellfun(@(s) strcmp(s, 'Peak'), table.Type(index)));
-		num_flat = sum(cellfun(@(s) strcmp(s, 'Flat'), table.Type(index)));
-		all = sum([num_peak num_dip num_flat]);
-
-		percent_peak(iMTF) = num_peak/all*100;
-		percent_dip(iMTF) = num_dip/all*100;
-		percent_flat(iMTF) = num_flat/all*100;
+	if iMTF == 1
+		MTF_target = 'BS';
+		isMTF = strcmp(table.MTF, MTF_target);
+	elseif iMTF == 2
+		MTF_target = 'BE';
+		isMTF = strcmp(table.MTF, MTF_target);
+	elseif iMTF == 3
+		MTF_target = 'Hybrid';
+		isMTF = contains(table.MTF, 'H');
+	else
+		MTF_target = 'F';
+		isMTF = strcmp(table.MTF, MTF_target);
 	end
-	percent_all = [percent_peak; percent_dip; percent_flat]';
+	index = isSPL & isMTF & isBin;
 
-	h(9) = subplot(5, 3, 14);
-	bar(percent_all, 'stacked')
-	%title([num2str(spl(ispl)) ' dB SPL'])
-	xticklabels({'BS', 'BE', 'Hybrid', 'Flat'})
-	legend('Peak', 'Dip', 'Flat', 'Location','south')
-	ylabel('% Neurons')
-	xlabel('MTF Type')
-	ylim([0 100])
+	num_dip = sum(cellfun(@(s) strcmp(s, 'Dip'), table.Type(index)));
+	num_peak = sum(cellfun(@(s) strcmp(s, 'Peak'), table.Type(index)));
+	num_flat = sum(cellfun(@(s) strcmp(s, 'Flat'), table.Type(index)));
+	all = sum([num_peak num_dip num_flat]);
+
+	percent_peak(iMTF) = num_peak/all*100;
+	percent_dip(iMTF) = num_dip/all*100;
+	percent_flat(iMTF) = num_flat/all*100;
+end
+percent_all = [percent_peak; percent_dip; percent_flat]';
+
+h(7) = subplot(5, 3, 14);
+bar(percent_all, 'stacked')
+xticklabels({'BS', 'BE', 'Hybrid', 'Flat'})
+hleg = legend('Peak', 'Dip', 'Slope', 'Location','northwest', 'numcolumns', 3);
+hleg.ItemTokenSize = [8,8];
+ylabel('% Neurons')
+xlabel('MTF Type')
+ylim([0 130])
+yticks(0:20:100)
+set(gca, 'fontsize', fontsize)
+box off
+
+%% Add in other plots 
+
+[base, datapath, savepath, ppi] = getPaths();
+tables = readtable(fullfile(datapath,"LMM", "peak_picking_excludeflat.xlsx"));
+
+h(8) = subplot(5, 3, 3);
+is200 = tables.F0 == 200;
+isPeak = strcmp(tables.Type, 'Peak');
+isDip = strcmp(tables.Type, 'Dip');
+isSPL = tables.SPL==63;
+
+% Get data
+isbin = tables.binmode == 2;
+q_peak = tables.Q(isbin & is200 & isPeak & isSPL);
+q_dip = tables.Q(isbin & is200 & isDip & isSPL);
+q_dip(length(q_dip)+1:length(q_peak)) = NaN;
+
+% Plot
+hold on
+boxplot([q_peak, q_dip])
+swarmchart(ones(length(q_peak), 1)*1, q_peak)
+swarmchart(ones(length(q_dip), 1)*2, q_dip)
+xticks(1:2)
+xticklabels({'Peak', 'Dip'})
+xlim([0.5 2.5])
+ylim([0 12])
+ylabel('Q')
+set(gca, 'fontsize', fontsize)
+grid on
+
+%% MTF change vs Q
+
+h(9) = subplot(5, 3, 6);
+ispeak = strcmp(tables.Type, 'Peak');
+isdip = strcmp(tables.Type, 'Dip');
+isflat = strcmp(tables.Type, 'Slope');
+signed_Q = tables.Q;
+signed_Q(isdip) = signed_Q(isdip) * -1;
+signed_Q(isflat) = 0;
+signed_MTF = tables.MTF_str;
+
+isbin = tables.binmode == 2;
+is200 = tables.F0 == 200;
+spls = [43, 63, 73, 83];
+for ispl = 2
+
+	% Get data
+	islevel = tables.SPL == spls(ispl);
+	index = islevel & isbin & is200;
+	isBE = strcmp(tables.MTF(index), 'BE');
+	isBS = strcmp(tables.MTF(index), 'BS');
+	isH = contains(tables.MTF(index), 'H');
+	
+	% Data
+	CFs = tables.CF(index);
+	Qs = tables.Q(index);
+	MTFs = tables.MTF(index);
+	MTF_str = signed_MTF(index);
+
+	% mdl = fitlm(MTF_str(isBS), Qs(isBS));
+	% x = 0:0.05:1;
+	% p(1) = mdl.Coefficients.Estimate(2,1);
+	% p(2) = mdl.Coefficients.Estimate(1,1);
+	% p(3) = mdl.Coefficients.pValue(2);
+	% p(4) = mdl.Rsquared.Ordinary;
+	% mdlfit = p(1)*x+p(2);
+	% plot(x, mdlfit, 'k');
+
+	% Plot
+	hold on
+	scatter(MTF_str(isBS), Qs(isBS), 'filled', 'MarkerEdgeColor','k')
+	scatter(MTF_str(isBE), Qs(isBE), 'filled', 'MarkerEdgeColor','k')
+	%scatter(MTF_str(isH), Qs(isH), 'filled', 'MarkerEdgeColor','k')
+	xline(0)
+	yline(0)
+	grid on
+	ylabel('Q')
+	xlabel('MTF % Change')
+	legend(['BS, n=' num2str(length(Qs(isBS)))],...
+		['BE, n=' num2str(length(Qs(isBE)))],'fontsize', legsize)
 	set(gca, 'fontsize', fontsize)
+end
+box off
 
+%%
+
+h(10) = subplot(5, 3, 9);
+is200 = tables.F0 == 200;
+isBE = strcmp(tables.MTF, 'BE');
+isBS = strcmp(tables.MTF, 'BS');
+isH = contains(tables.MTF, 'H');
+isF = strcmp(tables.MTF, 'F');
+for ibin = 1:2
+
+	% Get data
+	isbin = tables.binmode == ibin;
+	ind_BE = isbin & is200 & isBE;
+	ind_BS = isbin & is200 & isBS;
+	ind_H = isbin & is200 & isH;
+	ind_F = isbin & is200 & isF;
+
+	% Data
+	Q_all2(ibin,:) = [mean(tables.Q(ind_BE)) mean(tables.Q(ind_BS)) ...
+		mean(tables.Q(ind_H)) mean(tables.Q(ind_F))];
+	Q_sem2(ibin,:) = [std(tables.Q(ind_BE))/sqrt(length(tables.Q(ind_BE)))...
+		std(tables.Q(ind_BS))/sqrt(length(tables.Q(ind_BS)))...
+		std(tables.Q(ind_H))/sqrt(length(tables.Q(ind_H)))...
+		std(tables.Q(ind_F))/sqrt(length(tables.Q(ind_F)))];
 end
 
-% Rearrange
-left = linspace(0.05, 0.7, 3);
-bottom = linspace(0.07, 0.8, 5);
-width = 0.25;
-height = 0.155;
+% Plot
+hold on
+errorbar(Q_all2(1,:), Q_sem2(1,:), 'LineWidth',2, 'Color','#1b9e77')
+errorbar(Q_all2(2,:), Q_sem2(2,:), 'LineWidth',2, 'Color','#d95f02')
 
-set(h(1), 'position', [left(1) 0.23 width 0.73])
+xticks(1:4)
+xticklabels({'BE', 'BS', 'Hybrid', 'Flat'})
+xlim([0.5 4.5])
+ylim([0 6.5])
+ylabel('Q')
+xlabel('MTF Type')
+legend('Contra', 'Diotic', 'Location','best', 'fontsize', legsize)
+set(gca, 'fontsize', fontsize)
+grid on
+
+%%
+% For units that have contra and binaural recordings, which
+% increase/decrease in Q from contra to binaural? 
+
+h(11) = subplot(5, 3, 15);
+is200 = tables.F0 == 200;
+isPut = unique(tables.Putative);
+BS_change = [];
+BE_change = [];
+H_change = [];
+F_change = [];
+isSPL = tables.SPL == 63;
+for iput = 1:length(isPut)
+
+	% Get data
+	isput = strcmp(tables.Putative, isPut{iput});
+	isbin = tables.binmode == 2 & is200 & isput & isSPL;
+	iscontra = tables.binmode == 1 & is200 & isput & isSPL;
+
+	if any(isbin) && any(iscontra)
+
+		%q_change = [mean(tables.Q(iscontra)) mean(tables.Q(isbin))];
+		q_change = sign(mean(tables.Q(isbin)) - mean(tables.Q(iscontra)));
+		MTF_type = unique(tables.MTF(isbin));
+		if strcmp(MTF_type, 'BS')
+			BS_change = [BS_change; q_change];
+		elseif strcmp(MTF_type, 'BE')
+			BE_change = [BE_change; q_change];
+		elseif contains(MTF_type, 'H')
+			H_change = [H_change; q_change];
+		else
+			F_change = [F_change; q_change];
+		end
+	end
+end
+bin_change1 = [sum(BE_change==-1) sum(BE_change==1)]./length(BE_change)*100;
+bin_change2 = [sum(BS_change<=0) sum(BS_change==1)]./length(BS_change)*100;
+bin_change3 = [sum(H_change==-1) sum(H_change==1)]./length(H_change)*100;
+bin_change4 = [sum(F_change==-1) sum(F_change==1)]./length(F_change)*100;
+bin_change = [bin_change1;bin_change2;bin_change3;bin_change4];
+
+% Plot
+hold on
+bars = bar(bin_change, 'stacked');
+bars(1).FaceColor = '#1b9e77';   %blue
+bars(2).FaceColor = '#d95f02'; %light blue
+
+xticks(1:4)
+xticklabels({'BE', 'BS', 'Hybrid', 'Flat'})
+xlim([0.5 4.5])
+ylim([0 150])
+yticks([0 25 50 75 100])
+ylabel('Percent (%)')
+xlabel('MTF Type')
+hleg = legend('Contra Q > Diotic Q', 'Diotic Q > Contra Q', 'Location','north',...
+	'fontsize', legsize, 'NumColumns', 1);
+hleg.ItemTokenSize = [8, 8];
+set(gca, 'fontsize', fontsize)
+grid on
+
+%% Rearrange
+left = [0.06 0.38 0.72];
+bottom = linspace(0.08, 0.8, 5);
+width = 0.235;
+height = 0.1;
+
+set(h(1), 'position', [left(1) 0.19 width 0.78])
 set(h(2), 'position', [left(1) bottom(1) width height])
 
-set(h(3), 'position', [left(2) 0.78 width 0.18])
-set(h(4), 'position', [left(2) bottom(4) width height])
+set(h(3), 'position', [left(2) 0.84 width 0.13])
+set(h(4), 'position', [left(2) 0.73 width height])
 
-set(h(5), 'position', [left(3) 0.78 width 0.18])
-set(h(6), 'position', [left(3) bottom(4) width height])
+set(h(5), 'position', [left(2) 0.5 width 0.12])
+set(h(6), 'position', [left(2) 0.4 width height])
 
-set(h(7), 'position', [left(2) 0.3 width 0.2])
-set(h(8), 'position', [left(3) 0.3 width 0.2])
-set(h(9), 'position', [left(2) bottom(1) width height])
+set(h(7), 'position', [left(2) bottom(1) width 0.21])
 
-%% Add labels 
+bottom = linspace(bottom(1), 0.8, 4);
+height = 0.17;
+width = 0.25;
+set(h(8), 'position', [left(3) bottom(4) width height])
+set(h(9), 'position', [left(3) bottom(3) width height])
+set(h(10), 'position', [left(3) bottom(2) width height])
+set(h(11), 'position', [left(3) bottom(1) width height])
 
-labelsize = 24;
-annotation('textbox',[0.01 0.95 0.0826 0.0385],'String',{'A'},...
+% Add labels 
+labelsize = 20;
+annotation('textbox',[0.0 0.96 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.34 0.95 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0.32 0.96 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.66 0.95 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0.32 0.62 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-
-annotation('textbox',[0.34 0.5 0.0826 0.0385],'String',{'D'},...
+annotation('textbox',[0.32 0.3 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.67 0.5 0.0826 0.0385],'String',{'E'},...
+bottom = linspace(0.24, 0.96, 4);
+annotation('textbox',[0.65 bottom(4) 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.34 0.22 0.0826 0.0385],'String',{'F'},...
+annotation('textbox',[0.65 bottom(3) 0.0826 0.0385],'String',{'F'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.65 bottom(2) 0.0826 0.0385],'String',{'G'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.65 bottom(1) 0.0826 0.0385],'String',{'H'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
