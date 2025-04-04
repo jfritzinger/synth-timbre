@@ -11,7 +11,8 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 %% Plot Q
 
 figure('Position',[560,594,8*ppi,2.5*ppi])
-fontsize = 10;
+fontsize = 12;
+legsize = 10;
 
 h(1) = subplot(1, 3, 1);
 colors = [0 0.4470 0.7410; 0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;0.4940 0.1840 0.5560];
@@ -71,13 +72,14 @@ set(gca, 'YScale', 'log')
 xticks([0 200 500 1000 2000 5000 10000]/1000)
 yticks([0.2 0.5 1 2 5 10 20 50 100 200 500 1000 2000])
 grid on
+set(gca, 'fontsize', fontsize)
 hleg = legend('Data', '', 'Energy', '', 'SFIE','',  'Broad Inh.', '',...
-	'Location','northwest');
+	'Location','northwest', 'fontsize', legsize);
 hleg.ItemTokenSize = [8,8];
 hleg.Box = 'off';
-set(gca, 'fontsize', fontsize)
 ylabel('Q')
 box off
+title('Q vs CF')
 
 %% Plot histogram of increase/decrease/no change
 
@@ -148,12 +150,13 @@ bh(3).FaceColor = '#7570b3'; %pink
 ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Sharpen', 'No Change', 'Broaden', 'Location','north',...
-	'numcolumns', 2);
+	'numcolumns', 2, 'fontsize', legsize);
 hleg.ItemTokenSize = [8,8];
 ylim([0 150])
 yticks([0 25 50 75 100])
 box off 
 grid on
+title('Changes in Q')
 
 %% 
 
@@ -218,24 +221,26 @@ h(3) = subplot(1, 3, 3);
 all_Q = [all_increase; all_same; all_decrease]';
 bh = bar(all_Q, 'stacked');
 xticklabels({'Data', 'Energy', 'SFIE', 'Broad Inh.'})
-bh(1).FaceColor = '#1b9e77';   %blue
-bh(2).FaceColor = '#d95f02'; %light blue
-bh(3).FaceColor = '#7570b3'; %pink
+% bh(1).FaceColor = '#1b9e77';   %blue
+% bh(2).FaceColor = '#d95f02'; %light blue
+% bh(3).FaceColor = '#7570b3'; %pink
 ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Increase', 'No Change', 'Decrease', 'Location','north',...
-	'numcolumns', 2);
+	'numcolumns', 2, 'fontsize', legsize);
 hleg.ItemTokenSize = [8,8];
 ylim([0 160])
 yticks([0 25 50 75 100])
 box off 
 grid on
+title('Changes in Threshold')
+
 %% Arrange and annotate
 
-bottom = 0.2;
-left = [0.07 0.39 0.73];
-height = 0.65;
-width = 0.25;
+bottom = 0.24;
+left = linspace(0.08, 0.73, 3);
+height = 0.62;
+width = 0.24;
 
 for ii = 1:3
 	set(h(ii), 'position', [left(ii) bottom width height])
@@ -244,17 +249,19 @@ end
 %% Set annotations
 
 labelsize = 20;
-left = [0.01 0.67];
-bottom = [0.97 0.97];
-label = {'A', 'B'};
-for ii = 1:2
-	annotation('textbox',[left(ii) bottom(ii) 0.0826 0.0385],'String',label{ii},...
+left = linspace(0.01, 0.69, 3);
+label = {'A', 'B', 'C'};
+for ii = 1:3
+	annotation('textbox',[left(ii) 0.97 0.0826 0.0385],'String',label{ii},...
 		'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 end
 
-annotation('textbox',[0.27 0.93 0.1826 0.0385],'String','Salience (Q)',...
-		'FontWeight','bold','FontSize',16,'EdgeColor','none');
-annotation('textbox',[0.77 0.93 0.1826 0.0385],'String','Threshold',...
-		'FontWeight','bold','FontSize',16,'EdgeColor','none');
+% annotation('textbox',[0.27 0.93 0.1826 0.0385],'String','Salience (Q)',...
+% 		'FontWeight','bold','FontSize',16,'EdgeColor','none');
+% annotation('textbox',[0.77 0.93 0.1826 0.0385],'String','Threshold',...
+% 		'FontWeight','bold','FontSize',16,'EdgeColor','none');
 
+%% Save figure 
 
+filename = 'Fig10_model_Q_comparisons';
+saveFigure(filename)

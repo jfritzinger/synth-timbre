@@ -178,6 +178,7 @@ annotation('textbox',[left(3) 0.96 0.0826 0.0385],'String',{'C'},...
 annotation('textbox',[left(4) 0.96 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
-%% Export 
-%
-%exportgraphics(gcf, fullfile(savepath, 'manuscript', 'data-distribution.png'), 'Resolution', 600)
+%% Save figure 
+
+filename = 'FigS1_data_distribution';
+saveFigure(filename)

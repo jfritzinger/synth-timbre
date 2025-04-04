@@ -385,4 +385,7 @@ annotation('textbox',[left(1) 0.45 0.0826 0.0385],'String',{'D'},...
 annotation('textbox',[left(2) 0.45 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
+%% Save figure 
 
+filename = 'Fig8_plot_thresholds';
+saveFigure(filename)

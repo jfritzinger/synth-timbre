@@ -454,3 +454,8 @@ annotation('textbox',[0.65 bottom(2) 0.0826 0.0385],'String',{'G'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[0.65 bottom(1) 0.0826 0.0385],'String',{'H'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+
+%% Save figure 
+
+filename = 'Fig6_plot_population';
+saveFigure(filename)

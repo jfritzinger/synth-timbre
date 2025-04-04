@@ -237,3 +237,8 @@ annotation('textbox',[left(4) 0.75 0.0826 0.0385],'String',{'F'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[left(5) 0.75 0.0826 0.0385],'String',{'G'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+
+%% Save figure 
+
+filename = 'Fig5_plot_temporal_examples';
+saveFigure(filename)

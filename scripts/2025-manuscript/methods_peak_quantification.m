@@ -64,8 +64,8 @@ for ineuron = 1:3
 		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
 		line([peaks.locs peaks.locs]./1000, [peaks.pks-0.75 peaks.pks], 'Color', 'r', 'LineWidth', 1.5);
 		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', 1.5)
-		hleg = legend('ROI', '', 'Data', 'Smoothed', 'Ref. Value', '', '+/- 0.75', ...
- 			'Bandwidth', 'CF', 'Location','northeastoutside');
+		hleg = legend('ROI', '', 'Data', 'Smoothed', 'Ref. Value', '', 'Bandwidth', ...
+ 			'+/- 0.75', 'CF', 'Location','northeastoutside');
 	elseif ineuron == 2
 		line([dips.locs dips.locs]./1000, -1*[dips.pks-0.75 dips.pks], 'Color', 'r', 'LineWidth', 1.5);
 		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
@@ -111,3 +111,8 @@ annotation('textbox',[left(2)-0.03 0.95 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[left(3)-0.03 0.95 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+
+%% Save figure 
+
+filename = 'Fig3_methods_peak_quantification';
+saveFigure(filename)

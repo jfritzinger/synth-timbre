@@ -9,10 +9,9 @@ clear
 
 %% Load in spreadsheet
 
-[base, ~, savepath, ppi] = getPaths();
-datapath = 'scripts/data-cleaning';
+[base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, datapath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
 num_units = size(sessions, 1);
 color = {"#0072BD", "#D95319", '#EDB120', '#7E2F8E'};
 
@@ -318,6 +317,7 @@ for irab = 1:4
 
 end
 
-%% Export 
+%% Save figure 
 
-exportgraphics(gcf, fullfile(savepath, 'manuscript', 'data_per_rabbit.png'), 'Resolution', 600)
+filename = 'FigS2_data_per_rabbit';
+saveFigure(filename)

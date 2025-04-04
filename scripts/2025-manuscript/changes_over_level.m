@@ -450,3 +450,7 @@ annotation('textbox',[left(3) bottom(1) 0.0826 0.0385],'String',{'F'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 
+%% Save figure 
+
+filename = 'Fig7_changed_over_level';
+saveFigure(filename)

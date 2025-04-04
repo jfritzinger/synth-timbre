@@ -420,6 +420,12 @@ annotation('textbox',[0 bottom(4)+0.135 0.0826 0.0385],'String',{'D'},...
 annotation('textbox',[0 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
+
+%% Save figure 
+
+filename = 'Fig1_hypothesis_figure';
+saveFigure(filename)
+
 %% FUNCTIONS
 
 function R = calcVS(params, spike_hist, fs)

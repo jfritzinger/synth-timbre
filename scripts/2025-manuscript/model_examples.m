@@ -3,7 +3,7 @@ clear
 
 %% Create figure
 
-[base, datapath, savepath, ppi] = getPaths();
+[~, ~, savepath, ppi] = getPaths();
 
 figure('Position',[1720,621,8.5*ppi,7*ppi])
 h = gobjects(12, 1);
@@ -298,3 +298,8 @@ for ii = 1:2
 		'String',labels{ii},'FontWeight','bold','FontSize',labelsize,...
 		'EdgeColor','none');
 end
+
+%% Save figure 
+
+filename = 'Fig9_model_examples';
+saveFigure(filename)

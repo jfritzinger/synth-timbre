@@ -85,3 +85,8 @@ for ii = 1:2
 	title(name)
 	set(gca, 'fontsize',12)
 end
+
+%% Save figure 
+
+filename = 'FigS4_model_temporal';
+saveFigure(filename)

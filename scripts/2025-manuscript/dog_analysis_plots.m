@@ -3,12 +3,12 @@ clear
 
 %% Load in fits  
 
-[base, datapath, ~, ppi] = getPaths();
+[base, datapath, savepath, ppi] = getPaths();
 load(fullfile(datapath, 'dog_analysis.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
 
 %% Plot example fit 
 
-figure('Position',[53,540,8*ppi,7*ppi])
+fig = figure('Position',[53,540,8*ppi,7*ppi]);
 tiledlayout(2, 2)
 fontsize = 12;
 legsize = 10;
@@ -33,23 +33,23 @@ spont = data_RM.spont;
 % Plot 
 nexttile
 hold on
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).rate, 'k','LineWidth',1);
+plot(dog_analysis(ind).fpeaks/1000, dog_analysis(ind).rate, 'k','LineWidth',1);
 % plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted2, ...
 % 	'LineWidth',2, 'color', 'b');
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).dog_predicted, ...
+plot(dog_analysis(ind).fpeaks/1000, dog_analysis(ind).dog_predicted, ...
 	'LineWidth',1, 'color', 'b');
-plot(dog_analysis(ind).fpeaks, dog_analysis(ind).gaus_predicted,...
+plot(dog_analysis(ind).fpeaks/1000, dog_analysis(ind).gaus_predicted,...
 	'LineWidth',1, 'color', '#1b9e77');
-xline(dog_analysis(ind).CF, '--', 'LineWidth',2)
+xline(dog_analysis(ind).CF/1000, '--', 'LineWidth',1.5)
 yline(spont, 'k')
 ylabel('Avg. Rate (sp/s)')
-xlabel('Spectral Peak Freq. (Hz)')
+xlabel('Spectral Peak Freq. (kHz)')
 title('Example Neuron Predictions')
 set(gca, 'fontSize', fontsize)
 hleg = legend('Data', 'DoG', 'Gaussian', 'CF', 'fontsize', legsize);
 hleg.ItemTokenSize = [16, 6];
 grid on
-xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)])
+xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)]/1000)
 
 
 %% Plot filters 
@@ -60,7 +60,7 @@ DOGparams = dog_analysis(ind).dog_params;
 W = dog_model(dog_analysis(ind).fpeaks, DOGparams);
 hold on
 plot(dog_analysis(ind).fpeaks/1000,W, 'color', 'b')
-xline(dog_analysis(ind).CF/1000, '--', 'linewidth', 2)
+xline(dog_analysis(ind).CF/1000, '--', 'linewidth', 1.5)
 
 Fs = 100000;
 Gparams = dog_analysis(ind).gauss_params;
@@ -76,9 +76,10 @@ plot(f/1000,W, 'color', '#1b9e77')
 title('DoG and Gaussian Kernels')
 set(gca, 'fontsize', fontsize)
 ylabel('Amplitude')
-xlabel('Frequency (Hz)')
+xlabel('Frequency (kHz)')
 xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)]/1000)
 set(gca, 'xscale', 'log')
+grid on
 
 %% Plot adjusted R^2 values 
 
@@ -138,6 +139,7 @@ yline(0)
 xlabel('Log Bandwidth Ratio (\sigma_i_n_h/\sigma_e_x_c)')
 ylabel('Log Strength Ratio (g_i_n_h/g_e_x_c)')
 title('Fit Parameter Ratios')
+grid on
 
 %% Annotate 
 
@@ -150,3 +152,7 @@ for ii = 1:4
 		'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 end
 
+%% Save figure 
+
+filename = 'Fig11_dog_analysis_plots';
+saveFigure(filename)

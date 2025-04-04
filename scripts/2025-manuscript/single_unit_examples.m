@@ -257,6 +257,8 @@ annotation('textbox',[0.01 0.63 0.0826 0.0385],'String',{'B'},...
 annotation('textbox',[0.01 0.33 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
-%% Export figure
+%% Save figure 
 
-%exportgraphics(gcf, fullfile(savepath, 'manuscript', 'examples-peaksanddips.png'), 'Resolution', 600)
+filename = 'Fig4_single_unit_examples';
+saveFigure(filename)
+

@@ -59,11 +59,11 @@ for ineuron = 1:3
 	% Calculate Q for each section
 	win1_ST.rates_sm = rates_sm(1,:);
 	win1_ST.fpeaks = data_ST.fpeaks;
-	[~, ~, ~, ~, width, ~, ~,~, freq] = peakFinding(win1_ST, CF);
+	[~, ~, ~, ~, width, ~, ~,~, freq] = peakFinding(win1_ST, CF, 'Rate', param_ST);
 	Q(1) = freq/width;
 	win2_ST.rates_sm = rates_sm(2,:);
 	win2_ST.fpeaks = data_ST.fpeaks;
-	[~, ~, ~, ~, width, ~, ~, ~, freq] = peakFinding(win2_ST, CF);
+	[~, ~, ~, ~, width, ~, ~, ~, freq] = peakFinding(win2_ST, CF, 'Rate', param_ST);
 	Q(2) = freq/width;
 
 	% Plot rates!
@@ -332,3 +332,7 @@ for ii = 1:3
 		'EdgeColor','none');
 end
 
+%% Save figure 
+
+filename = 'FigS5_time_lapse_results';
+saveFigure(filename)
