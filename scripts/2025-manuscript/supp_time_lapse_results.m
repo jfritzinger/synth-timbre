@@ -1,5 +1,4 @@
 %% plot_time_lapse_results 
-
 clear 
 
 %% Load in spreadsheet
