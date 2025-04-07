@@ -237,7 +237,6 @@ for ii = 1:3
 		'FontWeight','bold', 'HorizontalAlignment', 'center');
 end
 
-
 left = repmat(linspace(0.1, 0.69, 3), 1, 3);
 bottom = repmat(linspace(0.1, 0.73, 3), 3, 1);
 bottom = fliplr(reshape(bottom, 1, 9));
