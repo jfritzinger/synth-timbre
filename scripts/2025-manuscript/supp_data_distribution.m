@@ -9,7 +9,7 @@ clear
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-spreadsheet_name = 'PutativeTable.xlsx';
+spreadsheet_name = 'PutativeTable2.xlsx';
 sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
 num_units = size(sessions, 1);
 
@@ -27,17 +27,28 @@ synth(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB);
 synth(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB);
 synth(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
 
-synth(:,5) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_100);
-synth(:,6) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_100);
-synth(:,8) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_100);
+% synth(:,5) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_100);
+% synth(:,6) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_100);
+% synth(:,8) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_100);
 
-synth(:,9) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_con);
-synth(:,10) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_con);
-synth(:,11) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB_con);
-synth(:,12) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_con);
+synth(:,5) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_con);
+synth(:,6) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_con);
+synth(:,7) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB_con);
+synth(:,8) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_con);
 
-any_synth = any(synth(:,1:12), 2);
+any_synth = any(synth(:,1:8), 2);
 table = sessions(any_synth, :);
+
+% Output num units 
+fprintf('Synth timbre total: %d\n', sum(any_synth))
+fprintf('Synth timbre @ 200 Hz, 43 dB SPL: %d\n', sum(synth(:,1)))
+fprintf('Synth timbre @ 200 Hz, 63 dB SPL: %d\n', sum(synth(:,2)))
+fprintf('Synth timbre @ 200 Hz, 73 dB SPL: %d\n', sum(synth(:,3)))
+fprintf('Synth timbre @ 200 Hz, 83 dB SPL: %d\n', sum(synth(:,4)))
+fprintf('Synth timbre @ 200 Hz contra, 43 dB SPL: %d\n', sum(synth(:,5)))
+fprintf('Synth timbre @ 200 Hz contra, 63 dB SPL: %d\n', sum(synth(:,6)))
+fprintf('Synth timbre @ 200 Hz contra, 73 dB SPL: %d\n', sum(synth(:,7)))
+fprintf('Synth timbre @ 200 Hz contra, 83 dB SPL: %d\n', sum(synth(:,8)))
 
 %% Get CFs for each putative neuron
 
@@ -60,13 +71,14 @@ set(gca, 'FontSize', fontsize)
 title('CF Distribution', 'fontsize', titlesize)
 ylim([0 80])
 
-%% Get MTFs for each putative neuron
-% WBTIN Diotic
+for ii = 1:6
+	fprintf('CF = %s: %d\n', names(ii), N(ii))
+end
+fprintf('Min CF = %d Hz\n', min(CFs))
+fprintf('Max CF = %d Hz\n', round(max(CFs)))
+fprintf('Median CF = %d Hz\n', round(median(CFs)))
 
-% figure
-% target = cellfun(@(d) contains(d, 'R'), sessions.ST_83dB);
-% num_sesh = sum(target);
-% MTFs = sessions.MTF(target);
+%% Get MTFs for each putative neuron
 
 MTFs = table.MTF;
 num_sesh = length(MTFs);
@@ -100,6 +112,10 @@ grid on
 ylabel('# Neurons')
 %ylim([0 110])
 
+for ii = 1:4
+	fprintf('MTF = %s: %d, %0.2f%%\n', MTF_names(ii), num_types(ii), ...
+		num_types(ii)/sum(any_synth)*100)
+end
 
 %% BMFs
 
@@ -126,6 +142,10 @@ set(gca, 'XScale', 'log');
 xlabel('BMF (Hz)')
 ylabel('# Neurons')
 
+fprintf('Min BMF = %d Hz\n', min(BMFs))
+fprintf('Max BMF = %d Hz\n', round(max(BMFs)))
+fprintf('Median BMF = %d Hz\n', round(median(BMFs)))
+
 %% WMFs
 
 BS_MTFs = strcmp(table.MTF, 'BS');
@@ -143,27 +163,9 @@ set(gca, 'XScale', 'log');
 xlabel('WMF (Hz)')
 title('BS WMFs', 'fontsize', titlesize)
 
-%% Hybrids
-% 
-% H_MTFs = contains(table.MTF, 'H');
-% WMFs = table.WMF(H_MTFs);
-% WMFs(isnan(WMFs)) = [];
-% BMFs = table.BMF(H_MTFs);
-% BMFs(isnan(BMFs)) = [];
-% 
-% % Plot 
-% nexttile
-% histogram(BMFs, edges2)
-% hold on
-% histogram(WMFs, edges2)
-% xlabel('BMF or WMF (Hz)')
-% hLegend = legend('BMF', 'WMF', 'Location','west');
-% hLegend.ItemTokenSize = [6,6];
-% set(gca, 'FontSize', fontsize)
-% xticks([2 4 8 16 32 64 128 254 512])
-% set(gca, 'XScale', 'log');
-% ylabel('# Neurons')
-% title('Hybrids', 'fontsize', titlesize)
+fprintf('Min WMF = %d Hz\n', min(WMFs))
+fprintf('Max WMF = %d Hz\n', round(max(WMFs)))
+fprintf('Median WMF = %d Hz\n', round(median(WMFs)))
 
 %% Annotations 
 
