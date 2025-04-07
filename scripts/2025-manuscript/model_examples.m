@@ -280,7 +280,7 @@ all_fig_positions = ...
    [0.67,0.18,0.3,0.3;...
 	0.67,0.65,0.3,0.3]; % left bottom width height
 
-subplot_numbers = [7, 10];
+subplot_numbers = [10, 7];
 for ipos = 1:2
 	fig_position = all_fig_positions(ipos,:);
 	nb_position = [fig_position(1),fig_position(2)-0.08,fig_position(3),0.06];
