@@ -27,10 +27,10 @@ model_params.BMF = 100;
 model_params.CF_range = 1200;
 model_params.num_CFs = 1;
 model_params.CFs = 1200;
-model_params.nAN_fibers_per_CF = 5;
+model_params.nAN_fibers_per_CF = 1;
 model_params.cohc = 1; % (0-1 where 1 is normal)
 model_params.cihc = 1; % (0-1 where 1 is normal)
-model_params.nrep = 10; % how many times to run the AN model
+model_params.nrep = 1; % how many times to run the AN model
 model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw 
 % implementation(See Zilany etal., 2009)
 model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - 
