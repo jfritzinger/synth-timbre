@@ -1,179 +1,263 @@
-%% Single-Unit Examples of ST responses
-% J. Fritzinger
+%% single_unit_examples_2.m
 %
-% Three example units for BE neurons and three example units for BS neurons
+%
+%
 clear
-
-
 
 %% Load in spreadsheet
 
 [base, datapath, savepath, ppi] = getPaths();
-sheetpath = 'scripts/data-cleaning';
+sheetpath = 'data/2025-manuscript/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
 sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
 
 %% Set up figure
+
 linewidth = 1.5;
-figure('Position',[4,427,1313,480])
-%tiledlayout(3, 6, 'TileIndexing','columnmajor')
+figure('Position',[4,295,8*ppi,6.5*ppi])
+%tiledlayout(3, 3)
+data_colors = {'#03882F', '#82BB95'};
+legsize = 10;
+fontsize = 12;
 
 %% Plot
-loc = [1, 7, 13; 2, 8, 14; 3, 9, 15; 4, 10, 16; 5, 11, 17;6, 12, 18]';
-%loc = [13, 7, 1; 14, 8, 2; 15, 9, 3; 16, 10, 4; 17, 11, 5; 18, 12, 6]';
-j = 1;
-for ineuron = 1:6
-	switch ineuron
-		case 1
-			putative = 'R24_TT2_P13_N03'; % BS
-			%putative = 'R24_TT1_P12_N01'; % Low CF
-		case 2
-			putative = 'R27_TT2_P8_N02'; % BS
-			%putative = 'R27_TT3_P1_N01'; % Low CF
-		case 3
-			putative = 'R24_TT2_P13_N05'; % BS
-			%putative = 'R27_TT2_P8_N02'; % Med CF
-		case 4
-			putative = 'R27_TT3_P7_N08'; % BE
-			%putative = 'R27_TT2_P8_N03'; % Med CF
-		case 5
-			putative = 'R27_TT3_P7_N14'; % BE
-			%putative = 'R27_TT4_P8_N10'; % High CF
-		case 6
-			putative = 'R29_TT3_P5_N10'; % BE
-			%putative = 'R25_TT4_P8_N05'; % High CF
-	end
+
+examples = {'R24_TT2_P13_N05', 'R27_TT2_P8_N02', 'R27_TT2_P8_N05', ...
+	'R25_TT2_P9_N01', 'R27_TT3_P1_N08', 'R27_TT2_P7_N01', ...
+	'R29_TT4_P5_N15', 'R25_TT2_P8_N02', 'R29_TT1_P3_N05'};
+
+for ineuron = 1:9
 
 	% Load in data
+	putative = examples{ineuron};
 	[base, datapath, savepath, ppi] = getPaths();
 	filename = sprintf('%s.mat', putative);
 	load(fullfile(datapath,'neural_data', filename)), 'data';
 	index = find(cellfun(@(s) strcmp(putative, s), sessions.Putative_Units));
 	CF = sessions.CF(index);
-
-	params = data(6:9, 2);
-	params = params(~cellfun(@isempty, params));
-	data_ST  = analyzeST(params);
+	MTF_shape = sessions.MTF{index};
 
 	% RM to get spont
 	params_RM = data{2, 2};
 	data_RM = analyzeRM(params_RM);
 	spont = data_RM.spont;
 
-	num_ds = size(data_ST, 2);
-	if num_ds == 4
-		%data_colors = {'#1b9e77', '#d95f02', '#7570b3', '#e7298a'};
-		%data_colors = {'#ffffcc', '#a1dab4', '#41b6c4', '#225ea8'};
-		% Flipped
-		data_colors = {'#034E1C', '#03882F', '#3F985C', '#82BB95'};
+	% Synthetic timbre analysis
+	params = data(7, 2);
+	params = params(~cellfun(@isempty, params));
+	data_ST  = analyzeST(params, CF);
+	data_ST = data_ST{1};
+	rate = data_ST.rate;
+	rate_std = data_ST.rate_std;
+	rlb = data_ST.rlb;
+	rub = data_ST.rub;
+	fpeaks = data_ST.fpeaks;
+	spl = data_ST.spl;
+	rate_sm = data_ST.rates_sm;
+	max_rate = max(rate);
+
+	% Plot
+	fpeaks_re_CF = log2(fpeaks/CF);
+
+	h(ineuron) = subplot(3, 3, ineuron);
+	yyaxis left
+	hold on
+	rates_sm = smooth_rates(rate, rlb, rub, CF);
+	errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
+		'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
+	plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
+	plot(fpeaks./1000, rates_sm, 'linestyle', '-', 'linewidth', linewidth, 'color', 'k')
+	xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+	% errorbar(fpeaks_re_CF, rate, rate_std/sqrt(params{1}.nrep), ...
+	% 	'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
+	% plot(fpeaks_re_CF, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
+	% plot(fpeaks_re_CF, rates_sm,'linestyle', '-', 'linewidth', linewidth, 'color', 'k')
+	% xline(0, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+	yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
+
+	% Figure parameters
+	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
+	set(gca, 'Fontsize', fontsize) %, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
+	xlim(plot_range);
+	grid on
+	ylim([0 max_rate+5])
+
+
+	if mod(ineuron, 3) == 1
+		ylabel('Avg. Rate (sp/s)')
+	end
+
+	if ineuron > 6
+		xlabel('Spectral Peak Freq. (Hz)')
+		%xlabel('Spectral Peak Freq. w.r.t. CF (oct)')
+	end
+
+	% Legend
+	if ineuron == 9 || ineuron == 3
+		% hLeg = legend({'', 'Data', 'Smoothed Data', 'Spont Rate', 'CF'}, ...
+		% 	'Location','southwest', 'fontsize', legsize);
+		% hLeg.ItemTokenSize = [12, 12];
+	end
+
+	%xlim([-1 1])
+	if ineuron == 1 || ineuron == 4 || ineuron == 7
+		xlim([0.4 2.4])
+	elseif ineuron == 2 || ineuron == 5 || ineuron == 8
+		xlim([0.8 3.2])
 	else
-		%data_colors = {'#1b9e77', '#d95f02', '#e7298a'};
-		%data_colors = {'#a1dab4', '#41b6c4', '#225ea8'};
-		% Flipped
-		data_colors = {'#034E1C', '#03882F', '#82BB95'};
+		xlim([2.8 9.2])
 	end
 
-	% Sort
-	spls = cell2mat(cellfun(@(p) p.spl, data_ST, 'UniformOutput',false));
-	[~, order] = sort(spls);
-	order = fliplr(order);
-	max_rate = max(cellfun(@(d) max(d.rate), data_ST));
+	% Labeling MTF Type
+	if ineuron == 9
+		text(0.05, 0.85, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	else
+		text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	end
+	
+	% Parameters
+	params = params{1};
+	params.Fs = 100000;
+	params.dur = 0.3; % duration
+	params.mnrep = 1;
+	params.stp_otc = 1;
+	params.physio = 1;
+	params.fpeak_mid = CF;
+	params= generate_ST(params);
 
-	label_ind = 1;
-	for ind = 1:3 %num_ds
-		h(loc(ind, ineuron)) = subplot(3, 6, loc(ind, ineuron));
-		j = j+1;
-		hold on
+	% Calculates number of stimuli to be played
+	nstim = length(params.fpeaks);
 
-		rate = data_ST{order(ind)}.rate;
-		rate_std = data_ST{order(ind)}.rate_std;
-		rlb = data_ST{order(ind)}.rlb;
-		rub = data_ST{order(ind)}.rub;
-		fpeaks = data_ST{order(ind)}.fpeaks;
-		spl = data_ST{order(ind)}.spl;
-		rate_sm = data_ST{order(ind)}.rates_sm;
+	% Create the Stimulus Gating function
+	fs = params.Fs;
+	npts = floor(params.dur*fs);
+	gate = tukeywin(npts,2*params.ramp_dur/params.dur); %raised cosine ramps
 
-		% Plot
-		rates_sm = smooth_rates(rate, rlb, rub);
-		errorbar(fpeaks./1000, rate, rate_std/sqrt(params{order(ind)}.nrep), 'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{ind})
-		plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
-		%plot(fpeaks, rate_sm, 'linewidth', linewidth, 'color', data_colors{ind})
-		label{1} = [num2str(params{order(ind)}.spl) ' dB SPL'];
-		%label_ind = label_ind+1;
+	% Generate stimuli for all presentations
+	params.stim = zeros(nstim*params.mnrep, npts);
+	presentation = 0; %this value is used as an index for storing a stumulus presentation in the 3rd dimenstion of 'stimuli'
+	
+	% Compute one stimulus waveform.
+	this_fpeak = params.fpeaks(1); % Get peak freq for this presentation
 
+	% Compute fixed set of scalars for central stimulus to obtain spectral envelope & desired stimdB dB SPL
+	harmonics = params.Delta_F:params.Delta_F:10000; % component freqs for the central stimulus, when this_fpeak = CF
+	num_harmonics = length(harmonics);
+	npts = params.dur * fs; % # pts in stimulus
+	t = (0:(npts-1))/fs; % time vector
+	component_scales_linear = 10.^(-1*abs(log2(harmonics/params.fpeak_mid)*params.g)/20); % one set of scales for the center triangle, i.e. when this_fpeak = CF
+	interval = zeros(1,npts);
+	for iharm = 1:num_harmonics
+		comp_freq = harmonics(iharm);
+		component = component_scales_linear(iharm) * sin(2*pi*comp_freq*t);
+		interval = interval + component;          %Add component to interval
+	end
+	Level_scale = 20e-6*10.^(params.spl/20) * (1/rms(interval)); % overall lienar scalar to bring this centered stimulus up to stimdB
+	component_scales_linear = Level_scale * component_scales_linear; % include dB scaling into the set of harmonic component scalars
 
-		plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
-		xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-		%label{2} = 'Estimated CF';
-		yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
-		yline(0.1, 'k', LineWidth=linewidth)
-		%label(label_ind+1) = {'Spont'};
+	% Time vectors
+	npts = params.dur * fs; % # pts in stimulus
+	t = (0:(npts-1))/fs; % time vector
+	interval = zeros(1,length(t));
 
-		set(gca, 'Fontsize', 14, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
-		xlim(plot_range);
-		grid on
-		ylim([0 max_rate+5])
-		if ind == 1 && ineuron==2
-			xticklabels([])
-			title('BS', 'FontSize',20)
-		elseif ind == 1 && ineuron==5
-			title('BE', 'FontSize',20)
-			xticklabels([])
-		elseif ind == 1
-			xticklabels([])
-		elseif ind == 2 && (ineuron==1 || ineuron ==4)
-			ylabel('Avg. rate (sp/s)')
-			xticklabels([])
-		elseif ind == 2
-			xticklabels([])
-		elseif ind == 3 && (ineuron==2 || ineuron ==5)
-			xlabel('Spectral Peak  Frequency (Hz)')
+	% Make the stimulus for this_fpeak
+	shift = this_fpeak - params.fpeak_mid; % a negative values for low fpeaks; 0 at center; positive for high fpeaks
+	%figure
+	
+	for iharm = 1:num_harmonics
+		comp_freq = (harmonics(iharm) + shift);
+		if comp_freq > 75 % Hz; make sure we don't include comps outside calibrated range (Note: because we'll lop off components, then scale to, say, 70 dB SPL overall - the comp amps will change whenever one component is eliminated.
+			interval = interval + component_scales_linear(iharm) * sin(2*pi*comp_freq*t);
+			int_single = component_scales_linear(iharm) * sin(2*pi*comp_freq*t);
+		else
+			int_single = 0;
 		end
-		if ineuron == 1 || ineuron == 4
-			legend(label, 'Box','off', 'Location','southwest')
-		end	
+		shifted_harms(iharm) = comp_freq;
+		shifted_harms_re_CF(iharm) = log2(comp_freq/CF);
+
+		% Plot each stimulus
+		y = fft(int_single);
+		mdB = 20*log10(abs(y));
+		if sum(y)==0
+			level(iharm) = NaN;
+		else
+			level(iharm) = findpeaks(mdB(1:length(mdB)/2),...
+				'MinPeakProminence',200);
+		end
+
+		% Plot harmonics
+		yyaxis right
+		hold on
+		stem(shifted_harms(iharm)/1000, level(iharm), '-', 'Marker',...
+			'none', 'LineWidth', 1, 'Color', [0.7 0.7 0.7]);
+		if ismember(ineuron, [1, 2, 4, 5, 7, 8])
+			yticklabels([])
+		else
+			ylabel('Mag. (dB SPL)')
+		end
 	end
+	% Plot 
+	plot(shifted_harms/1000, level, '--', 'LineWidth', 1, 'Color', [0.4 0.4 0.4]);
+	ylim([0 90])
+	h(ineuron).YAxis(1).Color = 'k';
+	h(ineuron).YAxis(2).Color = [0.4 0.4 0.4];
 end
 
-%% Move 
 
-%left = linspace(0.05, 0.85, 6);
-left = [0.07 0.22 0.37 0.55 0.70 0.85]+0.01;
-bottom = fliplr(linspace(0.1, 0.64, 3));
-width = 0.13;
-height = 0.27;
 
-col = repmat(left, 1, 3);
-row = reshape(repmat(bottom, 6, 1), 18, 1);
+%% Set locations
 
-for ii = 1:18
-	set(h(ii), 'position', [col(ii) row(ii) width height])
+% Titles
+% titles_x = {'Low CF', 'Medium CF', 'High CF'};
+% locs = linspace(0.18, 0.8, 3);
+% for ii = 1:3
+% 	annotation('textbox',[locs(ii) 0.93 0.4 0.0459],...
+% 		'String',titles_x{ii},...
+% 		'FontSize',18,'EdgeColor','none', ...
+% 		'FontWeight','bold');
+% end
+
+% titles_y = {'Sloping', 'Dip', 'Peak'};
+% locs = linspace(0.13, 0.81, 3);
+% for ii = 1:3
+% 	annotation('textbox',[0.06 locs(ii) 0.126 0.0459],...
+% 		'String',titles_y{ii}, ...
+% 		'FontSize',20,'EdgeColor','none', 'Rotation',90, ...
+% 		'FontWeight','bold');
+% end
+
+titles_y = {'Sloping', 'Dip', 'Peak'};
+locs = linspace(0.3, 0.93, 3);
+for ii = 1:3
+	annotation('textbox',[0.31 locs(ii) 0.4 0.0459],...
+		'String',titles_y{ii},...
+		'FontSize',16,'EdgeColor','none', ...
+		'FontWeight','bold', 'HorizontalAlignment', 'center');
 end
 
-annotation('textbox',...
-	[0.00571210967250573 0.725041666666666 0.0455064737242955 0.151041666666667],...
-	'String',{'83','dB','SPL'},...
-	'HorizontalAlignment','center',...
-	'FontSize',18,...
-	'EdgeColor','none');
+left = repmat(linspace(0.1, 0.69, 3), 1, 3);
+bottom = repmat(linspace(0.1, 0.73, 3), 3, 1);
+bottom = fliplr(reshape(bottom, 1, 9));
+width = 0.23;
+height = 0.20;
 
-% Create textbox
-annotation('textbox',...
-	[0.00952018278750954 0.166708333333333 0.0455064737242955 0.151041666666667],...
-	'String',{'43','dB','SPL'},...
-	'HorizontalAlignment','center',...
-	'FontSize',18,...
-	'EdgeColor','none');
+for ii = 1:9
+	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
+end
 
-% Create textbox
-annotation('textbox',...
-	[0.00647372429550647 0.441708333333333 0.0455064737242953 0.151041666666667],...
-	'String',{'63','dB','SPL'},...
-	'HorizontalAlignment','center',...
-	'FontSize',18,...
-	'FitBoxToText','off',...
-	'EdgeColor','none');
+% Set annotations
+labelsize = 20;
+annotation('textbox',[0.01 0.95 0.0826 0.0385],'String',{'A'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.01 0.63 0.0826 0.0385],'String',{'B'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.01 0.33 0.0826 0.0385],'String',{'C'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
-%% Export figure
+%% Save figure 
 
-%exportgraphics(gcf, fullfile(savepath, 'manuscript', 'examples-differentMTFs.png'), 'Resolution', 600)
+filename = 'Fig4_single_unit_examples';
+saveFigure(filename)
+

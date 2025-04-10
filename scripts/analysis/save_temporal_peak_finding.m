@@ -1,10 +1,9 @@
-%% save_peak_finding_results.m
-%
+%% save_temporal_peak_finding
 % Script that...
 %
 %
 % Author: J. Fritzinger
-% Created: 2022-09-26; Last revision: 2024-09-26
+% Created: 2025-03-18; Last revision: 2025-03-18
 %
 % -------------------------------------------------------------------------
 clear
@@ -14,7 +13,8 @@ clear
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable2.xlsx';
-sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name),...
+	'PreserveVariableNames',true);
 num_data = size(sessions, 1);
 
 % Create table
@@ -94,15 +94,7 @@ for isesh = 1:num_neurons
 
 			% Find peaks & prominence values
 			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
-				data_ST, CF, 'Rate', param_ST{1});
-
-			% Calculate thresholds 
-			fpeaks = param_ST{1}.fpeaks;
-			rate = data_ST.rate;
-			rate_std = data_ST.rate_std;
-			[threshold_percent, threshold_freq, slope_rate, d_prime] = calculateThresholds(...
-				fpeaks, rate, rate_std, CF);
-
+				data_ST, CF, 'VS', param_ST{1});
 
 			% Add data to table
 			% if strcmp(type, 'Flat')
@@ -124,10 +116,6 @@ for isesh = 1:num_neurons
 				tables.Freq(ii) = freq;
 				tables.Q(ii) = freq/width;
 				tables.Q_log(ii) = log10(freq/width);
-				tables.D_prime(ii) = d_prime;
-				tables.Threshold(ii) = threshold_percent;
-				tables.Thresh_Freq{ii} = threshold_freq;
-				tables.Slope_Rate{ii} = slope_rate;
 				ii = ii+1;
 			% end
 		end
@@ -139,6 +127,6 @@ end
 %% Save table
 
 % Save table
-writetable(tables,'peak_picking_w_thresholds.xlsx')
+writetable(tables,'peak_picking_VS.xlsx')
 
 

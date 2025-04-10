@@ -133,6 +133,7 @@ annotation('arrow',[0.38 0.22],[0.84 0.84]);
 annotation('textbox',[0.385 0.0198 0.0625 0.106],'String',{'CF'},...
 	'FontSize',18,'FitBoxToText','off','EdgeColor','none', 'Color',CF_color);
 
-%% Export 
+%% Save figure 
 
-exportgraphics(gcf, fullfile(savepath, 'final', 'ST_stimulus.png'), 'Resolution', 600)
+filename = 'Fig2_stimulus';
+saveFigure(filename)

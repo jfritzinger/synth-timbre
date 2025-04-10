@@ -7,16 +7,17 @@ clear
 tables = readtable(fullfile(datapath,"LMM", "peak_picking_excludeflat.xlsx"));
 sheetpath = 'data/2025-manuscript/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), ...
+	'PreserveVariableNames',true);
 
 
 %% Set up figure 
 
-figure('Position',[560,214,9*ppi,7*ppi])
-fontsize = 12;
+figure('Position',[560,214,8*ppi,9*ppi])
+fontsize = 10;
 linewidth = 1;
 legsize = 8;
-labelsize = 22;
+labelsize = 20;
 titlesize = 16; 
 
 %% Set up and plot examples 
@@ -24,7 +25,7 @@ titlesize = 16;
 plot_ind = [1, 2, 4, 5, 7, 8];
 for ineuron = 1:6
 
-	h(plot_ind(ineuron)) = subplot(3, 3, plot_ind(ineuron));
+	h(plot_ind(ineuron)) = subplot(4, 3, plot_ind(ineuron));
 
 	switch ineuron
 		case 1 % Sharpening
@@ -59,7 +60,8 @@ for ineuron = 1:6
 	spont = data_RM.spont;
 
 	num_ds = size(data_ST, 2);
-	data_colors = {'#034E1C', '#03882F', '#82BB95'};
+	%data_colors = {'#034E1C', '#03882F', '#82BB95'};
+	data_colors = {'#000000', '#737373', '#bdbdbd'};
 
 	% Sort
 	spls = cell2mat(cellfun(@(p) p.spl, data_ST, 'UniformOutput',false));
@@ -80,17 +82,21 @@ for ineuron = 1:6
 
 		% Plot
 		rates_sm = smooth_rates(rate, rlb, rub, CF);
+		type = 'Rate';
 		errorbar(fpeaks./1000, rate, rate_std/sqrt(30), 'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{ind})
 		%plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
 		plot(fpeaks./1000, rates_sm, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
-		[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(data_ST{order(ind)}, CF);
+		[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
+			data_ST{order(ind)}, CF, type, []);
 		Q(ind) = freq/width;
 	end
 	yline(spont, 'k', LineWidth=linewidth)
 	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
 	xline(CF./1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 	xlabel('Spectral Peak Freq. (kHz)')
-	ylabel('Avg. rate (sp/s)')
+	if ismember(ineuron, [1 3 5])
+		ylabel('Avg. rate (sp/s)')
+	end
 	set(gca, 'Fontsize', fontsize);
 	xlim(plot_range);
 	grid on
@@ -101,30 +107,6 @@ for ineuron = 1:6
 	hLeg.FontSize = legsize;
 	hLeg.Box = 'off';
 	hLeg.Location = "northeast";
-
-	% Add Q:
-	% tbl = table([43, 63,83]', Q', 'VariableNames', {'X', 'Q'});
-	% mdl = fitlm(tbl, 'Q ~ X');
-	% slope = mdl.Coefficients.Estimate(2); % slope
-	% 
-	% plot([43, 63,83], Q)
-	% hold on
-	% y_fit = predict(mdl, table([43, 63,83]', 'VariableNames', {'X'}));
-	% plot([43, 63,83], y_fit, 'r-', 'LineWidth', 2);
-	% 
-	% criteria = 0.02; % backwards because starting from high level
-	% if slope<criteria && slope > -1*criteria
-	% 	changing = 'no change';
-	% elseif slope<-1*criteria
-	% 	changing = 'sharpening';
-	% else
-	% 	changing = 'broadning';
-	% end
-	% 
-	% label = sprintf('Q43=%0.2f, Q63=%0.2f, Q83=%0.2f, %s', Q(1), ...
-	% 	Q(2), Q(3), changing);
-	% text(0.05, 0.95, label, 'Units', 'normalized', ...
-		% 	'VerticalAlignment', 'top', 'FontSize',16)
 end
 
 
@@ -163,18 +145,10 @@ x = [43, 63, 83];
 
 % Try 1: Criteria using slope
 for ii = 1:length(qs2)
-
 	y = qs2(ii, :)';
     tbl = table(x', y, 'VariableNames', {'X', 'Q'});
     mdl = fitlm(tbl, 'Q ~ X');
     slopes(ii) = mdl.Coefficients.Estimate(2); % slope
-
-	% % Plot
-	% figure
-	% plot(x, y)
-	% hold on
-	% y_fit = predict(mdl, table(x', 'VariableNames', {'X'}));
-	% plot(x, y_fit, 'r-', 'LineWidth', 2);
 end
 criteria = 0.03;
 same = slopes<criteria & slopes > -1*criteria;
@@ -196,7 +170,7 @@ for ii = 1:3
 	end
 
 	% Increase
-	h(indices(ii)) = subplot(3, 3, indices(ii));
+	h(indices(ii)) = subplot(4, 3, indices(ii));
 	hold on
 	plot(spls, qs2(values,:)', 'color',color , 'LineWidth',linewidth)
 	xticks(spls)
@@ -224,40 +198,259 @@ for ii = 1:3
 	hLeg = legend(leg, 'FontSize',legsize);
 	hLeg.ItemTokenSize = [15,6];
 	hLeg.Box = 'off';
+	ylim([0 15])
 
 end
+
+%% 
+
+spls = [43, 63, 73, 83];
+is200 = tables.F0 == 200;
+for ibin = 2
+	isbin = tables.binmode == ibin;
+	for ispl = 2
+
+		% Get data
+		islevel = tables.SPL == spls(ispl);
+		index = islevel & isbin & is200; % & isMTF;
+
+		% Data
+		CFs = tables.CF(index);
+		CF_groups = tables.CF_Group(index);
+		Qs = tables.Q(index);
+		MTFs = tables.MTF(index);
+
+		% Plot
+		h(10) = subplot(4, 3, 10);
+		for igroup = 1:3
+			if igroup == 1
+				ind = strcmp(CF_groups, 'Low');
+				Q_sub = Qs(ind);
+				CFs_sub = CFs(ind);
+			elseif igroup == 2
+				ind = strcmp(CF_groups, 'Med');
+				Q_sub = Qs(ind);
+				CFs_sub = CFs(ind);
+			else
+				ind = strcmp(CF_groups, 'High');
+				Q_sub = Qs(ind);
+				CFs_sub = CFs(ind);
+			end
+			%gscatter(CFs/1000, Qs, MTFs, 'filled')
+			scatter(CFs_sub/1000, Q_sub, 'filled', 'MarkerEdgeColor','k')
+			hold on
+		end
+
+		% Fit linear regression line
+		mdl = fitlm(log10(CFs), log10(Qs));
+		x = 0.3:0.5:10000;
+		p(1) = mdl.Coefficients.Estimate(2,1);
+		p(2) = mdl.Coefficients.Estimate(1,1);
+		p(3) = mdl.Coefficients.pValue(2);
+		p(4) = mdl.Rsquared.Ordinary;
+		mdlfit(ibin, ispl,:) = 10.^(p(1)*log10(x)+p(2));
+		mdlplot = squeeze(mdlfit(ibin, ispl, :));
+		plot(x/1000, mdlplot, 'k');
+
+		% Plot labels 
+		number = Qs;
+		number(isnan(number)) = [];
+		xlabel('CF (kHz)')
+		ylabel('Q')
+		ylim([0.35 50])
+		xlim([0.3 10])
+		set(gca, 'XScale', 'log', 'YScale', 'log')
+		xticks([0 200 500 1000 2000 5000 10000]/1000)
+		yticks([0.2 0.5 1 2 5 10 20 50 100 200 500 1000 2000])
+		grid on
+		set(gca, 'fontsize', fontsize)
+		msg = ['n=' num2str(length(number))];
+		text(0.05, 0.95, msg, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	end
+end
+
+%% Significant interactions between level and CF grouping 
+
+is200 = tables.F0 == 200;
+spls = [43, 63, 73, 83];
+isbin = tables.binmode == 2; % | tables.binmode == 1;
+CFgroup = {'Low', 'Med', 'High'};
+for iCF = 1:3
+	for ispl = 1:4
+
+		% Get data
+		islevel = tables.SPL == spls(ispl);
+		isCFgroup = strcmp(CFgroup{iCF}, tables.CF_Group);
+		index = islevel & isbin & is200 & isCFgroup;
+
+		% Data
+		CFs = tables.CF(index);
+		Qs = tables.Q(index);
+		Q(iCF, ispl) = mean(Qs);
+		Q_sem(iCF, ispl) = std(Qs)/sqrt(length(Qs));
+	end
+end
+
+h(11) = subplot(4, 3, 11);
+errorbar(Q', Q_sem', 'LineWidth',2)
+%xlabel('CF Group')
+xlabel('Level (dB SPL)')
+xlim([0.5 4.5])
+xticks(1:4)
+%xticklabels({'Low', 'Med', 'High'})
+xticklabels([43, 63, 73, 83])
+ylabel('Q')
+ylim([0 12])
+%legend('43 dB SPL', '63 dB SPL', '73 dB SPL', '83 dB SPL', 'Location','best')
+hleg = legend('Low CF', 'Med CF', 'High CF', 'Location','best', 'fontsize',legsize);
+hleg.ItemTokenSize = [8, 8];
+hleg.Box = 'off';
+hleg.NumColumns = 2;
+set(gca, 'fontsize', fontsize)
+grid on
+box off
+
+%% Histogram figure 
+
+% Find sessions for target synthetic timbre response
+all_neurons = tables.Putative;
+neurons = unique(all_neurons);
+num_units = size(neurons, 1);
+isbin = tables.binmode == 2;
+is200 = tables.F0 == 200;
+
+SPLs = [43, 63, 73, 83];
+qs = NaN(num_units, 4);
+for isesh = 1:num_units
+
+	putative = neurons{isesh};
+	isput = cellfun(@(s) strcmp(s, putative), tables.Putative);
+
+	for ispl = 1:4
+		ind = isput & isbin & is200 & tables.SPL==SPLs(ispl);
+		if any(ind)
+			qs(isesh, ispl) = tables.Q(ind);
+			qs_log(isesh, ispl) = tables.Q_log(ind);
+			CF_group(isesh) = tables.CF_Group(ind);
+		end
+	end
+end
+
+% Get matrix of units with 43, 63, 83 dB 
+qs2 = qs(:,[1,2,4]);
+rows_with_nan = any(isnan(qs2),2);
+qs2(rows_with_nan,:) = [];
+CF_group(rows_with_nan) = [];
+x = [43, 63, 83];
+
+% Try 1: Criteria using slope
+for ii = 1:length(qs2)
+	y = qs2(ii, :)';
+    tbl = table(x', y, 'VariableNames', {'X', 'Q'});
+    mdl = fitlm(tbl, 'Q ~ X');
+    slopes(ii) = mdl.Coefficients.Estimate(2); % slope
+end
+criteria = 0.03;
+same = slopes<criteria & slopes > -1*criteria;
+decrease = slopes<-1*criteria;
+increase = slopes>criteria;
+spls = [43, 63, 83];
+
+indices = [3, 6, 9];
+for ii = 1:3
+	if ii == 1
+		values = increase;
+		color = [27,158,119]/256;
+	elseif ii == 2
+		values = same;
+		color = [217,95,2]/256;
+	else
+		values = decrease;
+		color = [117,112,179]/256;
+	end
+
+	% Find how many for each 
+	low = sum(strcmp(CF_group(values), 'Low'));
+	med = sum(strcmp(CF_group(values), 'Med'));
+	high = sum(strcmp(CF_group(values), 'High'));
+
+	% Put into matrix
+	vals(ii,:) = [low med high];
+
+end
+vals = vals';
+vals = vals./sum(vals, 2);
+
+h(12) = subplot(4, 3, 12);
+bh = bar(vals, 'stacked');
+hleg = legend('Sharpen', 'No change', 'Broaden');
+hleg.ItemTokenSize = [8, 8];
+hleg.NumColumns = 2;
+hleg.Position = [0.749999994936227,0.192412780689791,0.202256944444444,0.039351851851852];
+
+ylabel('%')
+xlabel('CF Group')
+xticklabels({'Low', 'Med', 'High'})
+bh(1).FaceColor = '#1b9e77';   %blue
+bh(2).FaceColor = '#d95f02'; %light blue
+bh(3).FaceColor = '#7570b3'; %pink
+box off
+ylim([0 1.4])
+yticks(0:0.2:1)
 
 
 %% Arrange figure 
 
-left = [0.13 0.43 0.74];
-bottom = linspace(0.07, 0.73, 3);
-height = 0.23;
-width = 0.23;
+left = linspace(0.1, 0.715, 3);
+bottom = [0.05 0.32 0.57 0.81];
+height = 0.15;
+width = 0.255;
 
-left = repmat(left, 1, 3);
+left = repmat(left, 1, 4);
 bottom = repmat(bottom, 3, 1);
-bottom = fliplr(reshape(bottom, 1, 9));
+bottom = fliplr(reshape(bottom, 1, 12));
 
 for ii = 1:9
 	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
 end
 
+left = linspace(0.1, 0.75, 3);
+left = repmat(left, 1, 4);
+width = 0.23;
+height = 0.18;
+for ii = 10:12
+	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
+end
+%%
+
 % Annotations
-titles_y = { 'Broadening','No Change','Sharpening', };
-locs = linspace(0.095, 0.75, 3);
+titles_y = { 'Broadening','No Change','Sharpening'};
+locs = linspace(0.46, 0.95, 3);
 for ii = 1:3
-	annotation('textbox',[0.06 locs(ii) 0.15 0.0459],...
+	annotation('textbox',[0.45 locs(ii) 0.17 0.0459],...
 		'String',titles_y{ii},...
-		'FontSize',titlesize,'EdgeColor','none', 'Rotation',90);
+		'FontSize',titlesize,'EdgeColor','none', ...
+		'HorizontalAlignment', 'center', 'FontWeight','bold');
 end
 
-bottom = linspace(0.32, 0.96, 3);
-annotation('textbox',[0.01 bottom(3) 0.0826 0.0385],'String',{'A'},...
+bottom = linspace(0.225, 0.96, 4);
+left = linspace(0.01, 0.7, 3);
+annotation('textbox',[0.01 bottom(4) 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 bottom(2) 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0.01 bottom(3) 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 bottom(1) 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0.01 bottom(2) 0.0826 0.0385],'String',{'C'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[0.01 bottom(1) 0.0826 0.0385],'String',{'D'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[left(2) bottom(1) 0.0826 0.0385],'String',{'E'},...
+	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
+annotation('textbox',[left(3) bottom(1) 0.0826 0.0385],'String',{'F'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 
+%% Save figure 
+
+filename = 'Fig7_changed_over_level';
+saveFigure(filename)

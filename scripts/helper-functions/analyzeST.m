@@ -1,4 +1,4 @@
-function data  = analyzeST(params, CF)
+function data = analyzeST(params, CF)
 %
 % Function that takes in the synthetic timbre parameters and raw data and
 % outputs a struct containing the processed average rates, temporal
@@ -55,7 +55,29 @@ for ind = 1:num_DSIDs
 		end
 	end
 	[V_p, ~,~] = predictableVariance(rate_matrix, fpeaks);
-	
+
+	% Calculate PSTH
+	stim_set = find(param.stims.dsid == ds);
+	these_spikes = ismember(cluster.abs_stim_num,stim_set);
+	t_spike_rel = cluster.t_spike_rel(these_spikes);
+	rel_id = cluster.rel_id(these_spikes);
+	[fpeaksis,order] = sort(fpeaksi);
+	num_stim = length(fpeaksi);
+	reps = zeros(num_stim,1);
+	rep = zeros(num_stim,1);
+	for ii = 1:num_fpeaks
+		j = fpeaksis == ii;
+		reps(j) = (1:sum(j))';
+	end
+	rep(order) = reps;
+	for iii = 1:num_fpeaks
+		j = fpeaksi == iii;
+		xx = t_spike_rel(ismember(rel_id,find(j)));
+		yy = rep(rel_id(ismember(rel_id,find(j))));
+		spike_times{iii} = xx;  % save an array of spike times to a cell for all repetition of the stimulus
+		spike_reps{iii} = yy;  % these tell you the rep for each spike time
+	end
+
 	% Create struct that contains processed data
 	data{ind}.rate = rate;
 	data{ind}.rate_std = rate_std;
@@ -69,6 +91,8 @@ for ind = 1:num_DSIDs
 	data{ind}.rlb = rlb;
 	data{ind}.spl = param.spl;
 	data{ind}.V_p = V_p;
+	data{ind}.spike_times = spike_times;
+	data{ind}.spike_reps = spike_reps;
 end
 
 

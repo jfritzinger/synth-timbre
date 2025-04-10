@@ -23,7 +23,7 @@ num_data = size(sessions, 1);
 
 % Initialize report
 report_path = 'figures/pdfs/';
-filename = 'PeakPicking_Q_changes';
+filename = 'TimeLapseTest';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s%s_%s.pdf', fullfile(base, report_path), datetime, filename);
@@ -52,19 +52,10 @@ bin200(:,1) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB);
 bin200(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB);
 bin200(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB);
 bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
-% bin200(:,1) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_con);
-% bin200(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_con);
-% bin200(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB_con);
-% bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_con);
-% bin200(:,1) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB_100);
-% bin200(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB_100);
-% bin200(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB_100);
-
 
 bin200_MTF = bin200; % & isMTF;
 has_data = bin200_MTF(:,1) | bin200_MTF(:,2) | bin200_MTF(:,3) | bin200_MTF(:,4);
 %has_data = bin200_MTF(:,1) | bin200_MTF(:,2) | bin200_MTF(:,3);
-
 index = find(has_data);
 
 % Sort by CF
@@ -166,59 +157,36 @@ for isesh = 1:num_sessions
 		spls = [43, 63, 73, 83];
 		data_colors = {'#82BB95', '#3F985C', '#03882F', '#034E1C'};
 		for ispl = 1:4
+			Q = NaN(1, 2);
 			nexttile(4+ispl)
 			if bin200_MTF(ineuron, ispl)==1
 				param_ST = data(5+ispl, 2);
-				%param_ST = data(9+ispl, 2);
 				data_ST = analyzeST(param_ST, CF);
 				data_ST = data_ST{1};
 
-				% Z-score 
-				rate = zscore(data_ST.rate);
-				rate_sm = zscore(data_ST.rates_sm);
+				% Analyze by cutting into two sections, 50-150, 200-300ms
+				[rate, rates_sm, rate_std] = analyzeSTWindow(param_ST, CF);
 
-				if data_ST.V_p < 0.4
-					msg = 'NOISY';
-				else
-					msg = '';
-				end
+				% Calculate Q for each section 
+				win1_ST.rates_sm = rates_sm(1,:);
+				win1_ST.fpeaks = data_ST.fpeaks;
+				[~, ~, ~, ~, width, ~, ~,~, freq] = peakFinding(win1_ST, CF);
+				Q(1) = freq/width;
+				win2_ST.rates_sm = rates_sm(2,:);
+				win2_ST.fpeaks = data_ST.fpeaks;
+				[~, ~, ~, ~, width, ~, ~, ~, freq] = peakFinding(win2_ST, CF);
+				Q(2) = freq/width;
 
+				% Plot rates!
 				hold on
-				plot(data_ST.fpeaks,rate, 'linewidth', 0.9, 'Color',"#0072BD");
-				errorbar(data_ST.fpeaks,rate, 1/sqrt(30), 'linewidth', 0.9, 'Color',"#0072BD");
-				plot(data_ST.fpeaks,rate_sm, 'linewidth', 1.5,'Color','k');
-				ylim([-4 4])
-
-				% Cut down to +/- one octave range 
-				hi_limit = CF*2;
-				lo_limit = CF/2;
-				indices = data_ST.fpeaks > lo_limit & data_ST.fpeaks < hi_limit;
-				patch([lo_limit lo_limit hi_limit hi_limit],[-4 4 4 -4], 'r', 'FaceAlpha',0.05, 'EdgeColor', 'none');
-
-				% Calculate the peak/dip/flat 
-				[peaks, dips, type, prom, width, lim, bounds_freq, halfheight, freq] = peakFinding(data_ST, CF);
-
-				% Plots
-				scatter(peaks.locs, peaks.pks, 'filled', 'r')
-				num_peaks = length(peaks.pks);
-				for ip = 1:num_peaks
-					plot([peaks.locs(ip) peaks.locs(ip)], [peaks.pks(ip)-peaks.p(ip) peaks.pks(ip)], 'Color',"#D95319")
-				end
-				scatter(dips.locs, -1*dips.pks, 'filled', 'b')
-				num_dips = length(dips.pks);
-				for ip = 1:num_dips
-					plot([dips.locs(ip) dips.locs(ip)], -1*([dips.pks(ip)-dips.p(ip) dips.pks(ip)]), 'Color',"#7E2F8E")
-				end
-				plot(bounds_freq, [halfheight halfheight], 'g')
-
-				% Annotate prominence & width
-				message = sprintf('Prom: %0.2f', prom);
-				text(0.05, 0.98, message, 'Units', 'normalized', ...
-					'VerticalAlignment', 'top', 'FontSize',fontsize)
-				message = sprintf('Width: %0.0f Hz', width);
-				text(0.05, 0.94, message, 'Units', 'normalized', ...
-					'VerticalAlignment', 'top', 'FontSize',fontsize)
-				plottitle = [num2str(spls(ispl)) ' dB SPL, '];
+				errorbar(data_ST.fpeaks,rate(1,:), rate_std(1,:)/sqrt(30), ...
+					'LineStyle','none', 'Color',"#0072BD");
+				plot(data_ST.fpeaks,rates_sm(1,:), 'linewidth', 1.5, 'Color',"#0072BD");
+				errorbar(data_ST.fpeaks,rate(2,:), rate_std(2,:)/sqrt(30), ...
+					'LineStyle','none', 'Color',"#D95319");
+				plot(data_ST.fpeaks,rates_sm(2,:), 'linewidth', 1.5, 'Color',"#D95319");
+				%legend('50-150 ms', '', '200-300 ms', '', 'Location','best')
+				plottitle = [num2str(spls(ispl)) ' dB SPL'];
 			else
 				plottitle = [num2str(spls(ispl)) ' dB SPL'];
 			end
@@ -233,31 +201,14 @@ for isesh = 1:num_sessions
 			grid on
 			set(gca, 'fontsize', fontsize)
 
-			if ispl == 1
-				Q(1) = freq/width;
-			elseif ispl == 2
-				Q(2) = freq/width;
-			elseif ispl == 4
-				Q(3) = freq/width;
-			end
+			% Annotate
+			label = sprintf('Q1=%0.2f, Q2=%0.2f, %s', Q(1), Q(2));
+			text(0.05, 0.95, label, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',9)
+
 		end
 
-		% Add Q:
-		tbl = table([43, 63, 83]', Q', 'VariableNames', {'X', 'Q'});
-		mdl = fitlm(tbl, 'Q ~ X');
-		slope = mdl.Coefficients.Estimate(2); % slope
-
-		criteria = 0.03;
-		if slope<criteria && slope > -1*criteria
-			changing = 'no change';
-		elseif slope<-1*criteria
-			changing = 'decreasing';
-		else
-			changing = 'increasing';
-		end
-
-		label = sprintf('Q43=%0.2f, Q63=%0.2f, Q83=%0.2f, %s', Q(1), ...
-			Q(2), Q(3), changing);
+		label = '';
 		p = Paragraph(label);
 		p.FontSize = "14pt";
 		p.WhiteSpace = "preserve";
@@ -275,19 +226,6 @@ for i = 1:length(images)
     delete(images{1,i}.Path);
 end
 rptview(rpt)
-
-%% Plot peak prominances 
-% 
-% figure;
-% tiledlayout(1, 2, "TileSpacing",'compact')
-% 
-% % Peaks 
-% nexttile
-% histogram(peaks_p)
-% 
-% % Dips 
-% nexttile
-% histogram(dips_p)
 
 
 %% FUNCTIONS 
