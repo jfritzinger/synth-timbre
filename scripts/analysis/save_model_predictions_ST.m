@@ -33,7 +33,7 @@ bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
 has_data = bin200(:,1) | bin200(:,2) | bin200(:,3) | bin200(:,4);
 indices = find(has_data);
 num_index = length(indices);
-for isesh = 127:num_index
+for isesh = 1:num_index
 	% Error: 52
 
 	% Load in session
@@ -299,28 +299,28 @@ for isesh = 127:num_index
 			elseif strcmp(model_type, 'Lat_Inh')
 				%%
 
-				modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript\model-fits';
-				foldername = putative;
-				d = dir(fullfile(modelpath, foldername));
-				if ~isempty(d)
-					load(fullfile(modelpath, foldername, [putative '_BestModel.mat']), 'fit_params', 'AN_best')
-					CS_params = [fit_params(1:2) 0.001];
-					BMFs = fit_params(3:5);
-					oct_range = AN_best{1}.CF_span;
-				else
-					continue
-% 					if strcmp(MTF_shape, 'BS')
-% 						S = 0.25; % Strength, S =
-% 						D = 0; % Delay, D =
-% 						oct_range = 0.75; % CF range =
-% 					else
-% 						S = 0.4; % Strength, S =
-% 						D = 0; % Delay, D =
-% 						oct_range = 0.5; % CF range =
-% 					end
-% 					CS_params = [S S D];
-% 					BMFs = [100 100 100];
-				end
+% 				modelpath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript\model-fits';
+% 				foldername = putative;
+% 				d = dir(fullfile(modelpath, foldername));
+% 				if ~isempty(d)
+% 					load(fullfile(modelpath, foldername, [putative '_BestModel.mat']), 'fit_params', 'AN_best')
+% 					CS_params = [fit_params(1:2) 0.001];
+% 					BMFs = fit_params(3:5);
+% 					oct_range = AN_best{1}.CF_span;
+% 				else
+% 					continue
+					if strcmp(MTF_shape, 'BS')
+						S = 0.25; % Strength, S =
+						D = 0; % Delay, D =
+						oct_range = 0.75; % CF range =
+					else
+						S = 0.4; % Strength, S =
+						D = 0; % Delay, D =
+						oct_range = 0.5; % CF range =
+					end
+					CS_params = [S S D];
+					BMFs = [100 100 100];
+% 				end
 
 				% Model parameters
 				model_params.type = 'Lateral Model';
@@ -388,7 +388,7 @@ for isesh = 127:num_index
 % 				title('BS')
 
 				% Plot
- 				if strcmp(MTF_shape, 'BS') || strcmp(MTF_shape, 'BE') || ~isempty(d)
+ 				if strcmp(MTF_shape, 'BS') || strcmp(MTF_shape, 'BE') %% || ~isempty(d)
 					[rate, rate_std] = plotST(params_ST{ispl}, latinh_temp.avIC, 0);
 					rate = rate ./ (max(rate)/max(data_ST.rate));
 					rmse = calculateRMSE(rate, data_ST.rate);
@@ -433,7 +433,7 @@ for isesh = 127:num_index
 	end
 
 	% Save model
-	filename = [putative '_' model_type '2.mat'];
+	filename = [putative '_' model_type '.mat'];
 	%savepath = '/Volumes/Synth-Timbre/data/manuscript/';
 	savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
 	if strcmp(model_type, 'Energy')
@@ -443,9 +443,9 @@ for isesh = 127:num_index
 	elseif strcmp(model_type, 'SFIE_pop')
 		save(fullfile(savepath, 'SFIE_pop_model', filename), 'params_ST', 'AN_pop', 'SFIE_pop', 'model_params')
 	elseif strcmp(model_type, 'Lat_Inh')
-		if ~isempty(d) % TEMPORARY
+		%if ~isempty(d) % TEMPORARY
 		save(fullfile(savepath, 'lat_inh_model', filename), 'params_ST', 'lat_inh', 'AN_lat_inh', 'model_params')
-		end
+		%end
 	end
 
 end
