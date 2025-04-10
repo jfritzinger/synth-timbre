@@ -39,11 +39,12 @@ CF_list = sessions.CF(has_data);
 [~, order] = sort(CF_list);
 num_sessions = length(CF_list);
 linewidth = 0.75;
-fontsize = 10;
+fontsize = 5;
 
 % Plot each neuron
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
+R2_dog_all2 = NaN(1, num_sessions);
 for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
@@ -95,7 +96,6 @@ for isesh = 1:num_sessions
 		Fs = 100000;
 		observed_rate = rate;
 		r0 = spont;
-
 		[gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
 
 		% Plot data
@@ -162,7 +162,7 @@ for isesh = 1:num_sessions
 		dog_msg = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared);
 		text(0.05, 0.89, dog_msg, 'Units', 'normalized', ...
 			'VerticalAlignment', 'top', 'FontSize',fontsize)
-		dog_msg2 = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared2);
+		dog_msg2 = sprintf('DoG new R^{2}=%0.02f', dog_adj_r_squared2);
 		text(0.05, 0.78, dog_msg2, 'Units', 'normalized', ...
 			'VerticalAlignment', 'top', 'FontSize',fontsize)
 		
@@ -170,9 +170,11 @@ for isesh = 1:num_sessions
 		% Get R^2 for all
 		R2_dog_all(isesh) = dog_adj_r_squared;
 		R2_gauss_all(isesh) = gaussian_adj_r_squared;
+		R2_dog_all2(isesh) = dog_adj_r_squared2;
 
 		% Get f-test for all
 		p_value = ftest(rate, gaus_predicted, dog_predicted);
+		p_value2 = ftest(rate, gaus_predicted, dog_predicted2);
 
 		% Struct to save out all data and fits 
 		dog_gauss_analysis.putative = putative;
@@ -187,14 +189,15 @@ for isesh = 1:num_sessions
 		dog_gauss_analysis.fpeaks = data_ST.fpeaks;
 		dog_gauss_analysis.spont = spont;
 		dog_gauss_analysis.rate_std = data_ST.rate_std;
-		dog_gauss_analysis.p_value = p_value;
+		dog_gauss_analysis.p_value_gd = p_value;
+		dog_gauss_analysis.p_value_gd2 = p_value;
 		dog_gauss_analysis.dog_params = dog_params;
 		dog_gauss_analysis.dog_params2 = dog_params2;
 		dog_gauss_analysis.gauss_params = gaussian_params;
 
 		filename = [putative '.mat'];
-		savepath = '/Volumes/Synth-Timbre/data/manuscript/';
-		%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+		%savepath = '/Volumes/Synth-Timbre/data/manuscript/';
+		savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
         %savepath = '\\NSC-LCARNEY-H2\DataFiles_JBF\Synth-Timbre\data\manuscript';
 		save(fullfile(savepath, 'dog_model', filename), 'dog_gauss_analysis')
 
@@ -233,7 +236,8 @@ rptview(rpt)
 
 %% 
 
-save(fullfile(datapath, 'dog_analysis.mat'), "dog_analysis", "R2_gauss_all", "R2_dog_all")
+save(fullfile(datapath, 'dog_analysis2.mat'), "dog_analysis", ...
+	"R2_gauss_all", "R2_dog_all", "R2_dog_all2")
 
 %% FUNCTIONS
 
@@ -241,7 +245,7 @@ function [img, images] = addtoSTPDF(images, fig, title)
 import mlreportgen.dom.*
 
 % Set figure size, recommended
-values = [5.5, 3];
+values = [3, 1.5];
 fig.PaperSize = values;
 fig.PaperPosition = [0 0 values];
 fig.Units = 'inches';
