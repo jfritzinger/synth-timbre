@@ -5,6 +5,8 @@ import mlreportgen.report.*
 
 %% Load and initialize
 
+addpath('/Users/jfritzinger/Projects/shared-models/DoG-model', '-begin')
+
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
 spreadsheet_name = 'PutativeTable.xlsx';
@@ -45,7 +47,7 @@ fontsize = 5;
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
 R2_dog_all2 = NaN(1, num_sessions);
-for isesh = 1:num_sessions
+for isesh = 1 %1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -93,10 +95,23 @@ for isesh = 1:num_sessions
 		params{1}.dur = 0.3;
 		params{1} = generate_ST(params{1});
 		params{1}.num_stim = size(params{1}.stim, 1);
+
+		% Run models 
 		Fs = 100000;
 		observed_rate = rate;
 		r0 = spont;
-		[gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
+		stim = params{1}.stim;
+		%[gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
+		nrep = 10;
+		num_params = 5;
+		dog_params = fit_dog_model(nrep, CF, Fs, stim, observed_rate, r0, num_params);
+		nrep = 5;
+		num_params = 6;
+		dog_params6 = fit_dog_model_6param(nrep, CF, Fs, stim, observed_rate, r0);
+		nrep = 5;
+		gaussian_params = fit_gaussian_model(nrep, CF, Fs, stim, observed_rate, r0);
+
+
 
 		% Plot data
 		fig = figure;
@@ -114,15 +129,13 @@ for isesh = 1:num_sessions
 		nstim = size(stim, 1);
 		gaus_predicted = zeros(nstim, 1);
 		for i = 1:nstim
-			fc = 10^gaussian_params(1);
-			sigma = 10^gaussian_params(2);
-			g = gaussian_params(3);
-			W = gaussian_model(f, fc, sigma, g);
+			W = gaussian_model(f, gaussian_params);
 			gaus_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
 		end
-		plot(fpeaks./1000, gaus_predicted, 'r', 'linewidth', linewidth)
+		plot(fpeaks./1000, gaus_predicted, 'r', 'linewidth', 3)
 		gaussian_adj_r_squared = calculate_adj_r_squared(observed_rate,...
 			gaus_predicted, 3);
+		gaus_msg = sprintf('Gaussian, R^2=%0.02f', gaussian_adj_r_squared);
 
 		% Plot DoG
 		f = linspace(0, Fs/2, 100000);
@@ -134,38 +147,29 @@ for isesh = 1:num_sessions
 		end
 		plot(fpeaks./1000, dog_predicted, 'g', 'linewidth', linewidth)
 		dog_adj_r_squared = calculate_adj_r_squared(observed_rate,...
-			dog_predicted, 6);
-		set(gca, 'FontSize',fontsize)
+			dog_predicted, 5);
+		dog_msg = sprintf('DoG, R^2=%0.02f', dog_adj_r_squared);
 
 		% Plot DoG2
 		f = linspace(0, Fs/2, 100000);
 		nstim = size(stim, 1);
 		dog_predicted2 = zeros(nstim, 1);
 		for i = 1:nstim
-			W = dog_model(f, dog_params2);
+			W = dog_model(f, dog_params6);
 			dog_predicted2(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
 		end
 		plot(fpeaks./1000, dog_predicted2, 'b', 'linewidth', linewidth)
 		dog_adj_r_squared2 = calculate_adj_r_squared(observed_rate,...
 			dog_predicted2, 6);
 		set(gca, 'FontSize',fontsize)
-		legend('Data', 'CF', 'Spont', 'Gaussian', 'DoG','DoG2', 'location', 'westoutside')
+		dog_msg2 = sprintf('DoG, R^2=%0.02f', dog_adj_r_squared2);
+
+		legend('', '', '', gaus_msg, dog_msg, dog_msg2, 'location', 'westoutside')
 
 		% Comparing based on how close the curves are to data
-		p_value = ftest(rate, gaus_predicted, dog_predicted2);
+		p_value = ftest(rate, gaus_predicted, dog_predicted);
 		title(sprintf('Gaussian vs DoG Fits, p=%0.4f', p_value))
-
-		% Annotations
-		gaus_msg = sprintf('Gaussian R^{2}=%0.02f', gaussian_adj_r_squared);
-		text(0.05, 0.97, gaus_msg, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',fontsize)
-		dog_msg = sprintf('DoG R^{2}=%0.02f', dog_adj_r_squared);
-		text(0.05, 0.89, dog_msg, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',fontsize)
-		dog_msg2 = sprintf('DoG new R^{2}=%0.02f', dog_adj_r_squared2);
-		text(0.05, 0.78, dog_msg2, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',fontsize)
-		
+		set(gca, 'FontSize',fontsize)
 
 		% Get R^2 for all
 		R2_dog_all(isesh) = dog_adj_r_squared;
@@ -192,7 +196,7 @@ for isesh = 1:num_sessions
 		dog_gauss_analysis.p_value_gd = p_value;
 		dog_gauss_analysis.p_value_gd2 = p_value;
 		dog_gauss_analysis.dog_params = dog_params;
-		dog_gauss_analysis.dog_params2 = dog_params2;
+		dog_gauss_analysis.dog_params2 = dog_params6;
 		dog_gauss_analysis.gauss_params = gaussian_params;
 
 		filename = [putative '.mat'];
