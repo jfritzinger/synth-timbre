@@ -57,8 +57,9 @@ end
 dog_params = best_x;
 disp(['Model took ' num2str(toc(timerVal)) ' seconds'])
 
+% Fig 2nd dog model 
 best_fval = Inf;
-for istarts = 1:15
+for istarts = 1:50
 
 	g_exc_init = 100 + (100000 - 100) * rand(1);
 	g_inh_init = 100 + (100000 - 100) * rand(1);
@@ -73,7 +74,8 @@ for istarts = 1:15
 	options = optimoptions('fmincon', 'Algorithm','sqp','TolX', 1e-15, ...
 		'MaxFunEvals', 10^15, 'maxiterations', 800, 'ConstraintTolerance', 1e-15, ...
 		'StepTolerance', 1e-15, 'display', 'off');
-	[dog_params2, fval] = fmincon(@(p) dog_objective_function(p, 'dog', Fs, stim, observed_rate, r0, type), ...
+	[dog_params2, fval] = fmincon(@(p) dog_objective_function(p, 'dog',...
+		Fs, stim, observed_rate, r0, type), ...
 		dog_init, [], [], [], [], dog_lb, dog_ub, [], options);
 	
 	if fval < best_fval
