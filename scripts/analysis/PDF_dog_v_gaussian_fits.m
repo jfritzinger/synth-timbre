@@ -12,7 +12,7 @@ sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name), 'Pre
 num_data = size(sessions, 1);
 
 % Initialize report
-filename = 'DoG_Gauss_Compare';
+filename = 'DoG_Gauss_Compareadd ';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
 report_name = sprintf('%s/pdfs/%s_%s.pdf', savepath, datetime, filename);
