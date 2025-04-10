@@ -26,7 +26,7 @@ end
 nfft = 960; % Length of the FFT
 
 % Convolve STRF and the stimulus
-num_stim = length(param.list);
+num_stim = size(param.stim, 1);
 all_avg_rate = zeros(1, num_stim);
 for istim = 1:num_stim
 
