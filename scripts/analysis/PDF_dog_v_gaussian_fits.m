@@ -1,11 +1,14 @@
 %% PDF_dog_v_gaussian_fits
-clear
+%clear
 import mlreportgen.dom.*
 import mlreportgen.report.*
 
 %% Load and initialize
-
-addpath('/Users/jfritzinger/Projects/shared-models/DoG-model', '-begin')
+if ismac
+	addpath('/Users/jfritzinger/Projects/shared-models/DoG-model', '-begin')
+else
+	addpath('C:\Projects_JBF\shared-models\DoG-model', '-begin')
+end
 
 % Load in spreadsheet
 [base, datapath, savepath, ppi] = getPaths();
@@ -47,7 +50,7 @@ fontsize = 5;
 R2_dog_all = NaN(1, num_sessions);
 R2_gauss_all = NaN(1, num_sessions);
 R2_dog_all2 = NaN(1, num_sessions);
-for isesh = 1 %1:num_sessions
+for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
 	if any(has_data(ineuron))
 
@@ -102,19 +105,19 @@ for isesh = 1 %1:num_sessions
 		r0 = spont;
 		stim = params{1}.stim;
 		%[gaussian_params, dog_params, dog_params2] = fitGaussAndDoG(params, CF, Fs, observed_rate, r0);
-		nrep = 10;
+		nrep = 15;
 		num_params = 5;
 		dog_params = fit_dog_model(nrep, CF, Fs, stim, observed_rate, r0, num_params);
 		nrep = 5;
 		num_params = 6;
 		dog_params6 = fit_dog_model_6param(nrep, CF, Fs, stim, observed_rate, r0);
-		nrep = 5;
+		nrep = 10;
 		gaussian_params = fit_gaussian_model(nrep, CF, Fs, stim, observed_rate, r0);
-
-
 
 		% Plot data
 		fig = figure;
+		tiledlayout(1, 2, 'TileSpacing','compact', 'Padding','compact')
+		nexttile
 		hold on
 		errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
 			'linewidth', linewidth, 'color', 'k')
@@ -132,10 +135,10 @@ for isesh = 1 %1:num_sessions
 			W = gaussian_model(f, gaussian_params);
 			gaus_predicted(i) = compute_firing_rate(stim(i, :), Fs, W, f, r0);
 		end
-		plot(fpeaks./1000, gaus_predicted, 'r', 'linewidth', 3)
+		plot(fpeaks./1000, gaus_predicted, 'r', 'linewidth', linewidth)
 		gaussian_adj_r_squared = calculate_adj_r_squared(observed_rate,...
 			gaus_predicted, 3);
-		gaus_msg = sprintf('Gaussian, R^2=%0.02f', gaussian_adj_r_squared);
+		gaus_msg = sprintf('Gaussian,\n R^2=%0.02f', gaussian_adj_r_squared);
 
 		% Plot DoG
 		f = linspace(0, Fs/2, 100000);
@@ -148,7 +151,7 @@ for isesh = 1 %1:num_sessions
 		plot(fpeaks./1000, dog_predicted, 'g', 'linewidth', linewidth)
 		dog_adj_r_squared = calculate_adj_r_squared(observed_rate,...
 			dog_predicted, 5);
-		dog_msg = sprintf('DoG, R^2=%0.02f', dog_adj_r_squared);
+		dog_msg = sprintf('DoG,\n R^2=%0.02f', dog_adj_r_squared);
 
 		% Plot DoG2
 		f = linspace(0, Fs/2, 100000);
@@ -162,14 +165,41 @@ for isesh = 1 %1:num_sessions
 		dog_adj_r_squared2 = calculate_adj_r_squared(observed_rate,...
 			dog_predicted2, 6);
 		set(gca, 'FontSize',fontsize)
-		dog_msg2 = sprintf('DoG, R^2=%0.02f', dog_adj_r_squared2);
+		dog_msg2 = sprintf('DoG6,\n R^2=%0.02f', dog_adj_r_squared2);
 
-		legend('', '', '', gaus_msg, dog_msg, dog_msg2, 'location', 'westoutside')
+		hleg = legend('', '', '', gaus_msg, dog_msg, dog_msg2, 'location', 'westoutside');
+		hleg.ItemTokenSize = [4, 4];
 
 		% Comparing based on how close the curves are to data
 		p_value = ftest(rate, gaus_predicted, dog_predicted);
 		title(sprintf('Gaussian vs DoG Fits, p=%0.4f', p_value))
 		set(gca, 'FontSize',fontsize)
+
+		% Plot DoG Parameters
+		nexttile
+		hold on
+
+		Fs = 100000;
+		f = linspace(0, Fs/2, 100000);
+		W = gaussian_model(f, gaussian_params);
+		plot(f/1000,W, 'color', 'r')
+
+		W2 = dog_model(f, dog_params);
+		plot(f/1000,W2, 'color', 'g')
+
+		W3 = dog_model(f, dog_params6);
+		plot(f/1000,W3, 'color', 'b')
+
+		% Plot labels
+		xline(CF/1000, '--', 'linewidth', 1.5)
+		title('DoG and Gaussian Kernels')
+		set(gca, 'fontsize', fontsize)
+		ylabel('Amplitude')
+		xlabel('Frequency (kHz)')
+		xlim([200 10000]/1000)
+		set(gca, 'xscale', 'log')
+		grid on
+		xticks([0.1 0.2 0.5 1 2 5 10])
 
 		% Get R^2 for all
 		R2_dog_all(isesh) = dog_adj_r_squared;
@@ -220,7 +250,7 @@ for isesh = 1 %1:num_sessions
 		dog_analysis(isesh).rate_std = data_ST.rate_std;
 		dog_analysis(isesh).p_value = p_value;
 		dog_analysis(isesh).dog_params = dog_params;
-		dog_analysis(isesh).dog_params2 = dog_params2;
+		dog_analysis(isesh).dog_params2 = dog_params6;
 		dog_analysis(isesh).gauss_params = gaussian_params;
 
 		fprintf('%s done, %d percent done\n', putative, round(isesh/num_sessions*100))
@@ -240,7 +270,7 @@ rptview(rpt)
 
 %% 
 
-save(fullfile(datapath, 'dog_analysis2.mat'), "dog_analysis", ...
+save(fullfile(datapath, 'dog_analysis3.mat'), "dog_analysis", ...
 	"R2_gauss_all", "R2_dog_all", "R2_dog_all2")
 
 %% FUNCTIONS
@@ -249,7 +279,7 @@ function [img, images] = addtoSTPDF(images, fig, title)
 import mlreportgen.dom.*
 
 % Set figure size, recommended
-values = [3, 1.5];
+values = [4.2, 1.5];
 fig.PaperSize = values;
 fig.PaperPosition = [0 0 values];
 fig.Units = 'inches';
