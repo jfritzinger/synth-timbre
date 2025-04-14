@@ -252,9 +252,9 @@ yticklabels({'0.2', '0.5', '1', '2', '5', '10', '20', '>50'})
 % results = multcompare(stats);
 
 % Kruskal Wallis for non normal data 
-% kruskalwallis(all_thresholds')
-% [p, tbl, stats] = kruskalwallis(all_thresholds', 1:4);
-% multcompare(stats, 'CType', 'dunn-sidak');
+kruskalwallis(all_thresholds')
+[p, tbl, stats] = kruskalwallis(all_thresholds', 1:4);
+multcompare(stats, 'CType', 'dunn-sidak');
 
 %%
 
