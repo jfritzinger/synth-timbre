@@ -202,6 +202,17 @@ for ii = 1:3
 
 end
 
+%% Stats 
+
+% ANOVA for log transformed data?
+% [p,tbl,stats] = anova1(all_thresholds');
+% results = multcompare(stats);
+
+% Kruskal Wallis for non normal data 
+kruskalwallis(qs2)
+[p, tbl, stats] = kruskalwallis(qs2, 1:3);
+multcompare(stats, 'CType', 'dunn-sidak');
+
 %% 
 
 spls = [43, 63, 73, 83];
