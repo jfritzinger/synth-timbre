@@ -14,13 +14,16 @@ sessions = readtable(filename, 'PreserveVariableNames',true);
 
 %% Find sessions of interest 
 
-rabbit = [27, 29];
-interest_R24 = sessions.Rabbit==24 & sessions.Session>= 365;
-interest_R25 = sessions.Rabbit==25 & sessions.Session>=356 & sessions.Session<631;
+%rabbit = [27, 29];
+%interest_R24 = sessions.Rabbit==24 & sessions.Session>= 365;
+%interest_R25 = sessions.Rabbit==25 & sessions.Session>=356 & sessions.Session<631;
 rating = {'Good', 'Excellent'};
-interest_rabbit = ismember(sessions.Rabbit,rabbit);
+%interest_rabbit = ismember(sessions.Rabbit,rabbit);
 interest_rating = ismember(sessions.Rating,rating);
 driven = sessions.CF~=0;
+
+interest_27 = sessions.Rabbit==27 & sessions.Session>421;
+interest_29 = sessions.Rabbit==29 & sessions.Session>358;
 
 stimulus = 'SPEC_slide_Spectral_Centroid';
 names = sessions.Properties.VariableNames;
@@ -33,7 +36,9 @@ ind = find(strcmp(names,stimulus2));
 stim_columns2 = table2array(sessions(:,ind));
 interest_stim2 = sum(stim_columns2,2);
 
-interest = (interest_R24 | interest_R25 | interest_rabbit) & ...
+% interest = (interest_R24 | interest_R25 | interest_rabbit) & ...
+% 	interest_rating & (interest_stim | interest_stim2) & driven;
+interest = (interest_27 | interest_29) & ...
 	interest_rating & (interest_stim | interest_stim2) & driven;
 index = find(interest);
 num_interest = length(index);
@@ -194,7 +199,7 @@ end
 
 %% Save spreadsheet
 
-writetable(listData,'TimbreSessions_AllwithRVF.xlsx')
+writetable(listData,'TimbreSessions_AllwithRVF_2025.xlsx')
 
 
 %% Functions 
