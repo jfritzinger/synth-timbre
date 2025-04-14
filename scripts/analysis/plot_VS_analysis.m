@@ -95,3 +95,69 @@ for ispl = 2
 	set(gca, 'fontsize', fontsize)
 
 end
+
+%% Average vector strength 
+
+% Load in spreadsheet
+[base, datapath, savepath, ppi] = getPaths();
+spreadsheet_name = 'PutativeTable2.xlsx';
+sessions = readtable(fullfile(datapath, 'data-cleaning', spreadsheet_name),...
+	'PreserveVariableNames',true);
+num_data = size(sessions, 1);
+
+% Create has_data
+data_ind(:,1) = cellfun(@(s) contains(s, 'R'), sessions.ST_43dB);
+data_ind(:,2) = cellfun(@(s) contains(s, 'R'), sessions.ST_63dB);
+data_ind(:,3) = cellfun(@(s) contains(s, 'R'), sessions.ST_73dB);
+data_ind(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
+
+for ispl = 1:4
+	has_data = data_ind(:,ispl);
+	data_index = find(has_data);
+	num_neurons = sum(has_data);
+
+	% Plot each neuron
+	ii = 1;
+	for isesh = 1:num_neurons
+		ineuron = data_index(isesh);
+
+		% Load in session
+		putative = sessions.Putative_Units{ineuron};
+		CF = sessions.CF(ineuron);
+		MTF_shape = sessions.MTF{ineuron};
+		load(fullfile(datapath, 'neural_data', [putative '.mat']))
+
+		if data_ind(ineuron,ispl)==1
+
+			% Load in proper dataset for each idata
+			param_ST = data(5+ispl, 2);
+
+			% Analyze synthetic timbre
+			data_ST = analyzeST(param_ST, CF);
+			data_ST = data_ST{1};
+			[~, peak_ind] = max(data_ST.rate);
+			peak_f = data_ST.fpeaks(peak_ind);
+			[~, peaksm_ind] = max(data_ST.rates_sm);
+			peak_fsm = data_ST.fpeaks(peaksm_ind);
+
+			temporal = analyzeST_Temporal(param_ST{1}, data_ST);
+			VS(isesh, ispl) = max(temporal.VS);
+
+			% Get ind nearest to CF 
+			[val, ind] = min(abs(param_ST{1}.fpeaks-CF));
+			VS2(isesh, ispl) = temporal.VS(ind);
+
+		end
+		fprintf('%s done, %d percent done\n', putative, round(isesh/num_neurons*100))
+	end
+end
+
+fprintf('43 dB SPL: Mean VS = %0.02f\n', mean(VS(:,1)))
+fprintf('63 dB SPL: Mean VS = %0.02f\n', mean(VS(:,2)))
+fprintf('73 dB SPL: Mean VS = %0.02f\n', mean(VS(:,3)))
+fprintf('83 dB SPL: Mean VS = %0.02f\n', mean(VS(:,4)))
+
+fprintf('43 dB SPL: Mean VS = %0.02f\n', mean(VS2(:,1)))
+fprintf('63 dB SPL: Mean VS = %0.02f\n', mean(VS2(:,2)))
+fprintf('73 dB SPL: Mean VS = %0.02f\n', mean(VS2(:,3)))
+fprintf('83 dB SPL: Mean VS = %0.02f\n', mean(VS2(:,4)))
