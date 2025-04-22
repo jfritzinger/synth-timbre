@@ -3,8 +3,18 @@
 clear 
 
 %% Set up figure
-figure('Position',[25,476,648,769])
-font_size = 14;
+% 1 column: 3.356
+% 1.5 columns: 4.567
+% 2 columns: 6.929
+
+[~, ~, savepath, ppi] = getPaths();
+figure('Position',[50,50,4.567*ppi,5*ppi])
+
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
 
 %% Parameters
 CF = 1200; 
@@ -96,11 +106,11 @@ for CF_plot = CF_list  % for TIN response to 1000 Hz tone
     
     % Duplicate the AN responses for Fluctuation profile plot
     plot(an_sout(start:stop), t(start:stop)*1e3,'Color', '#44AA99',...
-		'linewidth',1.5)
+		'linewidth',linewidth)
     [peaks_vals,peak_locations] = findpeaks(an_sout(start:stop),params.Fs,...
 		'MinPeakProminence',100);
     plot(peaks_vals, (peak_locations + start_time)*1e3,'Color', '#117733',...
-		'linewidth',3) % add envelope
+		'linewidth',linewidth) % add envelope
     
     ylim([start_time*1e3, stop_time*1e3])
     xlim([0 1000]); % freq
@@ -117,7 +127,7 @@ for CF_plot = CF_list  % for TIN response to 1000 Hz tone
         yticks([100 115])
         yticklabels([])
     end
-    set(gca,'fontsize',font_size)
+    set(gca,'fontsize',fontsize)
     xticks([0 1000])
     grid on
     
@@ -147,9 +157,9 @@ Level_scale = 20e-6*10.^(params.spl/20) * (1/rms(stimulus));
 component_scales_linear = Level_scale * component_scales_linear;
 
 % Now, make the stimulus for this_fpeak
-xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
-xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
-xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
+xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 
 for iharm = 1:num_harmonics
     stim = component_scales_linear(iharm) * sin(2*pi*harmonics(iharm)*t);
@@ -159,12 +169,12 @@ for iharm = 1:num_harmonics
     mdB = 20*log10(abs(y));
     level(iharm) = findpeaks(mdB(1:length(mdB)/2), 'MinPeakProminence',200);
     stem(harmonics(iharm), level(iharm), 'Marker', 'none', 'LineWidth', ...
-        3, 'Color', '#882255');
+        linewidth, 'Color', '#882255');
 end
 
 % Plot envelope of stimulus
-plot(harmonics, level, 'LineWidth', 1.5, 'Color', '#882255', 'LineStyle', ':');
-set(gca,'fontsize',font_size)
+plot(harmonics, level, 'LineWidth', linewidth, 'Color', '#882255', 'LineStyle', ':');
+set(gca,'fontsize',fontsize)
 ylabel('Level (dB SPL)')
 ylim([0 70])
 grid on
@@ -178,16 +188,16 @@ xlabel('Freq. (Hz)')
 %% AN Plot
 h(5) = subplot(5, 5, 6:10);
 hold on
-plot(CFs, avAN, 'linewidth', 2, 'color', '#117733');
-set(gca,'fontsize',font_size)
+plot(CFs, avAN, 'linewidth', linewidth, 'color', '#117733');
+set(gca,'fontsize',fontsize)
 grid on
 set(gca, 'XScale', 'log')
 xlim(plot_range)
 ylim([0 300])
 xticks(ticks)
-xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
-xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
-xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
+xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 xlabel('CF (Hz)')
 ylabel('Avg. Rate (sp/s)')
 
@@ -198,13 +208,13 @@ fs = params.Fs;
 spike_hist = squeeze(SFIE.ic_BE);
 VS = calcVS(params, spike_hist, fs);
 yyaxis right
-plot(CFs, VS, 'linewidth', 2, 'Color','#d95f02')
+plot(CFs, VS, 'linewidth', linewidth, 'Color','#d95f02')
 ylabel('Sync to 200 Hz                            ')
 
 yyaxis left
 hold on
-plot(CFs, avBE, 'linewidth', 2, 'color', 'k'); %[0, 0.4470, 0.7410]);
-set(gca,'fontsize',font_size)
+plot(CFs, avBE, 'linewidth', linewidth, 'color', 'k'); %[0, 0.4470, 0.7410]);
+set(gca,'fontsize',fontsize)
 grid on
 set(gca, 'XScale', 'log')
 xlim(plot_range)
@@ -212,9 +222,9 @@ ylim([0 50])
 xticks(ticks)
 yticks([0 25 50])
 xticklabels([])
-xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
-xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
-xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth',linewidth); % Add CF line
+xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
+xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 ax = gca;
 ax.YAxis(1).Color = 'k';
 
@@ -226,12 +236,12 @@ fs = params.Fs;
 spike_hist = squeeze(SFIE.ic_BS);
 VS = calcVS(params, spike_hist, fs);
 yyaxis right
-plot(CFs, VS, 'linewidth', 2, 'Color','#d95f02')
+plot(CFs, VS, 'linewidth', linewidth, 'Color','#d95f02')
 
 yyaxis left
 hold on
-plot(CFs, avBS, 'linewidth', 2, 'color', 'k'); %[0, 0.4470, 0.7410]);
-set(gca,'fontsize',font_size)
+plot(CFs, avBS, 'linewidth', linewidth, 'color', 'k'); %[0, 0.4470, 0.7410]);
+set(gca,'fontsize',fontsize)
 grid on
 set(gca, 'XScale', 'log')
 xlim(plot_range)
@@ -239,9 +249,9 @@ ylim([0 50])
 xticks(ticks)
 yticks([0 25 50])
 xlabel('CF (Hz)')
-xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', 2); % Add CF line
-xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
-xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', 2);
+xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
+xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 ax = gca;
 ax.YAxis(1).Color = 'k';
 
@@ -314,43 +324,27 @@ for ineuron = 1:2
 	[~, avBE, stdBE] = plotMTF(params, model, 0);
 	hold on
 	line([1 params.all_fms(end)], [1 1]*avBE(1),'Color',[0.4 0.4 0.4], ...
-		'LineWidth', 2);
-	plot(params.all_fms,smooth(avBE),'-k', 'LineWidth', 2) % smoothed MTF
+		'LineWidth', linewidth);
+	plot(params.all_fms,smooth(avBE),'-k', 'LineWidth', linewidth) % smoothed MTF
 	hold off
 	xtick = [1 2 5 10 20 50 100 200 500];
 	xlim(xtick([1 end]))
 	set(gca,'XTick',xtick,'XScale', 'log')
 	grid on
-	set(gca,'FontSize',font_size)
+	set(gca,'FontSize',fontsize)
 	xticklabels([])
 	yticklabels([])
 	if ineuron == 1
 		ylim([22 32])
 		ylabel('Avg. Rate (sp/s)                         ')
 		hLegend = legend('Unmod.', 'Location','northwest', 'EdgeColor',...
-			'none');
+			'none', 'box', 'off', 'fontsize', legsize);
 		hLegend.ItemTokenSize = [12,8];
 		title('MTF')
 	else
 		ylim([15 34])
 	end
 end
-
-%% Plot temporal stimulus 
-% 
-% figure;
-% set(gcf, 'color', 'w')
-% npts = params.dur * params.Fs; % # pts in stimulus
-% t = (0:(npts-1))/params.Fs; % time vector
-% plot(t, stimulus, 'Color', '#882255', 'linewidth', 1.5);
-% xlim([0.1 0.120])
-% xlabel('Time (ms)')
-% xticks([0.1 0.110 0.120])
-% xticklabels([100 110 120])
-% set(gca,'fontsize',12)
-% ylabel('Amplitude')
-% grid on
-
 
 %% Move positions
 
@@ -373,7 +367,6 @@ set(h(9), 'Position',[0.11 bottom(5) 0.123 height]);
 set(h(7), 'Position',[0.27 bottom(5) 0.655 height]);
 
 %% Labels / Annotations / Positions 
-titlesize = 18; 
 
 annotation('textbox',[0.27 0.84 0.15 0.1], 'String','Stimulus',...
 	'FontSize',titlesize,'EdgeColor','none', 'Rotation',90, ...
@@ -393,22 +386,21 @@ annotation('textbox',[0.14 0.27 0.15 0.1],'String','IC BE',...
 
 % Create lines
 annotation('line',[0.412 0.505],[0.43 0.361],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
+	'LineWidth',linewidth,'LineStyle',':');
 annotation('line',[0.412 0.50],[0.566 0.637],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
+	'LineWidth',linewidth,'LineStyle',':');
 
 annotation('line',[0.735 0.630],[0.43 0.361],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
+	'LineWidth',linewidth,'LineStyle',':');
 annotation('line',[0.735 0.630],[0.566 0.637],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle',':');
+	'LineWidth',linewidth,'LineStyle',':');
 
 annotation('line',[0.573 0.573],[0.566 0.637],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle','--');
+	'LineWidth',linewidth,'LineStyle','--');
 annotation('line',[0.573 0.573],[0.43 0.361],'Color',[0.4 0.4 0.4],...
-	'LineWidth',2,'LineStyle','--');
+	'LineWidth',linewidth,'LineStyle','--');
 
 % Set annotations
-labelsize = 24;
 annotation('textbox',[0.11 bottom(1)+0.135 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[0.11 bottom(2)+0.135 0.0826 0.0385],'String',{'B'},...
@@ -422,9 +414,9 @@ annotation('textbox',[0 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
 
 
 %% Save figure 
-
-filename = 'Fig1_hypothesis_figure';
-saveFigure(filename)
+% 
+% filename = 'Fig1_hypothesis_figure';
+% saveFigure(filename)
 
 %% FUNCTIONS
 

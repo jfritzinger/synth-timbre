@@ -3,15 +3,17 @@ clear
 
 %% Create figure
 
-[~, ~, savepath, ppi] = getPaths();
+[~, datapath, savepath, ppi] = getPaths();
+figure('Position',[50,50,6.2*ppi,4.2*ppi])
 
-figure('Position',[1720,621,8.5*ppi,7*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
+scattersize = 16;
+capsize = 2;
 h = gobjects(12, 1);
-
-fontsize = 11;
-legsize = 9;
-labelsize = 20;
-linewidth = 1.5;
 
 %% Load in examples and plot
 
@@ -51,7 +53,6 @@ for ii = 1:6
 	ispl = 2;
 
 	% Load in data
-	[base, datapath, savepath, ppi] = getPaths();
 	load(fullfile(datapath, 'neural_data', [putative '.mat']))
 
 	% Load in model data
@@ -80,7 +81,7 @@ for ii = 1:6
 	rate_sm = data_ST.rates_sm; %zscore(data_ST.rates_sm);
 	hold on
 	errorbar(data_ST.fpeaks,rate, data_ST.rate_std/sqrt(param_ST{1}.nrep),...
-		'linewidth', 0.8, 'Color','k', 'LineStyle','none');
+		'linewidth', 0.8, 'Color','k', 'LineStyle','none', 'CapSize',capsize);
 	plot(data_ST.fpeaks,rate_sm, 'linewidth', linewidth,'Color','k');
 	yline(data_RM.spont, 'k')
 
@@ -132,15 +133,18 @@ for ii = 1:6
 	if ii == 1 || ii == 3 || ii == 5
 		ylabel('Rate (sp/s)')
 	end
-	box on
 	ylim([0 max_rate+max_rate*0.15])
-	%ylim([-5 3])
+	set(gca, 'fontsize', fontsize)
+	grid on
 
 	% BE/BS labels
-	set(gca, 'fontsize', fontsize)
-	text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
-		'VerticalAlignment', 'top', 'FontSize',legsize)
-	grid on
+	if ii == 6
+		text(0.15, 0.95, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	else
+		text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	end
 
 	if ii == 1
 		hLeg = legend('Data', '', 'Spont', 'Energy', 'SFIE', 'Broad Inh.', 'CF', 'Location',...
@@ -197,8 +201,8 @@ for ii = 1:2
 
 	h(subplot_numbers(1, ii)) = subplot(3, 4, subplot_numbers(1, ii)); % [1 4 7 10 13 16]
 	hold on
-	scatter(x_R2, y_R2, 20, 'filled', 'MarkerEdgeColor','k', "MarkerFaceAlpha",0.7)
-	scatter(x_R22, y_R22, 20, 'filled', 'MarkerEdgeColor','k', ...
+	scatter(x_R2, y_R2, scattersize, 'filled', 'MarkerEdgeColor','k', "MarkerFaceAlpha",0.7)
+	scatter(x_R22, y_R22, scattersize, 'filled', 'MarkerEdgeColor','k', ...
 		'MarkerFaceColor',"#D95319", "MarkerFaceAlpha",0.7)
 	%scatter(x_non, y_non, 'MarkerEdgeColor','k')
 	plot([-1 1], [-1 1], 'k')
@@ -246,8 +250,8 @@ end
 
 %% Arrange
 
-left = [0.07 0.32];
-bottom = linspace(0.1, 0.68, 3);
+left = [0.08 0.33];
+bottom = linspace(0.07, 0.68, 3);
 height = 0.22;
 width = 0.19;
 
@@ -277,8 +281,8 @@ annotation('textbox',[left(2) bottom(1) 0.0826 0.0385],'String',{'F'},...
 %%
 % Arrange plots 
 all_fig_positions = ...
-   [0.67,0.18,0.3,0.3;...
-	0.67,0.65,0.3,0.3]; % left bottom width height
+   [0.68,0.15,0.29,0.32;...
+	0.68,0.64,0.29,0.32]; % left bottom width height
 
 subplot_numbers = [10, 7];
 for ipos = 1:2

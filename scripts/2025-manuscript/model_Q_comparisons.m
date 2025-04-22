@@ -10,9 +10,12 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 
 %% Plot Q
 
-figure('Position',[560,594,8*ppi,2.5*ppi])
-fontsize = 12;
-legsize = 10;
+figure('Position',[560,594,4.567*ppi,1.5*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
 
 h(1) = subplot(1, 3, 1);
 colors = [0 0.4470 0.7410; 0.8500 0.3250 0.0980;0.9290 0.6940 0.1250;0.4940 0.1840 0.5560];
@@ -55,7 +58,7 @@ for ii = 1:4
 	ci_high = 10.^ci_log(:,2);
 
 	% Plotting
-	plot(x_original/1000, mdlfit,'color', colors(ii,:), 'LineWidth', 2);
+	plot(x_original/1000, mdlfit,'color', colors(ii,:), 'LineWidth', linewidth);
 	hold on;
 	fill([x_original/1000; flipud(x_original/1000)],...
 		[ci_low; flipud(ci_high)],...
@@ -248,20 +251,14 @@ end
 
 %% Set annotations
 
-labelsize = 20;
-left = linspace(0.01, 0.69, 3);
+left = linspace(0, 0.67, 3);
 label = {'A', 'B', 'C'};
 for ii = 1:3
-	annotation('textbox',[left(ii) 0.97 0.0826 0.0385],'String',label{ii},...
+	annotation('textbox',[left(ii) 0.98 0.0826 0.0385],'String',label{ii},...
 		'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 end
 
-% annotation('textbox',[0.27 0.93 0.1826 0.0385],'String','Salience (Q)',...
-% 		'FontWeight','bold','FontSize',16,'EdgeColor','none');
-% annotation('textbox',[0.77 0.93 0.1826 0.0385],'String','Threshold',...
-% 		'FontWeight','bold','FontSize',16,'EdgeColor','none');
-
 %% Save figure 
-
-filename = 'Fig10_model_Q_comparisons';
-saveFigure(filename)
+% 
+% filename = 'Fig10_model_Q_comparisons';
+% saveFigure(filename)

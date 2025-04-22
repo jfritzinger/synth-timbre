@@ -9,12 +9,15 @@ addpath('/Users/jfritzinger/Projects/shared-models/DoG-model', '-begin')
 
 %% Plot example fit 
 
-fig = figure('Position',[53,540,6*ppi,5*ppi]);
+fig = figure('Position',[50,50,3.356*ppi,3.2*ppi]);
 tiledlayout(2, 2, 'Padding','compact')
-fontsize = 11;
-legsize = 9;
-labelsize = 20;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
 linewidth = 1;
+scattersize = 12;
+tokensize = [9, 4];
 
 %% Plot example
 
@@ -39,17 +42,17 @@ plot(dog_analysis(ind).fpeaks/1000, dog_analysis(ind).dog_predicted, ...
 	'LineWidth',linewidth, 'color', 'b');
 plot(dog_analysis(ind).fpeaks/1000, dog_analysis(ind).gaus_predicted,...
 	'LineWidth',linewidth, 'color', '#1b9e77');
-xline(dog_analysis(ind).CF/1000, ':', 'LineWidth',1.5)
+xline(dog_analysis(ind).CF/1000, ':', 'LineWidth',linewidth)
 yline(spont, 'k')
 ylabel('Avg. Rate (sp/s)')
 xlabel('Spectral Peak Freq. (kHz)')
 set(gca, 'fontSize', fontsize)
 hleg = legend('Data', 'DoG', 'Gaussian', 'CF', 'Spont', 'fontsize', ...
-	legsize, 'numcolumns', 3, 'location', 'north');
-hleg.ItemTokenSize = [10, 4];
+	legsize, 'numcolumns', 2, 'location', 'north', 'box', 'off');
+hleg.ItemTokenSize = tokensize;
 grid on
 xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)]/1000)
-ylim([0 73])
+ylim([0 76])
 
 %% Plot filters 
 
@@ -58,15 +61,15 @@ nexttile
 DOGparams = dog_analysis(ind).dog_params;
 W = dog_model(dog_analysis(ind).fpeaks, DOGparams);
 hold on
-plot(dog_analysis(ind).fpeaks/1000,W, 'color', 'b')
+plot(dog_analysis(ind).fpeaks/1000,W, 'color', 'b', 'linewidth', linewidth)
 
 Fs = 100000;
 Gparams = dog_analysis(ind).gauss_params;
 f = linspace(0, Fs/2, 100000);
 W = gaussian_model(f, Gparams);
 hold on
-plot(f/1000,W, 'color', '#1b9e77')
-xline(dog_analysis(ind).CF/1000, '--', 'linewidth', 1.5)
+plot(f/1000,W, 'color', '#1b9e77', 'linewidth', linewidth)
+xline(dog_analysis(ind).CF/1000, ':', 'linewidth', linewidth)
 
 % Plot labels
 set(gca, 'fontsize', fontsize)
@@ -76,8 +79,9 @@ xlim([dog_analysis(ind).fpeaks(1) dog_analysis(ind).fpeaks(end)]/1000)
 set(gca, 'xscale', 'log')
 grid on
 xticks([0.1 0.2 0.5 1 2 5])
-hleg = legend('DoG Kernel', 'Gaussian\newlineKernel', 'CF', 'fontsize', legsize, 'location', 'northwest');
-hleg.ItemTokenSize = [16, 6];
+hleg = legend('DoG Kernel', 'Gaussian\newlineKernel', 'CF', 'fontsize',...
+	legsize, 'location', 'northwest', 'box', 'off');
+hleg.ItemTokenSize = tokensize;
 
 %% Plot adjusted R^2 values 
 
@@ -85,23 +89,24 @@ sig = [dog_analysis.p_value]<0.05;
 notsig = [dog_analysis.p_value]>0.05;
 
 nexttile
-scatter(R2_gauss_all(sig), R2_dog_all(sig),30, 'filled',...
+scatter(R2_gauss_all(sig), R2_dog_all(sig),scattersize, 'filled',...
 	'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.6, 'MarkerFaceColor','b')
 hold on
-scatter(R2_gauss_all(notsig), R2_dog_all(notsig), 30, 'filled',...
+scatter(R2_gauss_all(notsig), R2_dog_all(notsig), scattersize, 'filled',...
 	'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.6, 'MarkerFaceColor',[0.4 0.4 0.4])
 xlim([0 1])
 ylim([0 1])
 xticks([0 0.2 0.4 0.6 0.8 1])
 yticks(0:0.2:1)
 grid on
-plot([0 1], [0 1], 'k')
+plot([0 1], [0 1], 'k', 'linewidth', linewidth)
 xlabel('Gaussian Adjusted R^2')
 ylabel('DoG Adjusted R^2')
 set(gca, 'fontSize', fontsize)
 msg = sprintf('%d sig.', sum(sig));
 msg2 = sprintf('%d not sig.', sum(notsig));
-legend(msg, msg2, 'Location','southeast', 'fontsize', legsize)
+legend(msg, msg2, 'Location','southeast', 'fontsize', legsize, 'box',...
+	'off', 'position', [0.297973778307509,0.108506944444444,0.116299043911867,0.099784116698924])
 
 
 %% Plot DoG parameter values 
@@ -126,12 +131,15 @@ ratio_sigma = log10(s_inh./s_exc);
 ratio_g = log10(g_inh./g_exc);
 nexttile
 hold on
-scatter(ratio_sigma, ratio_g, 25, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.5)
+scatter(ratio_sigma, ratio_g, scattersize, 'filled', 'MarkerEdgeColor','k', 'MarkerFaceAlpha',0.5)
 xline(0)
 yline(0)
 xlabel('Log BW Ratio (\sigma_i_n_h/\sigma_e_x_c)')
 ylabel('Log Str Ratio (g_i_n_h/g_e_x_c)')
 grid on
+xlim([-2.1 2.3])
+ylim([-1.5 1.5])
+set(gca, 'fontsize', fontsize)
 
 % Number of units in each quadrant
 q1 = sum(ratio_sigma>0 & ratio_g>0);
@@ -163,6 +171,6 @@ for ii = 1:4
 end
 
 %% Save figure 
-
-filename = 'Fig11_dog_analysis_plots';
-saveFigure(filename)
+% 
+% filename = 'Fig11_dog_analysis_plots';
+% saveFigure(filename)

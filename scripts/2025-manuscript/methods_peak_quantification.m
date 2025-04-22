@@ -10,8 +10,14 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 
 %% Set up figure 
 
-figure('Position',[830,549,800,263])
-fontsize = 14;
+figure('Position',[50,50,6*ppi,1.6*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
+scattersize = 18;
+capsize = 2;
 
 %% Peak/Dip/Sloping Examples 
  
@@ -52,44 +58,46 @@ for ineuron = 1:3
 	patch([lo_limit lo_limit hi_limit hi_limit]./1000,[-4 4 4 -4], 'r', 'FaceAlpha',0.05, 'EdgeColor', 'none');
 	hold on
 	plot(data_ST.fpeaks./1000,rate, 'linewidth', 0.9, 'Color',"#0072BD");
-	errorbar(data_ST.fpeaks./1000,rate, zscore(data_ST.rate_std)/sqrt(30), 'linewidth', 0.9, 'Color','k'); %"#0072BD");
-	plot(data_ST.fpeaks./1000,rate_sm, 'linewidth', 1.5,'Color','k');
+	errorbar(data_ST.fpeaks./1000,rate, zscore(data_ST.rate_std)/sqrt(30),...
+		'linewidth', 0.9, 'Color','k', 'CapSize',capsize); %"#0072BD");
+	plot(data_ST.fpeaks./1000,rate_sm, 'linewidth', linewidth,'Color','k');
 	ylim([-4 4])
 
-	scatter(peaks.locs./1000, peaks.pks,50,  'filled', 'r')
+	scatter(peaks.locs./1000, peaks.pks,scattersize,  'filled', 'r')
 	num_peaks = length(peaks.pks);
-	scatter(dips.locs./1000, -1*dips.pks, 50, 'filled', 'r')
+	scatter(dips.locs./1000, -1*dips.pks, scattersize, 'filled', 'r')
 	num_dips = length(dips.pks);
 	if ineuron == 1
-		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
-		line([peaks.locs peaks.locs]./1000, [peaks.pks-0.75 peaks.pks], 'Color', 'r', 'LineWidth', 1.5);
-		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', 1.5)
+		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', linewidth);
+		line([peaks.locs peaks.locs]./1000, [peaks.pks-0.75 peaks.pks], 'Color', 'r', 'LineWidth', linewidth);
+		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', linewidth)
 		hleg = legend('ROI', '', 'Data', 'Smoothed', 'Ref. Value', '', 'Bandwidth', ...
  			'+/- 0.75', 'CF', 'Location','northeastoutside');
+		hleg.ItemTokenSize = [12, 8];
 	elseif ineuron == 2
-		line([dips.locs dips.locs]./1000, -1*[dips.pks-0.75 dips.pks], 'Color', 'r', 'LineWidth', 1.5);
-		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', 1.5);
-		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', 1.5)
+		line([dips.locs dips.locs]./1000, -1*[dips.pks-0.75 dips.pks], 'Color', 'r', 'LineWidth', linewidth);
+		line([bounds_freq(1)/1000, bounds_freq(2)/1000], [halfheight, halfheight], 'Color', 'g', 'LineWidth', linewidth);
+		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', linewidth)
 	else
-		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', 1.5)
+		xline(CF./1000, '--', 'Color',CF_color, 'linewidth', linewidth)
 	end
 
 	plot_range = [param_ST{1}.fpeaks(1) param_ST{1}.fpeaks(end)]./1000;
 	
 	xlim(plot_range)
+	set(gca, 'fontsize', fontsize)
 	if ineuron == 1
 		ylabel('Z-score')
-		title('Peak')
+		title('Peak', 'fontsize', titlesize)
 	elseif ineuron == 2
 		yticklabels([])
-		title('Dip')
+		title('Dip', 'fontsize', titlesize)
 		xlabel('Spectral Peak Freq. (kHz)')
 	else 
 		yticklabels([])
-		title('Sloping')
+		title('Sloping', 'fontsize', titlesize)
 	end
 	grid on
-	set(gca, 'fontsize', fontsize)
 end
 
 %% Arrange and annotate 
@@ -99,20 +107,19 @@ bottom = 0.17;
 height = 0.7;
 
 for ii = 1:3
-	set(h(ii), 'position', [left(ii) bottom 0.23 height])
+	set(h(ii), 'position', [left(ii) bottom 0.21 height])
 end
 set(hleg, 'Position', [0.844510314761978,0.461977186311787,0.125,0.41254752851711])
 
 % Add labels 
-labelsize = 24;
-annotation('textbox',[left(1)-0.03 0.95 0.0826 0.0385],'String',{'A'},...
+annotation('textbox',[left(1)-0.06 0.95 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[left(2)-0.03 0.95 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[left(2)-0.04 0.95 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[left(3)-0.03 0.95 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[left(3)-0.04 0.95 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'Fig3_methods_peak_quantification';
-saveFigure(filename)
+% 
+% filename = 'Fig3_methods_peak_quantification';
+% saveFigure(filename)

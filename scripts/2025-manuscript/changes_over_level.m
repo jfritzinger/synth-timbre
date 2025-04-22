@@ -13,12 +13,14 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), ...
 
 %% Set up figure 
 
-figure('Position',[560,214,8*ppi,9*ppi])
-fontsize = 10;
+figure('Position',[50,50,4.567*ppi,6*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
 linewidth = 1;
-legsize = 8;
-labelsize = 20;
-titlesize = 16; 
+scattersize = 12;
+capsize = 2;
 
 %% Set up and plot examples 
 
@@ -83,7 +85,8 @@ for ineuron = 1:6
 		% Plot
 		rates_sm = smooth_rates(rate, rlb, rub, CF);
 		type = 'Rate';
-		errorbar(fpeaks./1000, rate, rate_std/sqrt(30), 'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{ind})
+		errorbar(fpeaks./1000, rate, rate_std/sqrt(30), 'linestyle', ...
+			'none', 'linewidth', 0.8, 'color', data_colors{ind}, 'capsize', capsize)
 		%plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
 		plot(fpeaks./1000, rates_sm, 'LineWidth',linewidth, 'Color',data_colors{:,ind})
 		[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
@@ -172,12 +175,12 @@ for ii = 1:3
 	% Increase
 	h(indices(ii)) = subplot(4, 3, indices(ii));
 	hold on
-	plot(spls, qs2(values,:)', 'color',color , 'LineWidth',linewidth)
+	plot(spls, qs2(values,:)', 'color',color, 'LineWidth',linewidth)
 	xticks(spls)
 	ylabel('Q')
 	xlim([40 86])
-	plot(spls, mean(qs2(values,:), 'omitnan'), 'k', 'LineWidth',2)
-	plot(spls, median(qs2(values,:), 'omitnan'), ':k', 'LineWidth',2)
+	plot(spls, mean(qs2(values,:), 'omitnan'), 'k', 'LineWidth',linewidth)
+	plot(spls, median(qs2(values,:), 'omitnan'), ':k', 'LineWidth',linewidth)
 	set(gca, 'fontsize', fontsize)
 	xlabel('Level (dB SPL)')
 
@@ -196,9 +199,9 @@ for ii = 1:3
 		end
 	end
 	hLeg = legend(leg, 'FontSize',legsize);
-	hLeg.ItemTokenSize = [15,6];
+	hLeg.ItemTokenSize = [12,6];
 	hLeg.Box = 'off';
-	ylim([0 15])
+	ylim([0 18])
 
 end
 
@@ -208,10 +211,10 @@ end
 % [p,tbl,stats] = anova1(all_thresholds');
 % results = multcompare(stats);
 
-% Kruskal Wallis for non normal data 
-kruskalwallis(qs2)
-[p, tbl, stats] = kruskalwallis(qs2, 1:3);
-multcompare(stats, 'CType', 'dunn-sidak');
+% % Kruskal Wallis for non normal data 
+% kruskalwallis(qs2)
+% [p, tbl, stats] = kruskalwallis(qs2, 1:3);
+% multcompare(stats, 'CType', 'dunn-sidak');
 
 %% 
 
@@ -248,7 +251,7 @@ for ibin = 2
 				CFs_sub = CFs(ind);
 			end
 			%gscatter(CFs/1000, Qs, MTFs, 'filled')
-			scatter(CFs_sub/1000, Q_sub, 'filled', 'MarkerEdgeColor','k')
+			scatter(CFs_sub/1000, Q_sub, scattersize, 'filled', 'MarkerEdgeColor','k')
 			hold on
 		end
 
@@ -261,7 +264,7 @@ for ibin = 2
 		p(4) = mdl.Rsquared.Ordinary;
 		mdlfit(ibin, ispl,:) = 10.^(p(1)*log10(x)+p(2));
 		mdlplot = squeeze(mdlfit(ibin, ispl, :));
-		plot(x/1000, mdlplot, 'k');
+		plot(x/1000, mdlplot, 'k', 'linewidth', linewidth);
 
 		% Plot labels 
 		number = Qs;
@@ -304,7 +307,7 @@ for iCF = 1:3
 end
 
 h(11) = subplot(4, 3, 11);
-errorbar(Q', Q_sem', 'LineWidth',2)
+errorbar(Q', Q_sem', 'LineWidth',linewidth)
 %xlabel('CF Group')
 xlabel('Level (dB SPL)')
 xlim([0.5 4.5])
@@ -409,14 +412,15 @@ bh(3).FaceColor = '#7570b3'; %pink
 box off
 ylim([0 1.4])
 yticks(0:0.2:1)
+set(gca, 'fontsize', fontsize)
 
 
 %% Arrange figure 
 
-left = linspace(0.1, 0.715, 3);
+left = [0.12 0.42 0.74]; %linspace(0.12, 0.74, 3);
 bottom = [0.05 0.32 0.57 0.81];
-height = 0.15;
-width = 0.255;
+height = 0.155;
+width = 0.25;
 
 left = repmat(left, 1, 4);
 bottom = repmat(bottom, 3, 1);
@@ -446,14 +450,14 @@ for ii = 1:3
 end
 
 bottom = linspace(0.225, 0.96, 4);
-left = linspace(0.01, 0.7, 3);
-annotation('textbox',[0.01 bottom(4) 0.0826 0.0385],'String',{'A'},...
+left = linspace(0, 0.7, 3);
+annotation('textbox',[0 bottom(4) 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 bottom(3) 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0 bottom(3) 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 bottom(2) 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0 bottom(2) 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 bottom(1) 0.0826 0.0385],'String',{'D'},...
+annotation('textbox',[0 bottom(1) 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 annotation('textbox',[left(2) bottom(1) 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
@@ -462,6 +466,6 @@ annotation('textbox',[left(3) bottom(1) 0.0826 0.0385],'String',{'F'},...
 
 
 %% Save figure 
-
-filename = 'Fig7_changed_over_level';
-saveFigure(filename)
+% 
+% filename = 'Fig7_changed_over_level';
+% saveFigure(filename)
