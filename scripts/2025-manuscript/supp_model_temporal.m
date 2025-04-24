@@ -1,6 +1,17 @@
 %% supp_model_temporal
 clear
 
+%% Set up figure
+
+[base, datapath, savepath, ppi] = getPaths();
+figure('Position',[50,50,3.33*ppi,4*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
+
+
 %% Parameters
 CF = 1200;
 
@@ -22,7 +33,7 @@ fs = params.Fs;
 
 %% Model
 
-for imodel = 3 %1:3
+for imodel = 1:3
 	if imodel == 1 % SFIE
 
 		% Model parameters
@@ -118,9 +129,6 @@ end
 
 %% Create heatmaps for BE and BS
 
-figure('Position',[79,340,401,559])
-fontsize = 12;
-
 index = [1, 2; 3, 4; 5, 6];
 for imodel = 1:3
 
@@ -201,19 +209,17 @@ end
 
 %% Arrange and annotate figure 
 
-left = [0.2 0.62];
+left = [0.18 0.62];
 bottom = linspace(0.08, 0.73, 3);
 height = 0.22;
 width = 0.35;
-
 set(h(1), 'Position', [left(1) bottom(3) width height])
 set(h(2), 'Position', [left(2) bottom(3) width height])
 set(h(3), 'Position', [left(1) bottom(2) width height])
 set(h(4), 'Position', [left(2) bottom(2) width height])
 set(h(5), 'Position', [left(1) bottom(1) width height])
 
-% Annotate 
-labelsize = 20;
+%% Annotate 
 bottom = linspace(0.31, 0.97, 3);
 annotation('textbox',[0.02 bottom(3) 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
@@ -224,17 +230,16 @@ annotation('textbox',[0.02 bottom(1) 0.0826 0.0385],'String',{'C'},...
 
 
 % Annotate model labels
-titlesize = 18;
-annotation('textbox',[0.11 0.79 0.086 0.053],'String','SFIE',...
+annotation('textbox',[0.1 0.79 0.086 0.053],'String','SFIE',...
 	'Rotation',90,'FontWeight','bold','FontSize',titlesize,'EdgeColor','none');
-annotation('textbox',[0.11 0.43 0.25 0.053],'String',{'Broad Inh.'},...
+annotation('textbox',[0.1 0.43 0.25 0.053],'String',{'Broad Inh.'},...
 	'Rotation',90,'FontWeight','bold','FontSize',titlesize,'EdgeColor','none');
-annotation('textbox',[0.11 0.13 0.10 0.053],'String',{'Energy'},...
+annotation('textbox',[0.1 0.13 0.10 0.053],'String',{'Energy'},...
 	'Rotation',90,'FontWeight','bold','FontSize',titlesize,'EdgeColor','none');
 
 
 
 %% Save figure
-
-filename = 'FigS4_model_temporal';
-saveFigure(filename)
+% 
+% filename = 'FigS4_model_temporal';
+% saveFigure(filename)

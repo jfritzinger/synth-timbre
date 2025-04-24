@@ -13,13 +13,16 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 
 %% Set up figure 
 
-figure('Position',[185,556,10*ppi,6.6*ppi])
+figure('Position',[50,50,4.567*ppi,3*ppi])
 %data_colors = {'#03882F', '#82BB95'};
 data_colors = {'#000000'};
-legsize = 10;
-linewidth = 2;
-fontsize = 12;
-labelsize = 20;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+linewidth = 1;
+labelsize = 13;
+scattersize = 10; 
+capsize = 2;
 
 %% Example unit 
 
@@ -62,7 +65,8 @@ fpeaks_re_CF = log2(fpeaks/CF);
 hold on
 rates_sm = smooth_rates(rate, rlb, rub, CF);
 errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
-	'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
+	'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1}, ...
+	'CapSize',capsize)
 plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
 xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
@@ -84,7 +88,7 @@ xline(threshold_freq(1)/1000, 'r')
 xline(threshold_freq(2)/1000, 'r')
 
 % Annotate 
-msg = sprintf('Threshold = %0.02f%%', threshold_percent);
+msg = sprintf('Thresh. = %0.02f%%', threshold_percent);
 text(0.6, 0.95, msg, 'Units', 'normalized', ...
 	'VerticalAlignment', 'top', 'FontSize',legsize)
 
@@ -111,7 +115,7 @@ ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 %title('Histogram of Thresholds')
 hold on
-xline(4, 'r', 'LineWidth',2)
+xline(4, 'r', 'LineWidth',linewidth)
 xlim([0 30])
 ylim([0 22])
 box off
@@ -119,7 +123,7 @@ grid on
 
 % Percent <4% threshold
 percent = sum(thresholds<=4)/length(thresholds)*100;
-hleg = legend('Neural', 'Human');
+hleg = legend('Neural', 'Human', 'box', 'off');
 hleg.ItemTokenSize = [8,8];
 
 %% Plot scatter of thresholds vs CF
@@ -155,7 +159,7 @@ for ibin = 2
 		% Plot
 		%gfig = gscatter(CFs/1000, Qs,peaks, 'filled');
 		%set(gfig, 'MarkerEdgeColor', 'k');
-		scatter(CFs/1000, Qs, 'filled', 'MarkerEdgeColor','k', ...
+		scatter(CFs/1000, Qs, scattersize, 'filled', 'MarkerEdgeColor','k', ...
 			'MarkerFaceColor','k', 'MarkerFaceAlpha',0.5)
 		hold on
 
@@ -163,7 +167,7 @@ for ibin = 2
 		%plot(CFs_array/1000, min_threshold, 'r', 'LineWidth',2)
 
 		% Plot human threshold
-		scatter(1200/1000, 4, 'r', 'filled','markeredgecolor', 'k') %'filled')
+		scatter(1200/1000, 4,scattersize, 'r', 'filled','markeredgecolor', 'k') %'filled')
 		yline(4, 'r')
 
 		% Plot labels 
@@ -185,8 +189,9 @@ for ibin = 2
 		yticklabels({'0.2', '0.5', '1', '2', '5', '10', '20', '>50'})
 		grid on
 		box off
-		legend('Neural','Human', '', 'Location','best')
-
+		hleg = legend('Neural','Human', '', 'Location','southwest', 'box',...
+			'off', 'position', [0.7705,0.5902,0.1200,0.0902]);
+		hleg.ItemTokenSize = [8, 8];
 	end
 end
 
@@ -220,23 +225,25 @@ for ibin = 2
 
 		% Add in units without thresholds
 		thresh(isnan(thresh)) = 100;
+		thresh2 = thresh;
+		thresh2(isoutlier(thresh2)) = [];
 
 		% Put into arrays
 		
 		if ispl == 4
 			all_thresholds(3,1:length(thresh)) = thresh;
 			hold on
-			swarmchart(ones(length(thresh), 1)*3, thresh)
+			swarmchart(ones(length(thresh2), 1)*3, thresh2, scattersize)
 		else
 			all_thresholds(ispl,1:length(thresh)) = thresh;
 			hold on
-			swarmchart(ones(length(thresh), 1)*ispl, thresh)
+			swarmchart(ones(length(thresh2), 1)*ispl, thresh2, scattersize)
 		end
 
 	end
 end
 
-boxplot(all_thresholds')
+boxplot(all_thresholds', 'OutlierSize',2)
 ylim([0 50])
 xlim([0.4 3.6])
 ylabel('Threshold (%)')
@@ -245,16 +252,16 @@ xticklabels([43, 63, 83])
 set(gca, 'fontsize', fontsize, 'yscale', 'log')
 yticks([0.2 0.5 1 2 5 10 20 50 70])
 yticklabels({'0.2', '0.5', '1', '2', '5', '10', '20', '>50'})
-
+box off
 
 % ANOVA for log transformed data?
 % [p,tbl,stats] = anova1(all_thresholds');
 % results = multcompare(stats);
 
 % Kruskal Wallis for non normal data 
-kruskalwallis(all_thresholds')
-[p, tbl, stats] = kruskalwallis(all_thresholds', 1:4);
-multcompare(stats, 'CType', 'dunn-sidak');
+% kruskalwallis(all_thresholds')
+% [p, tbl, stats] = kruskalwallis(all_thresholds', 1:4);
+% multcompare(stats, 'CType', 'dunn-sidak');
 
 %%
 
@@ -318,18 +325,28 @@ for ii = 1:3
 	% Increase
 	h(indices(ii)) = subplot(2, 9, placement(ii, 1:2));
 	hold on
-	plot(spls, qs2(values,:)', 'color',color , 'LineWidth',1)
+	plot(spls, qs2(values,:)', 'color',color , 'LineWidth',0.8)
 	xticks(spls)
 	
-	xlim([40 86])
-	plot(spls, mean(qs2(values,:), 'omitnan'), 'k', 'LineWidth',2)
-	plot(spls, median(qs2(values,:), 'omitnan'), ':k', 'LineWidth',2)
+	xlim([37 89])
+	plot(spls, mean(qs2(values,:), 'omitnan'), 'k', 'LineWidth',linewidth)
+	plot(spls, median(qs2(values,:), 'omitnan'), ':k', 'LineWidth',linewidth)
 	set(gca, 'fontsize', fontsize)
-	xlabel('Level (dB SPL)')
+	if ii == 2
+		xlabel('Level (dB SPL)')
+	end
 
 	label = ['n=' num2str(sum(values))];
-	text(0.05, 0.95, label, 'Units', 'normalized', ...
-		'VerticalAlignment', 'top', 'FontSize',fontsize)
+	if ii == 1
+		text(0.2, 0.95, label, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',fontsize)
+	elseif ii == 2
+		text(0.05, 0.95, label, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',fontsize)
+	else
+		text(0.65, 0.95, label, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',fontsize)
+	end
 	if ii == 2
 		hLeg = legend;
 		num_lines = size(hLeg.String,2);
@@ -342,7 +359,8 @@ for ii = 1:3
 				leg{iii} = '';
 			end
 		end
-		hLeg = legend(leg, 'FontSize',legsize);
+		hLeg = legend(leg, 'FontSize',legsize, 'Position',...
+			[0.615488504784518,0.289351851851852,0.139817629179331,0.085648148148148]);
 		hLeg.ItemTokenSize = [15,6];
 		hLeg.Box = 'off';
 	end
@@ -358,18 +376,18 @@ end
 
 %% Arrange and annotate 
 
-left = linspace(0.07, 0.75, 3);
-width = 0.23;
-height = 0.37;
+left = linspace(0.1, 0.77, 3);
+width = 0.2;
+height = 0.34;
 for ii = 1:3
-	set(h(ii), 'Position', [left(ii) 0.58 width height])
+	set(h(ii), 'Position', [left(ii) 0.59 width height])
 end
-set(h(4), 'Position', [left(1) 0.08 width height])
+set(h(4), 'Position', [left(1) 0.09 width height])
 width2 = 0.18;
-left2 = linspace(left(2), 0.8, 3);
-set(h(5), 'Position', [left2(1) 0.08 width2 height])
-set(h(6), 'Position', [left2(2) 0.08 width2 height])
-set(h(7), 'Position', [left2(3) 0.08 width2 height])
+left2 = linspace(left(2), left(3)+width-width2, 3);
+set(h(5), 'Position', [left2(1) 0.09 width2 height])
+set(h(6), 'Position', [left2(2) 0.09 width2 height])
+set(h(7), 'Position', [left2(3) 0.09 width2 height])
 
 
 % Set annotations
@@ -386,6 +404,6 @@ annotation('textbox',[left(2) 0.45 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'Fig8_plot_thresholds';
-saveFigure(filename)
+% 
+% filename = 'Fig8_plot_thresholds';
+% saveFigure(filename)

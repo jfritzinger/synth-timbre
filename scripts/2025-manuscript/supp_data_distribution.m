@@ -15,10 +15,13 @@ num_units = size(sessions, 1);
 
 %% Set up figure
 
-figure('Position',[194,1047,874,224])
+figure('Position',[50,50,6.9*ppi,1.5*ppi])
 tiledlayout(1, 4, 'Padding','compact')
-fontsize = 12;
-titlesize = 14;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
 
 %% Only get sessions with synthetic timbre 
 
@@ -169,7 +172,6 @@ fprintf('Median WMF = %d Hz\n', round(median(WMFs)))
 
 %% Annotations 
 
-labelsize = 20;
 left = linspace(0.01, 0.73, 4);
 annotation('textbox',[left(1) 0.96 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
@@ -181,6 +183,6 @@ annotation('textbox',[left(4) 0.96 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'FigS1_data_distribution';
-saveFigure(filename)
+% % 
+% % filename = 'FigS1_data_distribution';
+% % saveFigure(filename)

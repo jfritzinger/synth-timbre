@@ -5,11 +5,14 @@
 %% Set up figure
 
 [base, datapath, savepath, ppi] = getPaths();
-figure('Position',[918,482,8*ppi,3.5*ppi]);
+figure('Position',[50,50,3.2*ppi,1.3*ppi]);
+h(1) = subplot(1, 1, 1);
 colors = {'#000000', '#bdbdbd'};
 CF_color = '#3690c0';
-fontsize = 18;
-titlesize = 20;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+linewidth = 1;
 
 %% Create Stimulus & plot 
 
@@ -38,7 +41,7 @@ params.stim = zeros(nstim*params.mnrep, npts);
 presentation = 0; %this value is used as an index for storing a stumulus presentation in the 3rd dimenstion of 'stimuli'
 
 hold on
-line([params.Fc params.Fc], [0 100], 'LineWidth', 4,'LineStyle', ':', 'Color', CF_color);
+line([params.Fc params.Fc], [0 100], 'LineWidth', 2,'LineStyle', ':', 'Color', CF_color);
 
 % Create stimuli for each rep (irep) and each stimulus (istim)
 for istim = 1:nstim
@@ -93,17 +96,17 @@ for istim = 1:nstim
 		% Plot harmonics
 		if istim == 2
 			stem(shifted_harms(iharm), level(iharm), 'Marker', 'none', 'LineWidth', ...
-				2, 'Color', colors{1});
+				linewidth, 'Color', colors{1});
 		else
 			stem(shifted_harms(iharm), level(iharm), 'Marker', 'none', 'LineWidth', ...
-			2, 'Color', colors{2});
+			linewidth, 'Color', colors{2});
 		end
 	end
 
 	if istim == 2
-		plot(shifted_harms, level, 'LineWidth', 3, 'Color', colors{1});
+		plot(shifted_harms, level, 'LineWidth', linewidth, 'Color', colors{1});
 	else
-		plot(shifted_harms, level, 'LineWidth', 3, 'Color', colors{2});
+		plot(shifted_harms, level, 'LineWidth', linewidth, 'Color', colors{2});
 	end
 
 end
@@ -121,19 +124,22 @@ ax = gca;
 xLabel.Position(1) = ax.XLim(2); % Set x-position to the right edge
 xLabel.Position(2) = ax.YLim(1); % Set y-position to the bottom
 xLabel.Position(2) = ax.YLim(1) - 0.02 * diff(ax.YLim);
+set(h(1), 'Position', [0.13, 0.14, 0.80 0.76])
 
 set(gca, 'FontSize', fontsize)
 title('Synthetic Timbre Stimulus', 'FontSize',titlesize)
 
 % Create arrow
-annotation('arrow',[0.45 0.60],[0.84 0.84]);
-annotation('arrow',[0.38 0.22],[0.84 0.84]);
+annotation('arrow',[0.46 0.61],[0.84 0.84], 'linewidth', linewidth, ...
+	'HeadLength',2, 'HeadWidth',2, 'HeadStyle','plain');
+annotation('arrow',[0.39 0.23],[0.84 0.84], 'linewidth', linewidth, ...
+	'HeadLength',2, 'HeadWidth',2, 'HeadStyle','plain');
 
 % Label CF
 annotation('textbox',[0.385 0.0198 0.0625 0.106],'String',{'CF'},...
-	'FontSize',18,'FitBoxToText','off','EdgeColor','none', 'Color',CF_color);
+	'FontSize',fontsize,'FitBoxToText','off','EdgeColor','none', 'Color',CF_color);
 
 %% Save figure 
-
-filename = 'Fig2_stimulus';
-saveFigure(filename)
+% 
+% filename = 'Fig2_stimulus';
+% saveFigure(filename)

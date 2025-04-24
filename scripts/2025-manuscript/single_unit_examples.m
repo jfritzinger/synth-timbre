@@ -13,12 +13,14 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 
 %% Set up figure
 
-linewidth = 1.5;
-figure('Position',[4,295,8*ppi,6.5*ppi])
-%tiledlayout(3, 3)
+figure('Position',[50,50,4.567*ppi,3.7*ppi])
 data_colors = {'#03882F', '#82BB95'};
-legsize = 10;
-fontsize = 12;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+linewidth = 1;
+labelsize = 13;
+capsize = 2;
 
 %% Plot
 
@@ -56,67 +58,6 @@ for ineuron = 1:9
 	rate_sm = data_ST.rates_sm;
 	max_rate = max(rate);
 
-	% Plot
-	fpeaks_re_CF = log2(fpeaks/CF);
-
-	h(ineuron) = subplot(3, 3, ineuron);
-	yyaxis left
-	hold on
-	rates_sm = smooth_rates(rate, rlb, rub, CF);
-	errorbar(fpeaks./1000, rate, rate_std/sqrt(params{1}.nrep), ...
-		'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
-	plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
-	plot(fpeaks./1000, rates_sm, 'linestyle', '-', 'linewidth', linewidth, 'color', 'k')
-	xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-	% errorbar(fpeaks_re_CF, rate, rate_std/sqrt(params{1}.nrep), ...
-	% 	'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1})
-	% plot(fpeaks_re_CF, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
-	% plot(fpeaks_re_CF, rates_sm,'linestyle', '-', 'linewidth', linewidth, 'color', 'k')
-	% xline(0, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
-	yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
-
-	% Figure parameters
-	plot_range = [params{1}.fpeaks(1) params{1}.fpeaks(end)]./1000;
-	set(gca, 'Fontsize', fontsize) %, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
-	xlim(plot_range);
-	grid on
-	ylim([0 max_rate+5])
-
-
-	if mod(ineuron, 3) == 1
-		ylabel('Avg. Rate (sp/s)')
-	end
-
-	if ineuron > 6
-		xlabel('Spectral Peak Freq. (Hz)')
-		%xlabel('Spectral Peak Freq. w.r.t. CF (oct)')
-	end
-
-	% Legend
-	if ineuron == 9 || ineuron == 3
-		% hLeg = legend({'', 'Data', 'Smoothed Data', 'Spont Rate', 'CF'}, ...
-		% 	'Location','southwest', 'fontsize', legsize);
-		% hLeg.ItemTokenSize = [12, 12];
-	end
-
-	%xlim([-1 1])
-	if ineuron == 1 || ineuron == 4 || ineuron == 7
-		xlim([0.4 2.4])
-	elseif ineuron == 2 || ineuron == 5 || ineuron == 8
-		xlim([0.8 3.2])
-	else
-		xlim([2.8 9.2])
-	end
-
-	% Labeling MTF Type
-	if ineuron == 9
-		text(0.05, 0.85, MTF_shape, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',legsize)
-	else
-		text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
-			'VerticalAlignment', 'top', 'FontSize',legsize)
-	end
-	
 	% Parameters
 	params = params{1};
 	params.Fs = 100000;
@@ -166,6 +107,7 @@ for ineuron = 1:9
 	shift = this_fpeak - params.fpeak_mid; % a negative values for low fpeaks; 0 at center; positive for high fpeaks
 	%figure
 	
+	h(ineuron) = subplot(3, 3, ineuron);
 	for iharm = 1:num_harmonics
 		comp_freq = (harmonics(iharm) + shift);
 		if comp_freq > 75 % Hz; make sure we don't include comps outside calibrated range (Note: because we'll lop off components, then scale to, say, 70 dB SPL overall - the comp amps will change whenever one component is eliminated.
@@ -191,7 +133,7 @@ for ineuron = 1:9
 		yyaxis right
 		hold on
 		stem(shifted_harms(iharm)/1000, level(iharm), '-', 'Marker',...
-			'none', 'LineWidth', 1, 'Color', [0.7 0.7 0.7]);
+			'none', 'LineWidth', 0.8, 'Color', [0.7 0.7 0.7]);
 		if ismember(ineuron, [1, 2, 4, 5, 7, 8])
 			yticklabels([])
 		else
@@ -199,14 +141,72 @@ for ineuron = 1:9
 		end
 	end
 	% Plot 
-	plot(shifted_harms/1000, level, '--', 'LineWidth', 1, 'Color', [0.4 0.4 0.4]);
+	plot(shifted_harms/1000, level, '--', 'LineWidth', 0.8, 'Color', [0.4 0.4 0.4]);
 	ylim([0 90])
 	h(ineuron).YAxis(1).Color = 'k';
 	h(ineuron).YAxis(2).Color = [0.4 0.4 0.4];
+
+	% Plot
+	fpeaks_re_CF = log2(fpeaks/CF);
+
+	params = data(7, 2);
+	params = params(~cellfun(@isempty, params));
+	params = params{1};
+
+	yyaxis left
+	hold on
+	rates_sm = smooth_rates(rate, rlb, rub, CF);
+	errorbar(fpeaks./1000, rate, rate_std/sqrt(params.nrep), ...
+		'linestyle', 'none', 'linewidth', 0.8, 'color', data_colors{1}, ...
+		'CapSize',capsize)
+	plot(fpeaks./1000, rate, 'LineWidth',linewidth, 'Color',data_colors{1})
+	plot(fpeaks./1000, rates_sm, 'linestyle', '-', 'linewidth', linewidth, 'color', 'k')
+	xline(CF/1000, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
+	yline(spont, 'color', [0.5 0.5 0.5], LineWidth=linewidth)
+
+	% Figure parameters
+	plot_range = [params.fpeaks(1) params.fpeaks(end)]./1000;
+	set(gca, 'Fontsize', fontsize) %, 'XTick', plot_range(1)+0.200:0.400:plot_range(2)-0.200);
+	xlim(plot_range);
+	grid on
+	ylim([0 max_rate+5])
+
+
+	if mod(ineuron, 3) == 1
+		ylabel('Avg. Rate (sp/s)')
+	end
+
+	if ineuron > 6
+		xlabel('Spectral Peak Freq. (Hz)')
+		%xlabel('Spectral Peak Freq. w.r.t. CF (oct)')
+	end
+
+	% Legend
+	if ineuron == 9 || ineuron == 3
+		% hLeg = legend({'', 'Data', 'Smoothed Data', 'Spont Rate', 'CF'}, ...
+		% 	'Location','southwest', 'fontsize', legsize);
+		% hLeg.ItemTokenSize = [12, 12];
+	end
+
+	%xlim([-1 1])
+	if ineuron == 1 || ineuron == 4 || ineuron == 7
+		xlim([0.4 2.4])
+	elseif ineuron == 2 || ineuron == 5 || ineuron == 8
+		xlim([0.8 3.2])
+	else
+		xlim([2.8 9.2])
+	end
+
+	% Labeling MTF Type
+	if ineuron == 9 || ineuron == 7
+		text(0.25, 0.95, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	else
+		text(0.05, 0.95, MTF_shape, 'Units', 'normalized', ...
+			'VerticalAlignment', 'top', 'FontSize',legsize)
+	end
+	set(gca, 'SortMethod', 'depth')
 end
-
-
-
 %% Set locations
 
 % Titles
@@ -229,35 +229,35 @@ end
 % end
 
 titles_y = {'Sloping', 'Dip', 'Peak'};
-locs = linspace(0.3, 0.93, 3);
+locs = linspace(0.32, 0.95, 3);
 for ii = 1:3
 	annotation('textbox',[0.31 locs(ii) 0.4 0.0459],...
 		'String',titles_y{ii},...
-		'FontSize',16,'EdgeColor','none', ...
+		'FontSize',titlesize,'EdgeColor','none', ...
 		'FontWeight','bold', 'HorizontalAlignment', 'center');
 end
-
-left = repmat(linspace(0.1, 0.69, 3), 1, 3);
-bottom = repmat(linspace(0.1, 0.73, 3), 3, 1);
+%%
+left = repmat(linspace(0.12, 0.69, 3), 1, 3);
+bottom = repmat(linspace(0.09, 0.72, 3), 3, 1);
 bottom = fliplr(reshape(bottom, 1, 9));
-width = 0.23;
-height = 0.20;
+width = 0.24;
+height = 0.23;
 
 for ii = 1:9
 	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
 end
-
+%%
 % Set annotations
-labelsize = 20;
-annotation('textbox',[0.01 0.95 0.0826 0.0385],'String',{'A'},...
+bottom = linspace(0.34, 0.975, 3);
+annotation('textbox',[0 bottom(3) 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 0.63 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0 bottom(2) 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.01 0.33 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0 bottom(1) 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'Fig4_single_unit_examples';
-saveFigure(filename)
+% 
+% filename = 'Fig4_single_unit_examples';
+% saveFigure(filename)
 
