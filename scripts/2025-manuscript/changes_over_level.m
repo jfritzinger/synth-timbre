@@ -25,6 +25,12 @@ capsize = 2;
 %% Set up and plot examples 
 
 plot_ind = [1, 2, 4, 5, 7, 8];
+leglocations = [0.241651098615259,0.909722222222222,0.133738601823708,0.060185185185185;...
+	0.545604093267954,0.905092592592592,0.133738601823708,0.060185185185185;...
+	0.238609958065907,0.662037037037037,0.133738601823708,0.060185185185185;...
+	0.563850936564064,0.662037037037037,0.133738601823708,0.060185185185185;...
+	0.247733379713962,0.414351851851852,0.133738601823708,0.060185185185185;...
+	0.566892077113415,0.416666666666666,0.133738601823708,0.060185185185185];
 for ineuron = 1:6
 
 	h(plot_ind(ineuron)) = subplot(4, 3, plot_ind(ineuron));
@@ -109,7 +115,7 @@ for ineuron = 1:6
 	hLeg.ItemTokenSize = [6,6];
 	hLeg.FontSize = legsize;
 	hLeg.Box = 'off';
-	hLeg.Location = "northeast";
+	hLeg.Position = leglocations(ineuron,:);
 end
 
 
@@ -317,10 +323,10 @@ xticklabels([43, 63, 73, 83])
 ylabel('Q')
 ylim([0 12])
 %legend('43 dB SPL', '63 dB SPL', '73 dB SPL', '83 dB SPL', 'Location','best')
-hleg = legend('Low CF', 'Med CF', 'High CF', 'Location','best', 'fontsize',legsize);
+hleg = legend('Low CF', 'Med CF', 'High CF', 'Location','best',...
+	'fontsize',legsize, 'position', [0.4824,0.1757,0.1261,0.0601]);
 hleg.ItemTokenSize = [8, 8];
 hleg.Box = 'off';
-hleg.NumColumns = 2;
 set(gca, 'fontsize', fontsize)
 grid on
 box off
@@ -397,11 +403,10 @@ vals = vals';
 vals = vals./sum(vals, 2);
 
 h(12) = subplot(4, 3, 12);
-bh = bar(vals, 'stacked');
-hleg = legend('Sharpen', 'No change', 'Broaden');
+bh = bar(vals*100, 'stacked');
+hleg = legend('Sharpen', 'No change', 'Broaden', 'box', 'off');
 hleg.ItemTokenSize = [8, 8];
-hleg.NumColumns = 2;
-hleg.Position = [0.749999994936227,0.192412780689791,0.202256944444444,0.039351851851852];
+hleg.Position = [0.725670870541414,0.177945188097198,0.202256944444444,0.063657407407407];
 
 ylabel('%')
 xlabel('CF Group')
@@ -410,8 +415,8 @@ bh(1).FaceColor = '#1b9e77';   %blue
 bh(2).FaceColor = '#d95f02'; %light blue
 bh(3).FaceColor = '#7570b3'; %pink
 box off
-ylim([0 1.4])
-yticks(0:0.2:1)
+ylim([0 100])
+yticks(0:20:100)
 set(gca, 'fontsize', fontsize)
 
 
@@ -434,9 +439,11 @@ left = linspace(0.1, 0.75, 3);
 left = repmat(left, 1, 4);
 width = 0.23;
 height = 0.18;
-for ii = 10:12
+for ii = 10:11
 	set(h(ii), 'Position', [left(ii) bottom(ii) width height])
 end
+set(h(12), 'Position', [left(12) bottom(12) width 0.12])
+
 %%
 
 % Annotations

@@ -122,9 +122,9 @@ for CF_plot = CF_list  % for TIN response to 1000 Hz tone
     elseif iplot == 2
         yticks([100 115])
         yticklabels([])
-        xlabel('Rate (sp/s)')
     else
         yticks([100 115])
+		xLabel = xlabel('Rate (sp/s)');
         yticklabels([])
     end
     set(gca,'fontsize',fontsize)
@@ -182,8 +182,8 @@ set(gca, 'XScale', 'log')
 hold off
 xlim(plot_range)
 xticks(ticks)
-xlabel('Freq. (Hz)')
-
+xLabel = xlabel('Freq. (Hz)');
+xLabel.Position(1) = h(4).XLim(2); % Set x-position to the right edge
 
 %% AN Plot
 h(5) = subplot(5, 5, 6:10);
@@ -198,8 +198,9 @@ xticks(ticks)
 xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
-xlabel('CF (Hz)')
+xLabel = xlabel('CF (Hz)');
 ylabel('Avg. Rate (sp/s)')
+xLabel.Position(1) = h(5).XLim(2); % Set x-position to the right edge
 
 %% IC BE Plot
 h(6) = subplot(5, 5, 17:20);
@@ -248,12 +249,12 @@ xlim(plot_range)
 ylim([0 50])
 xticks(ticks)
 yticks([0 25 50])
-xlabel('CF (Hz)')
+xLabel = xlabel('CF (Hz)');
 xline(CF, '--', 'Color', [0.4 0.4 0.4], 'linewidth', linewidth); % Add CF line
 xline(CF_list(1), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
-ax = gca;
-ax.YAxis(1).Color = 'k';
+h(7).YAxis(1).Color = 'k';
+xLabel.Position(1) = h(7).XLim(2); % Set x-position to the right edge
 
 
 %% Plot MTFs
@@ -332,7 +333,6 @@ for ineuron = 1:2
 	set(gca,'XTick',xtick,'XScale', 'log')
 	grid on
 	set(gca,'FontSize',fontsize)
-	xticklabels([])
 	yticklabels([])
 	if ineuron == 1
 		ylim([22 32])
@@ -341,8 +341,12 @@ for ineuron = 1:2
 			'none', 'box', 'off', 'fontsize', legsize);
 		hLegend.ItemTokenSize = [12,8];
 		title('MTF')
+		xticklabels([])
 	else
-		ylim([15 34])
+		ylim([18 24])
+		%xticks([1 10 100])
+		xticklabels([])
+		xlabel('Mod. Freq.')
 	end
 end
 
