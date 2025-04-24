@@ -3,7 +3,7 @@
 clear
 
 % Load in spreadsheet
-[~, datapath, savepath, ppi] = getPaths();
+[~, datapath, ~, ppi] = getPaths();
 sheetpath = 'data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
 sessions = readtable(fullfile(datapath, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
@@ -14,11 +14,15 @@ spreadsheet_name = 'peak_picking.xlsx';
 table = readtable(fullfile(datapath, spreadsheet_name));
 
 %% Set up figure
-figure('position', [60,30,7*ppi,9*ppi])
+figure('position', [50,50,4.567*ppi,6.5*ppi])
 backgroundcolor =  [0.8 0.8 0.8];
-fontsize = 11;
-titlesize = 12;
-legsize = 10;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+linewidth = 1;
+labelsize = 13;
+capsize = 2;
+scattersize = 15;
 
 %% Plot imagesc of all BS responses sorted by CF
 
@@ -146,11 +150,13 @@ for ii = 1:3
 	xlim([-1 1])
 	xticks([-1 0 1])
 	clim([-2.2 2.7])
-	%xticklabels({'-1', 'CF', '1'})
 	xticklabels([])
 	set(gca, 'fontsize', fontsize)
 	title(types{ii}, 'fontsize', titlesize)
-	%colorbar
+	if ii == 1
+		a = colorbar('position', [0.258496946694888,0.194444444444451,0.01824684329611,0.131530769230791]);
+		a.Label.String = 'Z-score';
+	end
 
 	% Plot overlayed responses
 	if ii == 1
@@ -163,7 +169,7 @@ for ii = 1:3
 	%nexttile
 	hold on
 	for iii = 1:size(CF_order, 1)
-		patch([f,NaN],[CF_order(iii,:),NaN],'w','EdgeColor','k','LineWidth',1.5,'EdgeAlpha',0.2);
+		patch([f,NaN],[CF_order(iii,:),NaN],'w','EdgeColor','k','LineWidth',linewidth,'EdgeAlpha',0.2);
 	end
 	if ii == 1
 		xlabel({'Spectral Peak Freq';'w.r.t. Peak (Oct.)'})
@@ -177,9 +183,13 @@ for ii = 1:3
 	xlim([-1 1])
 	ylim([-2.2 2.7])
 	ylabel('Z-score')
+	set(gca, 'fontsize', fontsize)
+	box off
+
+
 end
 
-% Plot histogram  
+%% Plot histogram  
 spl = [43, 63, 73, 83];
 types = {'Slope', 'Peak', 'Dip'};
 isBin = table.binmode == 2;
@@ -216,11 +226,12 @@ percent_all = [percent_peak; percent_dip; percent_flat]';
 h(7) = subplot(5, 3, 14);
 bar(percent_all, 'stacked')
 xticklabels({'BS', 'BE', 'Hybrid', 'Flat'})
-hleg = legend('Peak', 'Dip', 'Slope', 'Location','northwest', 'numcolumns', 3);
+hleg = legend('Peak', 'Dip', 'Slope', 'Location','northwest', ...
+	'numcolumns', 2, 'box', 'off', 'position', [0.3829,0.2670,0.2097,0.0416]);
 hleg.ItemTokenSize = [8,8];
 ylabel('% Neurons')
 xlabel('MTF Type')
-ylim([0 130])
+ylim([0 100])
 yticks(0:20:100)
 set(gca, 'fontsize', fontsize)
 box off
@@ -245,8 +256,8 @@ q_dip(length(q_dip)+1:length(q_peak)) = NaN;
 % Plot
 hold on
 boxplot([q_peak, q_dip])
-swarmchart(ones(length(q_peak), 1)*1, q_peak)
-swarmchart(ones(length(q_dip), 1)*2, q_dip)
+swarmchart(ones(length(q_peak), 1)*1, q_peak, scattersize)
+swarmchart(ones(length(q_dip), 1)*2, q_dip, scattersize)
 xticks(1:2)
 xticklabels({'Peak', 'Dip'})
 xlim([0.5 2.5])
@@ -254,6 +265,7 @@ ylim([0 12])
 ylabel('Q')
 set(gca, 'fontsize', fontsize)
 grid on
+box off
 
 %% MTF change vs Q
 
@@ -295,16 +307,18 @@ for ispl = 2
 
 	% Plot
 	hold on
-	scatter(MTF_str(isBS), Qs(isBS), 'filled', 'MarkerEdgeColor','k')
-	scatter(MTF_str(isBE), Qs(isBE), 'filled', 'MarkerEdgeColor','k')
+	scatter(MTF_str(isBS), Qs(isBS), scattersize, 'filled', 'MarkerEdgeColor','k')
+	scatter(MTF_str(isBE), Qs(isBE), scattersize, 'filled', 'MarkerEdgeColor','k')
 	%scatter(MTF_str(isH), Qs(isH), 'filled', 'MarkerEdgeColor','k')
 	xline(0)
 	yline(0)
 	grid on
 	ylabel('Q')
 	xlabel('MTF % Change')
-	legend(['BS, n=' num2str(length(Qs(isBS)))],...
-		['BE, n=' num2str(length(Qs(isBE)))],'fontsize', legsize)
+	hleg = legend(['BS, n=' num2str(length(Qs(isBS)))],...
+		['BE, n=' num2str(length(Qs(isBE)))],'fontsize', legsize, ...
+		'position', [0.85,0.689,0.133,0.039], 'Box','off');
+	hleg.ItemTokenSize = [8, 8];
 	set(gca, 'fontsize', fontsize)
 end
 box off
@@ -337,8 +351,8 @@ end
 
 % Plot
 hold on
-errorbar(Q_all2(1,:), Q_sem2(1,:), 'LineWidth',2, 'Color','#1b9e77')
-errorbar(Q_all2(2,:), Q_sem2(2,:), 'LineWidth',2, 'Color','#d95f02')
+errorbar(Q_all2(1,:), Q_sem2(1,:), 'LineWidth',linewidth, 'Color','#1b9e77')
+errorbar(Q_all2(2,:), Q_sem2(2,:), 'LineWidth',linewidth, 'Color','#d95f02')
 
 xticks(1:4)
 xticklabels({'BE', 'BS', 'Hybrid', 'Flat'})
@@ -346,7 +360,9 @@ xlim([0.5 4.5])
 ylim([0 6.5])
 ylabel('Q')
 xlabel('MTF Type')
-legend('Contra', 'Diotic', 'Location','best', 'fontsize', legsize)
+hleg = legend('Contra', 'Diotic', 'Location','best', 'fontsize', legsize,...
+	'box', 'off');
+hleg.ItemTokenSize = [8, 8];
 set(gca, 'fontsize', fontsize)
 grid on
 
@@ -400,20 +416,21 @@ bars(2).FaceColor = '#d95f02'; %light blue
 xticks(1:4)
 xticklabels({'BE', 'BS', 'Hybrid', 'Flat'})
 xlim([0.5 4.5])
-ylim([0 150])
+ylim([0 100])
 yticks([0 25 50 75 100])
 ylabel('Percent (%)')
 xlabel('MTF Type')
 hleg = legend('Contra Q > Diotic Q', 'Diotic Q > Contra Q', 'Location','north',...
-	'fontsize', legsize, 'NumColumns', 1);
+	'fontsize', legsize, 'NumColumns', 1, 'box', 'off', 'position', ...
+	[0.711246200607903,0.217948717948719,0.218844984802432,0.039529914529915]);
 hleg.ItemTokenSize = [8, 8];
 set(gca, 'fontsize', fontsize)
 grid on
 
 %% Rearrange
-left = [0.06 0.38 0.72];
+left = [0.06 0.41 0.75];
 bottom = linspace(0.08, 0.8, 5);
-width = 0.235;
+width = 0.22;
 height = 0.1;
 
 set(h(1), 'position', [left(1) 0.19 width 0.78])
@@ -425,37 +442,37 @@ set(h(4), 'position', [left(2) 0.73 width height])
 set(h(5), 'position', [left(2) 0.5 width 0.12])
 set(h(6), 'position', [left(2) 0.4 width height])
 
-set(h(7), 'position', [left(2) bottom(1) width 0.21])
+set(h(7), 'position', [left(2) bottom(1) width 0.18])
 
-bottom = linspace(bottom(1), 0.8, 4);
-height = 0.17;
-width = 0.25;
+%bottom = linspace(bottom(1), 0.8, 4);
+bottom = [0.08 0.33 0.57 0.8];
+height = 0.16;
+width = 0.22;
 set(h(8), 'position', [left(3) bottom(4) width height])
 set(h(9), 'position', [left(3) bottom(3) width height])
 set(h(10), 'position', [left(3) bottom(2) width height])
-set(h(11), 'position', [left(3) bottom(1) width height])
+set(h(11), 'position', [left(3) bottom(1) width 0.135])
 
-% Add labels 
-labelsize = 20;
+%% Add labels 
 annotation('textbox',[0.0 0.96 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.32 0.96 0.0826 0.0385],'String',{'B'},...
+annotation('textbox',[0.34 0.96 0.0826 0.0385],'String',{'B'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.32 0.62 0.0826 0.0385],'String',{'C'},...
+annotation('textbox',[0.34 0.62 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.32 0.3 0.0826 0.0385],'String',{'D'},...
+annotation('textbox',[0.34 0.3 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 bottom = linspace(0.24, 0.96, 4);
-annotation('textbox',[0.65 bottom(4) 0.0826 0.0385],'String',{'E'},...
+annotation('textbox',[0.67 bottom(4) 0.0826 0.0385],'String',{'E'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.65 bottom(3) 0.0826 0.0385],'String',{'F'},...
+annotation('textbox',[0.67 bottom(3) 0.0826 0.0385],'String',{'F'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.65 bottom(2) 0.0826 0.0385],'String',{'G'},...
+annotation('textbox',[0.67 bottom(2) 0.0826 0.0385],'String',{'G'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
-annotation('textbox',[0.65 bottom(1) 0.0826 0.0385],'String',{'H'},...
+annotation('textbox',[0.67 bottom(1) 0.0826 0.0385],'String',{'H'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'Fig6_plot_population';
-saveFigure(filename)
+% 
+% filename = 'Fig6_plot_population';
+% saveFigure(filename)

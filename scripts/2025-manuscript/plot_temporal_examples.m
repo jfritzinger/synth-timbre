@@ -2,21 +2,27 @@
 clear
 %% Load in spreadsheet
 
-[base, datapath, savepath, ppi] = getPaths();
+[base, datapath, ~, ppi] = getPaths();
 sheetpath = 'data/2025-manuscript/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
-sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVariableNames',true);
+sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), ...
+	'PreserveVariableNames',true);
 
 %% Load in example
 
-figure('Position',[67,297,8.5*ppi,6.75*ppi])
+figure('Position',[50,50,6.6*ppi,4.8*ppi])
 tiledlayout(4, 5, "TileSpacing","compact", 'TileIndexing','columnmajor')
-legsize = 9;
-fontsize = 11;
-labelsize = 18;
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
+scattersize = 12;
+capsize = 2;
 
 %%
-ind = [1, 6, 11, 16, 2, 7, 12, 17, 3, 8, 13, 18, 4, 9, 14, 19, 5, 10, 15, 20]+5;
+ind = [1, 6, 11, 16, 2, 7, 12, 17, 3, 8, 13, 18, 4, 9, 14, 19, 5, ...
+	10, 15, 20]+5;
 for ii = 1:20
 
 	switch ii
@@ -98,7 +104,8 @@ for ii = 1:20
 	t_bin = edges(1:end-1) + diff(edges)/2; % Bin centers
 	t = linspace(0, 5, size(p_hist,2));
 
-	grayMap = [linspace(0, 1, 256)', linspace(0, 1, 256)', linspace(0, 1, 256)'];
+	grayMap = [linspace(0, 1, 256)', linspace(0, 1, 256)',...
+		linspace(0, 1, 256)'];
 	grayMap = flipud(grayMap);
 
 	h(ind(ii)) = subplot(5, 5, ind(ii));
@@ -131,7 +138,7 @@ for ii = 1:20
 	end
 
 	msg = sprintf('%d sp/s', max_rate);
-	text(0.58, 1, msg, 'Units', 'normalized', ...
+	text(0.58, 1.12, msg, 'Units', 'normalized', ...
 		'VerticalAlignment', 'top', 'FontSize',legsize, 'Color','r')
 
 
@@ -139,14 +146,14 @@ end
 
 %% Plot vector strengths (then add back in later)
 
-index = [1:4; 5:8; 9:12; 13:16; 17:20];
-%index = [1, 5, 9, 13]';
+%index = [1:4; 5:8; 9:12; 13:16; 17:20];
+index = [1, 5, 9, 13]';
 for ineuron = 1:4
 
 	% Plot
 	h(ineuron) = subplot(5, 5, ineuron);
 	hold on
-	for ii = 1:4
+	for ii = 1 %:4
 		fpeaks_temp = fpeaks_re_CF{index(ineuron, ii)};
 		VS_temp = VS{index(ineuron, ii)};
 		plot(fpeaks_temp, VS_temp, 'k')
@@ -160,6 +167,7 @@ for ineuron = 1:4
 	if ineuron == 1
 		ylabel('VS')
 	end
+	set(gca, 'fontsize', fontsize)
 end
 
 % Load in spreadsheet with peak information
@@ -196,14 +204,15 @@ for ispl = 2
 	ylim([0 150])
 	set(gca, 'fontsize', fontsize)
 end
+box off 
 
 %%  
 
 %% Set positions
 
-height = 0.14;
+height = 0.15;
 width = 0.14;
-bottom = [0.845 0.605 0.43 0.255 0.08];
+bottom = [0.845 0.605 0.4233 0.241 0.06];
 left = linspace(0.07, 0.85, 5);
 
 left = repmat(left, 1, 5);
@@ -211,9 +220,9 @@ bottom = reshape(repmat(bottom, 5, 1), 1, []);
 
 for ii = 1:25
 	if ismember(ii, 1:4)
-		set(h(ii), 'Position', [left(ii) bottom(ii) width 0.1])
+		set(h(ii), 'Position', [left(ii) bottom(ii) width 0.12])
 	elseif ii == 5
-		set(h(ii), 'Position', [left(ii)+0.02 bottom(ii) 0.12 0.1])
+		set(h(ii), 'Position', [left(ii)+0.02 bottom(ii) 0.12 0.12])
 	else
 		set(h(ii), 'Position', [left(ii) bottom(ii) width height])
 	end
@@ -221,7 +230,7 @@ end
 
 %%
 % Annotations
-left = linspace(0.02, 0.81, 5);
+left = linspace(0.02, 0.8, 5);
 
 annotation('textbox',[left(1) 0.965 0.0826 0.0385],'String',{'A'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
@@ -239,6 +248,6 @@ annotation('textbox',[left(5) 0.75 0.0826 0.0385],'String',{'G'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-
-filename = 'Fig5_plot_temporal_examples';
-saveFigure(filename)
+% 
+% filename = 'Fig5_plot_temporal_examples';
+% saveFigure(filename)

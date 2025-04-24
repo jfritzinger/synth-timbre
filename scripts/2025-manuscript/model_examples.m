@@ -4,7 +4,7 @@ clear
 %% Create figure
 
 [~, datapath, savepath, ppi] = getPaths();
-figure('Position',[50,50,6.2*ppi,4.2*ppi])
+figure('Position',[50,50,5.8*ppi,4.1*ppi])
 
 legsize = 6;
 fontsize = 7;
@@ -148,7 +148,7 @@ for ii = 1:6
 
 	if ii == 1
 		hLeg = legend('Data', '', 'Spont', 'Energy', 'SFIE', 'Broad Inh.', 'CF', 'Location',...
-			'northoutside', 'FontSize',legsize, 'NumColumns', 2);
+			'northoutside', 'FontSize',legsize, 'NumColumns', 2, 'box', 'off');
 		hLeg.ItemTokenSize = [12, 12];
 	end
 
@@ -212,7 +212,9 @@ for ii = 1:2
 	yline(0)
 	xline(0)
 	if ii == 2
-		legend('BS', 'BE', '', '', 'location', 'south')
+		hleg = legend('BS', 'BE', '', '', 'location', 'south', 'box', 'off');
+		hleg.ItemTokenSize = [8, 8];
+		hleg.Position = [0.9122,0.1618,0.0626,0.0661];
 	end
 
 	% Create distribution plot for the X-axis (horizontal)
@@ -304,6 +306,6 @@ for ii = 1:2
 end
 
 %% Save figure 
-
-filename = 'Fig9_model_examples';
-saveFigure(filename)
+% 
+% filename = 'Fig9_model_examples';
+% saveFigure(filename)

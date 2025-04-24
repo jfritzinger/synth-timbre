@@ -10,7 +10,7 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), 'PreserveVaria
 
 %% Plot Q
 
-figure('Position',[560,594,4.567*ppi,1.5*ppi])
+figure('Position',[560,594,4.567*ppi,1.8*ppi])
 legsize = 6;
 fontsize = 7;
 titlesize = 8;
@@ -79,6 +79,7 @@ set(gca, 'fontsize', fontsize)
 hleg = legend('Data', '', 'Energy', '', 'SFIE','',  'Broad Inh.', '',...
 	'Location','northwest', 'fontsize', legsize);
 hleg.ItemTokenSize = [8,8];
+hleg.Position = [0.186980524203153,0.241286799620133,0.142857142857143,0.257692307692308];
 hleg.Box = 'off';
 ylabel('Q')
 box off
@@ -138,9 +139,9 @@ for ii = 1:4
 	increase = slopes>criteria;
 
 	% Create matrix of values 
-	all_same(ii) = sum(same);
-	all_increase(ii) = sum(increase);
-	all_decrease(ii) = sum(decrease);
+	all_same(ii) = sum(same)/length(same)*100;
+	all_increase(ii) = sum(increase)/length(increase)*100;
+	all_decrease(ii) = sum(decrease)/length(decrease)*100;
 end
 
 h(2) = subplot(1, 3, 2);
@@ -153,13 +154,14 @@ bh(3).FaceColor = '#7570b3'; %pink
 ylabel('# Neurons')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Sharpen', 'No Change', 'Broaden', 'Location','north',...
-	'numcolumns', 2, 'fontsize', legsize);
+	'numcolumns', 2, 'fontsize', legsize, 'box', 'off');
+hleg.Position = [0.390577499117385,0.742307692307692,0.278115501519756,0.142307692307692];
 hleg.ItemTokenSize = [8,8];
-ylim([0 150])
+ylim([0 100])
 yticks([0 25 50 75 100])
 box off 
 grid on
-title('Changes in Q')
+title({'Changes in Q', '', ''})
 
 %% 
 
@@ -215,9 +217,9 @@ for ii = 1:4
 	increase = slopes>criteria;
 
 	% Create matrix of values 
-	all_same(ii) = sum(same);
-	all_increase(ii) = sum(increase);
-	all_decrease(ii) = sum(decrease);
+	all_same(ii) = sum(same)/length(same)*100;
+	all_increase(ii) = sum(increase)/length(increase)*100;
+	all_decrease(ii) = sum(decrease)/length(decrease)*100;
 end
 
 h(3) = subplot(1, 3, 3);
@@ -227,16 +229,17 @@ xticklabels({'Data', 'Energy', 'SFIE', 'Broad Inh.'})
 % bh(1).FaceColor = '#1b9e77';   %blue
 % bh(2).FaceColor = '#d95f02'; %light blue
 % bh(3).FaceColor = '#7570b3'; %pink
-ylabel('# Neurons')
+ylabel('%')
 set(gca, 'fontsize', fontsize)
 hleg = legend('Increase', 'No Change', 'Decrease', 'Location','north',...
-	'numcolumns', 2, 'fontsize', legsize);
+	'numcolumns', 2, 'fontsize', legsize, 'box', 'off');
 hleg.ItemTokenSize = [8,8];
-ylim([0 160])
+hleg.Position = [0.715805462643221,0.730769230769232,0.279635258358663,0.142307692307692];
+ylim([0 100])
 yticks([0 25 50 75 100])
 box off 
 grid on
-title('Changes in Threshold')
+title({'Changes in Threshold', '', ''})
 
 %% Arrange and annotate
 
@@ -245,9 +248,10 @@ left = linspace(0.08, 0.73, 3);
 height = 0.62;
 width = 0.24;
 
-for ii = 1:3
-	set(h(ii), 'position', [left(ii) bottom width height])
-end
+set(h(1), 'position', [left(1) bottom(1) width height])
+set(h(2), 'position', [left(2) bottom(1) width 0.49])
+set(h(3), 'position', [left(3) bottom(1) width 0.49])
+
 
 %% Set annotations
 
