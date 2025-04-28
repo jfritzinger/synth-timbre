@@ -267,6 +267,10 @@ set(gca, 'fontsize', fontsize)
 grid on
 box off
 
+% Stats 
+[h,p] = ttest2(q_peak,q_dip(~isnan(q_dip)),'Vartype','unequal');
+
+
 %% MTF change vs Q
 
 h(9) = subplot(5, 3, 6);
@@ -296,12 +300,12 @@ for ispl = 2
 	MTFs = tables.MTF(index);
 	MTF_str = signed_MTF(index);
 
-	% mdl = fitlm(MTF_str(isBS), Qs(isBS));
-	% x = 0:0.05:1;
-	% p(1) = mdl.Coefficients.Estimate(2,1);
-	% p(2) = mdl.Coefficients.Estimate(1,1);
-	% p(3) = mdl.Coefficients.pValue(2);
-	% p(4) = mdl.Rsquared.Ordinary;
+	mdl = fitlm(MTF_str(isBS), Qs(isBS));
+	x = 0:0.05:1;
+	p(1) = mdl.Coefficients.Estimate(2,1);
+	p(2) = mdl.Coefficients.Estimate(1,1);
+	p(3) = mdl.Coefficients.pValue(2);
+	p(4) = mdl.Rsquared.Ordinary;
 	% mdlfit = p(1)*x+p(2);
 	% plot(x, mdlfit, 'k');
 
