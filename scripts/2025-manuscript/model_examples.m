@@ -168,35 +168,28 @@ for ii = 1:2
 	isBS = strcmp(sessions.MTF, 'BS');
 	isBE = strcmp(sessions.MTF, 'BE');
 	if ii == 1
-		isnotsig = sessions.p_s_e>0.05;
-		x_R2 = sessions.Energy_R(isBS & ~isnotsig);
-		x_R22 = sessions.Energy_R(isBE & ~isnotsig);
-		x_non = sessions.Energy_R(isnotsig);
+		%isnotsig = sessions.p_s_e>0.05;
+		x_R2 = sessions.Energy_R(isBS & isSPL);
+		x_R22 = sessions.Energy_R(isBE & isSPL);
 		
-		y_R2 = sessions.SFIE_R(isBS & ~isnotsig);
-		y_R22 = sessions.SFIE_R(isBE & ~isnotsig);
-		y_non = sessions.SFIE_R(isnotsig);
+		y_R2 = sessions.SFIE_R(isBS & isSPL);
+		y_R22 = sessions.SFIE_R(isBE & isSPL);
 	elseif ii == 2
 
-		isnotsig = sessions.p_l_e>0.05;
-		x_R2 = sessions.Energy_R(isBS & ~isnotsig);
-		x_R22 = sessions.Energy_R(isBE & ~isnotsig);
-		x_non = sessions.Energy_R(isnotsig);
+		%isnotsig = sessions.p_l_e>0.05;
+		x_R2 = sessions.Energy_R(isBS & isSPL);
+		x_R22 = sessions.Energy_R(isBE & isSPL);
 
-		y_R2 = sessions.Lat_Inh_R(isBS & ~isnotsig);
-		y_R22 = sessions.Lat_Inh_R(isBE & ~isnotsig);
-		y_non = sessions.Lat_Inh_R(isnotsig);
+		y_R2 = sessions.Lat_Inh_R(isBS & isSPL);
+		y_R22 = sessions.Lat_Inh_R(isBE & isSPL);
 	else
 
-		isnotsig = sessions.p_l_s>0.05;
-		x_R2 = sessions.SFIE_R(isBS & ~isnotsig);
-		x_R22 = sessions.SFIE_R(isBE & ~isnotsig);
-		x_non = sessions.SFIE_R(isnotsig);
+		%isnotsig = sessions.p_l_s>0.05;
+		x_R2 = sessions.SFIE_R(isBS &isSPL);
+		x_R22 = sessions.SFIE_R(isBE & isSPL);
 
-		y_R2 = sessions.Lat_Inh_R(isBS & ~isnotsig);
-		y_R22 = sessions.Lat_Inh_R(isBE & ~isnotsig);
-		y_non = sessions.Lat_Inh_R(isnotsig);
-
+		y_R2 = sessions.Lat_Inh_R(isBS & isSPL);
+		y_R22 = sessions.Lat_Inh_R(isBE & isSPL);
 	end
 
 	h(subplot_numbers(1, ii)) = subplot(3, 4, subplot_numbers(1, ii)); % [1 4 7 10 13 16]
@@ -249,6 +242,20 @@ for ii = 1:2
 	xticks([])
 	box off
 end
+
+%% Number of neurons.....
+
+% Neurons that have all three model predictions R^2 > 0.85. Out of 127
+num_good = sum(sessions.Energy_R2 > 0.4 & sessions.SFIE_R2 > 0.4 & ...
+	sessions.Lat_Inh_R2 > 0.4 & sessions.SPL == 63);
+
+% All units with model predictions < 0.4
+num_bad = sum(sessions.Energy_R2 < 0.4 & sessions.SFIE_R2 < 0.4 & ...
+	sessions.Lat_Inh_R2 < 0.4 & sessions.SPL == 63);
+
+% Number of broad-inhibition model better than other models 
+num_inh = sum(sessions.Lat_Inh_R2 > sessions.Energy_R2 & ...
+	 sessions.Lat_Inh_R2 > sessions.SFIE_R2 & sessions.SPL == 63);
 
 %% Arrange
 

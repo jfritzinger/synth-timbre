@@ -83,7 +83,7 @@ xlim([0.4 2.4])
 %title('Example Unit with Threshold')
 
 [threshold_percent, threshold_freq, slope_rate] = calculateThresholds(fpeaks, rate, rate_std, CF);
-plot(threshold_freq/1000, slope_rate, 'r', 'LineWidth',3)
+plot(threshold_freq/1000, slope_rate, 'r', 'LineWidth',1.5)
 xline(threshold_freq(1)/1000, 'r')
 xline(threshold_freq(2)/1000, 'r')
 
