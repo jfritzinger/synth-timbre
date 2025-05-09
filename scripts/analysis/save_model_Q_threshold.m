@@ -43,8 +43,9 @@ spls = [43, 63, 73, 83];
 has_data = bin200_MTF(:,1) | bin200_MTF(:,2) | bin200_MTF(:,3) | bin200_MTF(:,4);
 indices = find(has_data);
 num_index = length(indices);
-ii = 1;
-for imtype = 2
+
+for imtype = 3
+	ii = 1;
 	for isesh = 1:num_index
 
 		% Load in data
