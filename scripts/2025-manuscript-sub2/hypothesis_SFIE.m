@@ -109,7 +109,7 @@ for ii = 1:2
 	model_params.type = 'LateralInhibition';
 	model_params.range = 1; % 1 = population model, 2 = single cell model
 	model_params.species = 1; % 1 = cat, 2 = human
-	model_params.BMF = 100;
+	model_params.BMFs = [100 100 100];
 	model_params.nAN_fibers_per_CF = 10;
 	model_params.cohc = 1; % (0-1 where 1 is normal)
 	model_params.cihc = 1; % (0-1 where 1 is normal)
@@ -138,8 +138,10 @@ for ii = 1:2
 	AN_HSR{1}.average_AN_sout = [AN_HSR{1}.average_AN_sout_lo; AN_HSR{1}.average_AN_sout; AN_HSR{1}.average_AN_sout_hi];
 	if ii == 1
 		SFIE{1}.average_ic_sout_BS = SFIE_temp.average_ic;
+		SFIE{1}.ic_BS = SFIE_temp.ic;
 	else
 		SFIE{1}.average_ic_sout_BE = SFIE_temp.average_ic;
+		SFIE{1}.ic_BE = SFIE_temp.ic;
 	end
  end
 
@@ -159,7 +161,7 @@ for ii = 1:2
 	model_params.type = 'Lateral Model';
 	model_params.range = 2; % 1 = population model, 2 = single cell model
 	model_params.species = 1; % 1 = cat, 2 = human
-	model_params.BMF = 100;
+	model_params.BMFs = [100 100 100];
 	model_params.num_CFs = 1;
 	model_params.nAN_fibers_per_CF = 10;
 	model_params.cohc = 1; % (0-1 where 1 is normal)
@@ -180,9 +182,9 @@ for ii = 1:2
 
 	% Run model
 	AN_HSR{2} = modelLateralAN(params{2}, model_params);
-	SFIE_temp = modelLateralSFIE(params{2}, model_params,...
+	SFIE_temp = modelLateralSFIE_BMF(params{2}, model_params,...
 		AN_HSR{2}.an_sout, AN_HSR{2}.an_sout_lo, AN_HSR{2}.an_sout_hi,...
-		'CS_params', lm_params);
+		'CS_params', lm_params,'BMFs', model_params.BMFs);
 	if ii == 1
 		SFIE{2}.average_ic_sout_BS = SFIE_temp.avIC;
 	else
@@ -408,7 +410,8 @@ for ineuron = 1:2
 	set(gca,'FontSize',fontsize)
 	yticklabels([])
 	if ineuron == 1
-		ylim([22 32])
+		%ylim([22 32])
+		ylim([9 13])
 		ylabel('Avg. Rate (sp/s)                         ')
 		hLegend = legend('Unmod.', 'Location','northwest', 'EdgeColor',...
 			'none', 'box', 'off', 'fontsize', legsize);
@@ -416,8 +419,8 @@ for ineuron = 1:2
 		title('MTF')
 		xticklabels([])
 	else
-		ylim([18 24])
-		%xticks([1 10 100])
+		%ylim([18 24])
+		ylim([12 16])
 		xticklabels([])
 		xlabel('Mod. Freq.')
 	end
