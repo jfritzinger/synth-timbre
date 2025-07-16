@@ -12,7 +12,7 @@ else
 end
 
 % baseic paths for loading data and saving figures 
-datapath = fullfile(base, 'data', '2025-manuscript');
-savepath = fullfile(base, 'figures');
+datapath = fullfile(base, 'data', '2025-manuscript-sub2');
+savepath = fullfile(base, 'figures', '2025-manuscript-sub2');
 
 end
