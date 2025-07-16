@@ -152,7 +152,7 @@ rows_with_nan = any(isnan(qs2),2);
 qs2(rows_with_nan,:) = [];
 x = [43, 63, 83];
 
-% Try 1: Criteria using slope
+% Criteria using slope
 for ii = 1:length(qs2)
 	y = qs2(ii, :)';
     tbl = table(x', y, 'VariableNames', {'X', 'Q'});
@@ -209,15 +209,16 @@ for ii = 1:3
 	hLeg.Box = 'off';
 	ylim([0 18])
 
+	% % Kruskal Wallis for non normal data, increasing
+	% kruskalwallis(qs2(values,:))
+	% [p, tbl, stats] = kruskalwallis(qs2(values,:), 1:3);
+	% multcompare(stats, 'CType', 'dunn-sidak');
+
 end
 
 %% Stats 
 
-% ANOVA for log transformed data?
-% [p,tbl,stats] = anova1(all_thresholds');
-% results = multcompare(stats);
-
-% % Kruskal Wallis for non normal data 
+% % Kruskal Wallis for non normal data, all data
 % kruskalwallis(qs2)
 % [p, tbl, stats] = kruskalwallis(qs2, 1:3);
 % multcompare(stats, 'CType', 'dunn-sidak');
