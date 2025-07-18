@@ -96,21 +96,27 @@ params{2}.num_stim = size(params{2}.stim, 1);
 % Run synth timbre models
 for ii = 1:2
 	if ii == 1 % BS
-		S = 0.25; % Strength, S =
-		D = 0; % Delay, D =
-		oct_range = 0.75; % CF range =
+		% model_params.lm_params = [0.25 0.25 0];
+		% oct_range = 0.75;
+		% model_params.BMF = [100 100 100];
+		model_params.lm_params = [0.19 0 0.001];
+		oct_range = 0.5;
+		model_params.BMF = [300 38 10];
 	else % BE
-		S = 0.4; % Strength, S =
-		D = 0; % Delay, D =
-		oct_range = 0.5; % CF range =
+		% model_params.lm_params = [0.4 0.4 0];
+		% oct_range = 0.5; 
+		% model_params.BMF = [100 100 100];
+		model_params.lm_params = [1 0.28 0.001];
+		oct_range = 0.625;
+		model_params.BMF = [87 164 111];
 	end
 
 	% Model parameters
 	model_params.type = 'LateralInhibition';
 	model_params.range = 1; % 1 = population model, 2 = single cell model
 	model_params.species = 1; % 1 = cat, 2 = human
-	model_params.BMFs = [100 100 100];
-	model_params.nAN_fibers_per_CF = 10;
+
+	model_params.nAN_fibers_per_CF = 5;
 	model_params.cohc = 1; % (0-1 where 1 is normal)
 	model_params.cihc = 1; % (0-1 where 1 is normal)
 	model_params.nrep = 1; % how many times to run the AN model
@@ -126,7 +132,6 @@ for ii = 1:2
 
 	% Lateral model parameters
 	model_params.config_type = 'BS inhibited by off-CF BS';
-	model_params.lm_params = [S S D];
 
 	% Run model
 	AN_HSR{1} = modelLateralAN(params{1}, model_params);
@@ -146,24 +151,30 @@ for ii = 1:2
  end
 
 %% Run MTF Models
+
 for ii = 1:2
 	if ii == 1 % BS
-		S = 0.25; % Strength, S =
-		D = 0; % Delay, D =
-		oct_range = 0.75; % CF range =
+		% model_params.lm_params = [0.25 0.25 0];
+		% oct_range = 0.75;
+		% model_params.BMF = [100 100 100];
+		model_params.lm_params = [0.19 0 0.001];
+		oct_range = 0.5;
+		model_params.BMF = [300 38 10];
 	else % BE
-		S = 0.4; % Strength, S =
-		D = 0; % Delay, D =
-		oct_range = 0.5; % CF range =
+		% model_params.lm_params = [0.4 0.4 0];
+		% oct_range = 0.5; 
+		% model_params.BMF = [100 100 100];
+		model_params.lm_params = [1 0.28 0.001];
+		oct_range = 0.625;
+		model_params.BMF = [87 164 111];
 	end
 
 	% Model parameters
 	model_params.type = 'Lateral Model';
 	model_params.range = 2; % 1 = population model, 2 = single cell model
 	model_params.species = 1; % 1 = cat, 2 = human
-	model_params.BMFs = [100 100 100];
 	model_params.num_CFs = 1;
-	model_params.nAN_fibers_per_CF = 10;
+	model_params.nAN_fibers_per_CF = 5;
 	model_params.cohc = 1; % (0-1 where 1 is normal)
 	model_params.cihc = 1; % (0-1 where 1 is normal)
 	model_params.nrep = 1; % how many times to run the AN model
@@ -178,13 +189,13 @@ for ii = 1:2
 
 	% Lateral model parameters
 	model_params.config_type = 'BS inhibited by off-CF BS';
-	lm_params = [S S D];
+
 
 	% Run model
 	AN_HSR{2} = modelLateralAN(params{2}, model_params);
 	SFIE_temp = modelLateralSFIE_BMF(params{2}, model_params,...
 		AN_HSR{2}.an_sout, AN_HSR{2}.an_sout_lo, AN_HSR{2}.an_sout_hi,...
-		'CS_params', lm_params,'BMFs', model_params.BMFs);
+		'CS_params', model_params.lm_params,'BMFs', model_params.BMF);
 	if ii == 1
 		SFIE{2}.average_ic_sout_BS = SFIE_temp.avIC;
 	else
@@ -195,15 +206,12 @@ end
 %% Save / load models
 
 save(fullfile(datapath, 'Hypothesis_broadinh_cat.mat'), 'AN_HSR', 'SFIE', 'params', 'model_params')
-% filename = 'Hypothesis_SFIE_Human.mat';
+% filename = 'Hypothesis_broadinh_cat.mat';
 % load(fullfile(datapath, filename), 'AN_HSR', 'SFIE', 'params', 'model_params')
 filename = 'fig1_hypothesis_broadinh_cat';
 
 %% Plot temporal 
 
-avAN = AN_HSR{1}.average_AN_sout;
-avBE = SFIE{1}.average_ic_sout_BE;
-avBS = SFIE{1}.average_ic_sout_BS;
 CFs = AN_HSR{1}.CFs;
 
 % Figure parameters
@@ -316,6 +324,8 @@ xLabel.Position(1) = h(4).XLim(2); % Set x-position to the right edge
 
 %% AN Plot
 h(5) = subplot(5, 5, 6:10);
+avAN = AN_HSR{1}.average_AN_sout;
+
 hold on
 plot(CFs, avAN, 'linewidth', linewidth, 'color', '#117733');
 set(gca,'fontsize',fontsize)
@@ -333,9 +343,10 @@ xLabel.Position(1) = h(5).XLim(2); % Set x-position to the right edge
 
 %% IC BE Plot
 h(6) = subplot(5, 5, 17:20);
+avBE = SFIE{1}.average_ic_sout_BE;
 
 fs = params{1}.Fs;
-spike_hist = squeeze(SFIE{1}.ic_BE);
+spike_hist = squeeze(SFIE{1}.ic_BE(:,1,:));
 VS = calcVS(params{1}, spike_hist, fs);
 yyaxis right
 plot(CFs, VS, 'linewidth', linewidth, 'Color','#d95f02')
@@ -360,10 +371,14 @@ ax.YAxis(1).Color = 'k';
 
 %% IC BS Plot
 h(7) = subplot(5, 5, 22:25);
+avBS = SFIE{1}.average_ic_sout_BS;
 
 % IC temporal plot 
 fs = params{1}.Fs;
-spike_hist = squeeze(SFIE{1}.ic_BS);
+spike_hist = squeeze(SFIE{1}.ic_BS(:,1,:));
+%spike_hist = mean(SFIE{1}.ic_BS, 2);
+%spike_hist = squeeze(spike_hist);
+
 VS = calcVS(params{1}, spike_hist, fs);
 yyaxis right
 plot(CFs, VS, 'linewidth', linewidth, 'Color','#d95f02')
@@ -411,7 +426,7 @@ for ineuron = 1:2
 	yticklabels([])
 	if ineuron == 1
 		%ylim([22 32])
-		ylim([9 13])
+		ylim([6.5 11])
 		ylabel('Avg. Rate (sp/s)                         ')
 		hLegend = legend('Unmod.', 'Location','northwest', 'EdgeColor',...
 			'none', 'box', 'off', 'fontsize', legsize);
@@ -420,7 +435,7 @@ for ineuron = 1:2
 		xticklabels([])
 	else
 		%ylim([18 24])
-		ylim([12 16])
+		ylim([16 30])
 		xticklabels([])
 		xlabel('Mod. Freq.')
 	end
