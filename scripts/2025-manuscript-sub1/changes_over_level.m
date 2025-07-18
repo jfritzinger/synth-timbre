@@ -311,6 +311,13 @@ for iCF = 1:3
 		Q(iCF, ispl) = mean(Qs);
 		Q_sem(iCF, ispl) = std(Qs)/sqrt(length(Qs));
 	end
+
+	tables_new = tables(isCFgroup & isbin & is200,:);
+	Qs_stats = tables_new.Q_log;
+	SPLs_stats = tables_new.SPL;
+	[p, tbl, stats] = kruskalwallis(Qs_stats, SPLs_stats);
+	fprintf('%s CF group, changes over level (Kruskal-Wallis): p=%0.04f\n',...
+		CFgroup{iCF}, p)
 end
 
 h(11) = subplot(4, 3, 11);
