@@ -30,9 +30,10 @@ pm.PageMargins.Right = '0.2in';
 
 %% Plot each dataset
 warning('off')
+
 % Find sessions with MTF
-MTF_target = 'BS';
-isMTF = strcmp(sessions.MTF, MTF_target);
+%MTF_target = 'BS';
+%isMTF = strcmp(sessions.MTF, MTF_target);
 %isMTF = contains(sessions.MTF, MTF_target);
 
 % Find sessions for target synthetic timbre response
@@ -126,7 +127,7 @@ for isesh = 1:num_sessions
 		ylim([0 ylimit(2)])
 		grid on
 		box on
-		title(['MTF: ' MTF_target], 'FontSize', fontsize)
+		%title(['MTF: ' MTF_target], 'FontSize', fontsize)
 		ylabel('Avg. Rate (sp/s)')
 		%legend('Unmodulated', 'Location','southwest')
 
@@ -247,7 +248,7 @@ for isesh = 1:num_sessions
 		nexttile([4, 1])
 		hold on
 		max_rate = max(temporal.p_hist, [], 'all');
-		for ispl = 1:4
+		for ispl = 2
 			if bin200_MTF(ineuron, ispl)==1
 				param_ST = data(5+ispl, 2);
 				data_ST = analyzeST(param_ST, CF);
@@ -279,45 +280,66 @@ for isesh = 1:num_sessions
 		title('Period Histogram')
 		set(gca, 'fontsize', fontsize)
 
-		% Plot heatmap for each
-		for ispl = 1:4	
-			nexttile
-			if bin200_MTF(ineuron, ispl)==1
-
-				param_ST = data(5+ispl, 2);
-				data_ST = analyzeST(param_ST, CF);
-				data_ST = data_ST{1};
-				param = param_ST{1};
-
-				temporal = analyzeST_Temporal(param, data_ST);
-				num_fpeaks = length(data_ST.fpeaks);
-				max_rate = max(temporal.p_hist, [], 'all');
-				freq_values = round(param.fpeaks);
-				p_hist = temporal.p_hist;
-				edges = temporal.t_hist;
-				t_bin = edges(1:end-1) + diff(edges)/2; % Bin centers
-
-				grayMap = [linspace(0, 1, 256)', linspace(0, 1, 256)', linspace(0, 1, 256)'];
-				grayMap = flipud(grayMap);
-				h = pcolor(t_bin, data_ST.fpeaks, p_hist);
-				set(h, 'EdgeColor', 'none');
-				hold on
-				yline(CF, 'r', 'LineWidth',1)
-				title(sprintf('%d dB SPL, Period Hist', spls(ispl)));
-				colorbar;
-				%shading interp
-				axis square;
-				colormap(grayMap);
-				%xlim([0 5])
-				%clim([0 70])
-				ylabel('Spectral Peak Freq. (Hz)')
-				xlabel('Period (ms)')
+		% Plot phase locking to harmonics 
+		nexttile([4 1])
+		if bin200_MTF(ineuron, ispl)==1
+			VS_harms2 =flipud(temporal.VS_harms);
+			p_vals =flipud(temporal.VS_p_harms);
+			sig = p_vals<0.01;
+			VS_harms2(~sig) = NaN;
+			peak_harm = param.fpeak_mid;
+			imagesc(1:10, 1:40, VS_harms2)
+			hold on
+			for j = 1:num_fpeaks
+				rectangle('position', [peak_harm-0.5 j-0.5, 1, 1], ...
+					'EdgeColor','k', 'LineWidth',1.5)
 			end
+			xlim([0.51 10.51])
+			xlabel('Harmonic Number')
+			yticklabels([])
+			clim([0 1])
+			colorbar
 		end
 
 		% Add to PDF
 		[plt1, images] = addtoSTPDF(images, fig, putative);
 		append(rpt, plt1);
+
+		% % Plot heatmap for each
+		% for ispl = 1:4	
+		% 	nexttile
+		% 	if bin200_MTF(ineuron, ispl)==1
+		% 
+		% 		param_ST = data(5+ispl, 2);
+		% 		data_ST = analyzeST(param_ST, CF);
+		% 		data_ST = data_ST{1};
+		% 		param = param_ST{1};
+		% 
+		% 		temporal = analyzeST_Temporal(param, data_ST);
+		% 		num_fpeaks = length(data_ST.fpeaks);
+		% 		max_rate = max(temporal.p_hist, [], 'all');
+		% 		freq_values = round(param.fpeaks);
+		% 		p_hist = temporal.p_hist;
+		% 		edges = temporal.t_hist;
+		% 		t_bin = edges(1:end-1) + diff(edges)/2; % Bin centers
+		% 
+		% 		grayMap = [linspace(0, 1, 256)', linspace(0, 1, 256)', linspace(0, 1, 256)'];
+		% 		grayMap = flipud(grayMap);
+		% 		h = pcolor(t_bin, data_ST.fpeaks, p_hist);
+		% 		set(h, 'EdgeColor', 'none');
+		% 		hold on
+		% 		yline(CF, 'r', 'LineWidth',1)
+		% 		title(sprintf('%d dB SPL, Period Hist', spls(ispl)));
+		% 		colorbar;
+		% 		%shading interp
+		% 		axis square;
+		% 		colormap(grayMap);
+		% 		%xlim([0 5])
+		% 		%clim([0 70])
+		% 		ylabel('Spectral Peak Freq. (Hz)')
+		% 		xlabel('Period (ms)')
+		% 	end
+		% end
 
 		% % Calculate ISI for each rep
 		% nreps = param.nrep;
