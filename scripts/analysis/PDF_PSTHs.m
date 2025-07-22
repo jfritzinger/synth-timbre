@@ -15,9 +15,10 @@ num_data = size(sessions, 1);
 filename = 'Period_Hist_All';
 images = {}; %hold all plots as images, need to delete when finished
 datetime.setDefaultFormats('default','yyyy-MM-dd_hhmmss')
-report_name = sprintf('%s/pdfs/%s_%s.pdf', savepath, datetime, filename);
+report_name = sprintf('%s_%s.pdf', datetime, filename);
 rpt = Document(report_name, 'pdf'); %initialize report document as pdf
 open(rpt);
+
 pm = rpt.CurrentPageLayout;
 
 % Set page header dimensions
@@ -29,7 +30,7 @@ pm.PageMargins.Left = '0.2in';
 pm.PageMargins.Right = '0.2in';
 
 %% Plot each dataset
-warning('off')
+%warning('off')
 
 % Find sessions with MTF
 %MTF_target = 'BS';
@@ -64,20 +65,28 @@ for isesh = 1:num_sessions
 
 		% Paragraph intro
 		label = sprintf("%s, CF = %0.0fHz, %s\n", putative, CF, MTF_shape);
-		p = Paragraph(label);
-		p.FontSize = "14pt";
-		p.WhiteSpace = "preserve";
-		append(rpt,p);
+		% p = Paragraph(label);
+		% p.FontSize = "14pt";
+		% p.WhiteSpace = "preserve";
+		% append(rpt,p);
+
+		h = Heading(2, label);
+		b = Border();
+		b.BottomStyle = 'single';
+		b.BottomColor = 'LightGray';
+		b.BottomWidth = '1pt';
+		h.Style = [h.Style {Color('Black'), b}, {PageBreakBefore()}];
+		append(rpt,h);
 
 		% Output
 		fprintf('Creating plots... %s, CF = %0.0fHz, %s\n', putative, CF, MTF_shape);
 
 		% Set up figure
-		fig = figure('Position',[292,274,1264,420]);
+		fig = figure('Position',[0,0,1264,420]);
 		tiledlayout(4, 3, 'TileSpacing','compact', 'Padding','tight', ...
 			'TileIndexing','columnmajor')
 		x_label = [1000 2000 3000 4000 6000 8000]./1000;
-		fontsize = 10;
+		fontsize = 7;
 
 		% Plot RM
 		params_RM = data{2, 2};
@@ -113,9 +122,9 @@ for isesh = 1:num_sessions
 		data_MTF = analyzeMTF(params_MTF);
 		nexttile(2)
 		hold on
-		line([1 data_MTF.fms(end)], [1 1]*data_MTF.rate(1),'Color',spont_color, 'LineWidth',2);
-		errorbar(data_MTF.fms,data_MTF.rate, data_MTF.rate_std/sqrt(params_MTF.nrep),'.', 'LineWidth',2, 'Color','k');
-		line(data_MTF.fms,data_MTF.rate,'Color','k', 'Marker','.', 'MarkerSize',5, 'MarkerFaceColor','w', 'LineWidth', 2);
+		line([1 data_MTF.fms(end)], [1 1]*data_MTF.rate(1),'Color',spont_color, 'LineWidth',1.5);
+		errorbar(data_MTF.fms,data_MTF.rate, data_MTF.rate_std/sqrt(params_MTF.nrep),'.', 'LineWidth',1.5, 'Color','k');
+		line(data_MTF.fms,data_MTF.rate,'Color','k', 'Marker','.', 'MarkerSize',5, 'MarkerFaceColor','w', 'LineWidth', 1.5);
 		hold off
 		set(gca, 'XScale', 'log');
 		xlim([data_MTF.fms(1) data_MTF.fms(end)])
@@ -299,7 +308,10 @@ for isesh = 1:num_sessions
 			yticklabels([])
 			clim([0 1])
 			colorbar
+		
 		end
+		title('VS to harmonics #s')
+		set(gca, 'fontsize', fontsize)
 
 		% Add to PDF
 		[plt1, images] = addtoSTPDF(images, fig, putative);
@@ -487,15 +499,15 @@ function [img, images] = addtoSTPDF(images, fig, title)
 import mlreportgen.dom.*
 
 % Set figure size, recommended
-values = [8, 10];
+values = [5, 6.5];
 fig.PaperSize = values;
 fig.PaperPosition = [0 0 values];
 fig.Units = 'inches';
 fig.Position(3:4) = values;
 
 % Add the plot to the document
-name = sprintf('%s.svg', title);
-print(fig, name, '-dsvg');
+name = sprintf('%s.png', title);
+print(fig, name, '-dpng');
 img = Image(name);
 delete(fig) %delete plot figure window
 images = [images {img}];
