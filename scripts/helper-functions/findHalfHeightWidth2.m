@@ -25,12 +25,13 @@ min_rate = min(rate_interp);
 %peak_ind = find(freq_max == fpeaks_interp);
 [~, peak_ind] = min(abs(peak_loc-fpeaks_interp));
 max_rate = rate_interp(peak_ind);
+halfHeight = max_rate/2;
 
 %%%%%%%%%%%%%% 25% from 0 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %halfHeight = max_rate*0.75;
 
 %%%%%%%%%%%%%% z units below peak %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-halfHeight = max_rate-0.75;
+%halfHeight = max_rate-0.75;
 
 %%%%%%%%%%%%%% 25% below peak referenced to min value %%%%%%%%%%%%%%%
 %halfHeight = ((max_rate-min_rate)*0.75)-abs(min_rate);
