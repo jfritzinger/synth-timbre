@@ -31,8 +31,10 @@ params{1}.spl = 70;
 params{1}.g = 24;
 params{1} = generate_ST(params{1});
 params{1}.num_stim = size(params{1}.stim, 1);
+y_prefilt = apply_rabbit_prefilter(params{1}.stim, params{1}.Fs);
+params{1}.stim = y_prefilt;
 
-% Stimulus Parameters and Generation
+% Stimu lus Parameters and Generation
 params{2}.type = 'typMTFN';
 params{2}.ramp_dur = 0.05;
 params{2}.noise_state = 0;
@@ -51,164 +53,167 @@ params{2}.mnrep = 5;
 params{2}.raised_sine = 1;
 params{2} = generate_MTF(params{2});
 params{2}.num_stim = size(params{2}.stim, 1);
+y_noise = apply_rabbit_prefilter(params{2}.stim, params{2}.Fs);
+params{2}.stim = y_noise;
 
 %% Run SFIE model 
 
 % Run population synth timbre model
-% model_params.type = 'SFIE';
-% model_params.range = 2; % 1 = population model, 2 = single cell model
-% model_params.species = 2; % 1 = cat, 2 = human
-% model_params.BMF = 100;
-% model_params.CF_range = [125 10000];
-% model_params.num_CFs = 100;
-% model_params.CFs = logspace(log10(125), log10(10000), 100);
-% model_params.nAN_fibers_per_CF = 5;
-% model_params.cohc = 1; % (0-1 where 1 is normal)
-% model_params.cihc = 1; % (0-1 where 1 is normal)
-% model_params.nrep = 10; % how many times to run the AN model
-% model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw 
-% % implementation(See Zilany etal., 2009)
-% model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - 
-% % this is the 'noise' associated with spont. activity of AN fibers - 
-% % see Zilany et al., 2009. "0" lets you "freeze" it.
-% model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
-% model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to 
-% % omit 1st 50 ms, use 0.050
-% model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium 
-% % SR, 3 = high SR)
-% model_params.Fs = 100000;
-% 
-% % Model 
-% AN_HSR{1} = modelAN(params{1}, model_params); % HSR for IC input
-% SFIE{1} = wrapperIC(AN_HSR{1}.an_sout, params{1}, model_params); % SFIE output
+model_params.type = 'SFIE';
+model_params.range = 2; % 1 = population model, 2 = single cell model
+model_params.species = 4; % 1 = cat, 2 = human (4 = rabbit)
+model_params.BMF = 100;
+model_params.CF_range = [125 10000];
+model_params.num_CFs = 100;
+model_params.CFs = logspace(log10(125), log10(10000), 100);
+model_params.nAN_fibers_per_CF = 5;
+model_params.cohc = 1; % (0-1 where 1 is normal)
+model_params.cihc = 1; % (0-1 where 1 is normal)
+model_params.nrep = 5; % how many times to run the AN model
+model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw 
+% implementation(See Zilany etal., 2009)
+model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - 
+% this is the 'noise' associated with spont. activity of AN fibers - 
+% see Zilany et al., 2009. "0" lets you "freeze" it.
+model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
+model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to 
+% omit 1st 50 ms, use 0.050
+model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium 
+% SR, 3 = high SR)
+model_params.Fs = 100000;
+
+% Model 
+AN_HSR{1} = modelAN(params{1}, model_params); % HSR for IC input
+SFIE{1} = wrapperIC(AN_HSR{1}.an_sout, params{1}, model_params); % SFIE output
 
 % Run single-neuron SFIE MTF model
-% model_params.range = 2; % 1 = population model, 2 = single cell model
-% model_params.CF_range = 1200;
-% model_params.num_CFs = 1;
-% model_params.CFs = 1200;
-% model_params.nrep = 1; % how many times to run the AN model 
-% AN_HSR{2} = modelAN(params{2}, model_params); % HSR for IC input
-% SFIE{2} = wrapperIC(AN_HSR{2}.an_sout, params{2}, model_params); % SFIE output
+model_params.range = 2; % 1 = population model, 2 = single cell model
+model_params.CF_range = 1200;
+model_params.num_CFs = 1;
+model_params.CFs = 1200;
+model_params.nrep = 1; % how many times to run the AN model 
+AN_HSR{2} = modelAN(params{2}, model_params); % HSR for IC input
+SFIE{2} = wrapperIC(AN_HSR{2}.an_sout, params{2}, model_params); % SFIE output
 
 %% Run broad inhibition models 
+% 
+% % Run synth timbre models
+% for ii = 1:2
+% 	if ii == 1 % BS
+% 		% model_params.lm_params = [0.25 0.25 0];
+% 		% oct_range = 0.75;
+% 		% model_params.BMF = [100 100 100];
+% 		model_params.lm_params = [0.19 0 0.001];
+% 		oct_range = 0.5;
+% 		model_params.BMF = [300 38 10];
+% 	else % BE
+% 		% model_params.lm_params = [0.4 0.4 0];
+% 		% oct_range = 0.5; 
+% 		% model_params.BMF = [100 100 100];
+% 		model_params.lm_params = [1 0.28 0.001];
+% 		oct_range = 0.625;
+% 		model_params.BMF = [87 164 111];
+% 	end
+% 
+% 	% Model parameters
+% 	model_params.type = 'LateralInhibition';
+% 	model_params.range = 1; % 1 = population model, 2 = single cell model
+% 	model_params.species = 1; % 1 = cat, 2 = human
+% 
+% 	model_params.nAN_fibers_per_CF = 5;
+% 	model_params.cohc = 1; % (0-1 where 1 is normal)
+% 	model_params.cihc = 1; % (0-1 where 1 is normal)
+% 	model_params.nrep = 1; % how many times to run the AN model
+% 	model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw implementation(See Zilany etal., 2009)
+% 	model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - this is the 'noise' associated with spont. activity of AN fibers - see Zilany et al., 2009. "0" lets you "freeze" it.
+% 	model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
+% 	model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
+% 	model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
+% 	model_params.CFs = logspace(log10(220), log10(10000), 100);
+% 	model_params.CF_range = [200 10000];
+% 	model_params.num_CFs = 100;
+% 	model_params.lateral_CFs = [model_params.CFs*2^(-1*oct_range); model_params.CFs; model_params.CFs*2^oct_range]';
+% 
+% 	% Lateral model parameters
+% 	model_params.config_type = 'BS inhibited by off-CF BS';
+% 
+% 	% Run model
+% 	AN_HSR{1} = modelLateralAN(params{1}, model_params);
+% 	SFIE_temp = wrapperIC(AN_HSR{1}, params{1}, model_params); 
+% 	% SFIE = modelLateralSFIE(params{1}, model_params,...
+% 	% 	AN_HSR.an_sout, AN_HSR.an_sout_lo, AN_HSR.an_sout_hi,...
+% 	% 	'CS_params', lm_params);
+% 
+% 	AN_HSR{1}.average_AN_sout = [AN_HSR{1}.average_AN_sout_lo; AN_HSR{1}.average_AN_sout; AN_HSR{1}.average_AN_sout_hi];
+% 	if ii == 1
+% 		SFIE{1}.average_ic_sout_BS = SFIE_temp.average_ic;
+% 		SFIE{1}.ic_BS = SFIE_temp.ic;
+% 	else
+% 		SFIE{1}.average_ic_sout_BE = SFIE_temp.average_ic;
+% 		SFIE{1}.ic_BE = SFIE_temp.ic;
+% 	end
+%  end
+% 
+% %% Run MTF Models
+% 
+% for ii = 1:2
+% 	if ii == 1 % BS
+% 		% model_params.lm_params = [0.25 0.25 0];
+% 		% oct_range = 0.75;
+% 		% model_params.BMF = [100 100 100];
+% 		model_params.lm_params = [0.19 0 0.001];
+% 		oct_range = 0.5;
+% 		model_params.BMF = [300 38 10];
+% 	else % BE
+% 		% model_params.lm_params = [0.4 0.4 0];
+% 		% oct_range = 0.5; 
+% 		% model_params.BMF = [100 100 100];
+% 		model_params.lm_params = [1 0.28 0.001];
+% 		oct_range = 0.625;
+% 		model_params.BMF = [87 164 111];
+% 	end
+% 
+% 	% Model parameters
+% 	model_params.type = 'Lateral Model';
+% 	model_params.range = 2; % 1 = population model, 2 = single cell model
+% 	model_params.species = 1; % 1 = cat, 2 = human
+% 	model_params.num_CFs = 1;
+% 	model_params.nAN_fibers_per_CF = 5;
+% 	model_params.cohc = 1; % (0-1 where 1 is normal)
+% 	model_params.cihc = 1; % (0-1 where 1 is normal)
+% 	model_params.nrep = 1; % how many times to run the AN model
+% 	model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw implementation(See Zilany etal., 2009)
+% 	model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - this is the 'noise' associated with spont. activity of AN fibers - see Zilany et al., 2009. "0" lets you "freeze" it.
+% 	model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
+% 	model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
+% 	model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
+% 	model_params.CFs = CF;
+% 	model_params.lateral_CFs = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
+% 	model_params.CF_range = CF;
+% 
+% 	% Lateral model parameters
+% 	model_params.config_type = 'BS inhibited by off-CF BS';
+% 
+% 
+% 	% Run model
+% 	AN_HSR{2} = modelLateralAN(params{2}, model_params);
+% 	SFIE_temp = modelLateralSFIE_BMF(params{2}, model_params,...
+% 		AN_HSR{2}.an_sout, AN_HSR{2}.an_sout_lo, AN_HSR{2}.an_sout_hi,...
+% 		'CS_params', model_params.lm_params,'BMFs', model_params.BMF);
+% 	if ii == 1
+% 		SFIE{2}.average_ic_sout_BS = SFIE_temp.avIC;
+% 	else
+% 		SFIE{2}.average_ic_sout_BE = SFIE_temp.avIC;
+% 	end
+% end
 
-% Run synth timbre models
-for ii = 1:2
-	if ii == 1 % BS
-		% model_params.lm_params = [0.25 0.25 0];
-		% oct_range = 0.75;
-		% model_params.BMF = [100 100 100];
-		model_params.lm_params = [0.19 0 0.001];
-		oct_range = 0.5;
-		model_params.BMF = [300 38 10];
-	else % BE
-		% model_params.lm_params = [0.4 0.4 0];
-		% oct_range = 0.5; 
-		% model_params.BMF = [100 100 100];
-		model_params.lm_params = [1 0.28 0.001];
-		oct_range = 0.625;
-		model_params.BMF = [87 164 111];
-	end
-
-	% Model parameters
-	model_params.type = 'LateralInhibition';
-	model_params.range = 1; % 1 = population model, 2 = single cell model
-	model_params.species = 1; % 1 = cat, 2 = human
-
-	model_params.nAN_fibers_per_CF = 5;
-	model_params.cohc = 1; % (0-1 where 1 is normal)
-	model_params.cihc = 1; % (0-1 where 1 is normal)
-	model_params.nrep = 1; % how many times to run the AN model
-	model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw implementation(See Zilany etal., 2009)
-	model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - this is the 'noise' associated with spont. activity of AN fibers - see Zilany et al., 2009. "0" lets you "freeze" it.
-	model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
-	model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
-	model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
-	model_params.CFs = logspace(log10(220), log10(10000), 100);
-	model_params.CF_range = [200 10000];
-	model_params.num_CFs = 100;
-	model_params.lateral_CFs = [model_params.CFs*2^(-1*oct_range); model_params.CFs; model_params.CFs*2^oct_range]';
-
-	% Lateral model parameters
-	model_params.config_type = 'BS inhibited by off-CF BS';
-
-	% Run model
-	AN_HSR{1} = modelLateralAN(params{1}, model_params);
-	SFIE_temp = wrapperIC(AN_HSR{1}, params{1}, model_params); 
-	% SFIE = modelLateralSFIE(params{1}, model_params,...
-	% 	AN_HSR.an_sout, AN_HSR.an_sout_lo, AN_HSR.an_sout_hi,...
-	% 	'CS_params', lm_params);
-
-	AN_HSR{1}.average_AN_sout = [AN_HSR{1}.average_AN_sout_lo; AN_HSR{1}.average_AN_sout; AN_HSR{1}.average_AN_sout_hi];
-	if ii == 1
-		SFIE{1}.average_ic_sout_BS = SFIE_temp.average_ic;
-		SFIE{1}.ic_BS = SFIE_temp.ic;
-	else
-		SFIE{1}.average_ic_sout_BE = SFIE_temp.average_ic;
-		SFIE{1}.ic_BE = SFIE_temp.ic;
-	end
- end
-
-%% Run MTF Models
-
-for ii = 1:2
-	if ii == 1 % BS
-		% model_params.lm_params = [0.25 0.25 0];
-		% oct_range = 0.75;
-		% model_params.BMF = [100 100 100];
-		model_params.lm_params = [0.19 0 0.001];
-		oct_range = 0.5;
-		model_params.BMF = [300 38 10];
-	else % BE
-		% model_params.lm_params = [0.4 0.4 0];
-		% oct_range = 0.5; 
-		% model_params.BMF = [100 100 100];
-		model_params.lm_params = [1 0.28 0.001];
-		oct_range = 0.625;
-		model_params.BMF = [87 164 111];
-	end
-
-	% Model parameters
-	model_params.type = 'Lateral Model';
-	model_params.range = 2; % 1 = population model, 2 = single cell model
-	model_params.species = 1; % 1 = cat, 2 = human
-	model_params.num_CFs = 1;
-	model_params.nAN_fibers_per_CF = 5;
-	model_params.cohc = 1; % (0-1 where 1 is normal)
-	model_params.cihc = 1; % (0-1 where 1 is normal)
-	model_params.nrep = 1; % how many times to run the AN model
-	model_params.implnt = 1; % 0 = approximate model, 1=exact powerlaw implementation(See Zilany etal., 2009)
-	model_params.noiseType = 1; % 0 = fixed fGn, 1 = variable fGn) - this is the 'noise' associated with spont. activity of AN fibers - see Zilany et al., 2009. "0" lets you "freeze" it.
-	model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
-	model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
-	model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
-	model_params.CFs = CF;
-	model_params.lateral_CFs = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
-	model_params.CF_range = CF;
-
-	% Lateral model parameters
-	model_params.config_type = 'BS inhibited by off-CF BS';
-
-
-	% Run model
-	AN_HSR{2} = modelLateralAN(params{2}, model_params);
-	SFIE_temp = modelLateralSFIE_BMF(params{2}, model_params,...
-		AN_HSR{2}.an_sout, AN_HSR{2}.an_sout_lo, AN_HSR{2}.an_sout_hi,...
-		'CS_params', model_params.lm_params,'BMFs', model_params.BMF);
-	if ii == 1
-		SFIE{2}.average_ic_sout_BS = SFIE_temp.avIC;
-	else
-		SFIE{2}.average_ic_sout_BE = SFIE_temp.avIC;
-	end
-end
 
 %% Save / load models
-
-save(fullfile(datapath, 'Hypothesis_broadinh_cat.mat'), 'AN_HSR', 'SFIE', 'params', 'model_params')
-% filename = 'Hypothesis_broadinh_cat.mat';
-% load(fullfile(datapath, filename), 'AN_HSR', 'SFIE', 'params', 'model_params')
-filename = 'fig1_hypothesis_broadinh_cat';
+% 
+% save(fullfile(datapath, 'Hypothesis_broadinh_rabbit.mat'), 'AN_HSR', 'SFIE', 'params', 'model_params')
+% % filename = 'Hypothesis_broadinh_cat.mat';
+% % load(fullfile(datapath, filename), 'AN_HSR', 'SFIE', 'params', 'model_params')
+% filename = 'fig1_hypothesis_broadinh_rabbit';
 
 %% Plot temporal 
 
@@ -400,6 +405,10 @@ xline(CF_list(3), ':','Color', [0.4 0.4 0.4], 'linewidth', linewidth);
 h(7).YAxis(1).Color = 'k';
 xLabel.Position(1) = h(7).XLim(2); % Set x-position to the right edge
 
+% HHBW
+[pks,locs] = max(avBS);
+[width, lim, bounds_freq, halfHeight] = findHalfHeightWidth2(CFs, avBS, 1200, CFs(locs), 0);
+
 
 %% Plot MTFs
 
@@ -426,7 +435,7 @@ for ineuron = 1:2
 	yticklabels([])
 	if ineuron == 1
 		%ylim([22 32])
-		ylim([6.5 11])
+		%ylim([6.5 11])
 		ylabel('Avg. Rate (sp/s)                         ')
 		hLegend = legend('Unmod.', 'Location','northwest', 'EdgeColor',...
 			'none', 'box', 'off', 'fontsize', legsize);
@@ -435,7 +444,7 @@ for ineuron = 1:2
 		xticklabels([])
 	else
 		%ylim([18 24])
-		ylim([16 30])
+		%ylim([16 30])
 		xticklabels([])
 		xlabel('Mod. Freq.')
 	end
@@ -510,7 +519,41 @@ annotation('textbox',[0 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
 
 %% Save figure 
 
-save_fig = 1;
+save_fig = 0;
 if save_fig == 1
 	save_figure(filename)
+end
+
+%% Functions 
+
+function y_prefilt = apply_rabbit_prefilter(x, fs)
+% Because no direct measurements of middle ear transmission are
+% available in rabbits, we used the cat middle ear filter that was
+% implemented in the original model and applied a prefilter to the input
+% acoustic signal to compensate for the expected difference between
+% rabbit and cat middle ears. 
+
+% This filter was designed to fit the
+% magnitude difference (in dB) between cat (Heffner and Heffner 1985)
+% and rabbit (Heffner and Masterton 1980) audiograms, based on the
+% assumptions that thresholds of hearing are largely determined by the
+% outer and middle ear (Rosowski 1994; Ruggero and Temchin 2002).
+
+% Simulations performed with the rabbit AN model showed only minor
+% differences from those obtained with the original cat model with
+% respect to the points of interest in this report.
+
+% The prefilter is the cascade of a first-order
+% high-pass Butterworth filter with a cutoff frequency of 0.8 kHz 
+[b_hp, a_hp] = butter(1, 800/(fs/2), 'high');
+y_hp = filter(b_hp, a_hp, x); % Apply high-pass
+
+% Second-order low-pass Butterworth filter with a cutoff frequency of 18
+% kHz
+[b_lp, a_lp] = butter(2, 18000/(fs/2), 'low');
+y_lp = filter(b_lp, a_lp, y_hp); % Apply low-pass
+
+% Passband gain of – 4 dB. 
+y_prefilt = y_lp * 10^(-4/20);
+
 end
