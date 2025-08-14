@@ -216,6 +216,17 @@ for ii = 1:2
 	box off
 end
 
+%% Stats 
+
+energy_good = sessions.Energy_R(isSPL);
+energy_perc = sum(energy_good>0.7)/length(energy_good)*100;
+
+sfie_good = sessions.SFIE_R(isSPL);
+sfie_perc = sum(sfie_good>0.4)/length(sfie_good)*100;
+
+lat_inh_good = sessions.Lat_Inh_R(isSPL);
+lat_inh_perc = sum(lat_inh_good>0.4)/length(lat_inh_good)*100;
+
 %% Number of neurons.....
 
 % Neurons that have all three model predictions R^2 > 0.85. Out of 127
