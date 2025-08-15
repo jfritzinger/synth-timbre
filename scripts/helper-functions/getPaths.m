@@ -6,9 +6,9 @@ set(0,'DefaultAxesFontName',fontname,'DefaultTextFontName',fontname);
 
 % Set the 'base' filepath for creating all figures 
 if ismac
-	base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02 - Code/Synth-Timbre';
+	base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02-projects/synth-timbre';
 else
-	base = 'C:\Users\jfritzinger\Box\02 - Code\Synth-Timbre';
+	base = 'C:\Users\jfritzinger\Box\02-projects\synth-timbre';
 end
 
 % baseic paths for loading data and saving figures 
