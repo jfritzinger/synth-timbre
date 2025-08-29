@@ -1,2 +1,5 @@
 # Ignore .pdf files 
 *.pdf
+
+# Ignore matlab data
+*.mat
