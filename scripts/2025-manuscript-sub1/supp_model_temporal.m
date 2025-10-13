@@ -1,17 +1,6 @@
 %% supp_model_temporal
 clear
 
-%% Set up figure
-
-[base, datapath, savepath, ppi] = getPaths();
-figure('Position',[50,50,3.33*ppi,4*ppi])
-legsize = 6;
-fontsize = 7;
-titlesize = 8;
-labelsize = 13;
-linewidth = 1;
-
-
 %% Parameters
 CF = 1200;
 
@@ -91,8 +80,8 @@ for imodel = 1:3
 			model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
 			model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
 			model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
-			model_params.lateral_CF = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
-			model_params.CFs = model_params.lateral_CF;
+			model_params.lateral_CFs = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
+			model_params.CFs = model_params.lateral_CFs;
 			model_params.CF_range = model_params.CFs(2);
 
 			% Lateral model parameters
@@ -129,6 +118,15 @@ end
 
 %% Create heatmaps for BE and BS
 
+[base, datapath, savepath, ppi] = getPaths();
+figure('Position',[50,50,3.33*ppi,4*ppi])
+legsize = 6;
+fontsize = 7;
+titlesize = 8;
+labelsize = 13;
+linewidth = 1;
+
+
 index = [1, 2; 3, 4; 5, 6];
 for imodel = 1:3
 
@@ -146,7 +144,7 @@ for imodel = 1:3
 		elseif imodel == 2 && ii == 2
 			spike_hist = squeeze(latinh{2}.ic);
 		elseif ii == 1
-			temp = energy.pin_gamma;
+			spike_hist = energy.pin_gamma;
 		else
 			continue
 		end
@@ -180,6 +178,7 @@ for imodel = 1:3
 		grayMap = [linspace(0, 1, 256)', linspace(0, 1, 256)', linspace(0, 1, 256)'];
 		grayMap = flipud(grayMap);
 
+
 		hh = pcolor(t_period, fpeaks./1000, avg);
 		set(hh, 'EdgeColor', 'none');
 		hold on
@@ -190,6 +189,7 @@ for imodel = 1:3
 		set(gca, 'YScale', 'log')
 		ylim([fpeaks(1) fpeaks(end)]/1000)
 		yticks([0.1 0.2 0.5 1 2 5 10])
+		xlim([0 75])
 		if ii == 1
 			ylabel('CFs (kHz)')
 		end
@@ -204,15 +204,19 @@ for imodel = 1:3
 			title('No MTF')
 		end
 		set(gca, 'fontsize',fontsize)
+		if imodel == 3 || ii == 2
+			c = colorbar;
+			c.Label.String = 'Rate (sp/s)';
+		end
 	end
 end
 
 %% Arrange and annotate figure 
 
-left = [0.18 0.62];
+left = [0.18 0.55];
 bottom = linspace(0.08, 0.73, 3);
 height = 0.22;
-width = 0.35;
+width = 0.3;
 set(h(1), 'Position', [left(1) bottom(3) width height])
 set(h(2), 'Position', [left(2) bottom(3) width height])
 set(h(3), 'Position', [left(1) bottom(2) width height])
