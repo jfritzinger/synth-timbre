@@ -312,10 +312,13 @@ for iCF = 1:3
 		Q_sem(iCF, ispl) = std(Qs)/sqrt(length(Qs));
 	end
 
-	tables_new = tables(isCFgroup & isbin & is200,:);
-	Qs_stats = tables_new.Q_log;
+    is70 = tables.SPL == 70;
+	tables_new = tables(isCFgroup & is200 & ~is70,:);
+	Qs_stats = tables_new.Q;
 	SPLs_stats = tables_new.SPL;
 	[p, tbl, stats] = kruskalwallis(Qs_stats, SPLs_stats);
+    [p, tbl, stats] = anova1(Qs_stats, SPLs_stats);
+    c = multcompare(stats);
 	fprintf('%s CF group, changes over level (Kruskal-Wallis): p=%0.04f\n',...
 		CFgroup{iCF}, p)
 end
