@@ -6,7 +6,9 @@ set(0,'DefaultAxesFontName',fontname,'DefaultTextFontName',fontname);
 
 % Set the 'base' filepath for creating all figures 
 if ismac
-	base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02-projects/synth-timbre';
+	%base = '/Users/jfritzinger/Library/CloudStorage/Box-Box/02-projects/synth-timbre';
+    base = ['/Users/johannafritzinger/Library/CloudStorage/Dropbox-University' ...
+        'ofMichigan/Johanna Fritzinger/02-projects/synth-timbre/'];
 else
 	base = 'C:\Users\jfritzinger\Box\02-projects\synth-timbre';
 end
