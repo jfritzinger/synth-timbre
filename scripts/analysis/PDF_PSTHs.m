@@ -52,6 +52,7 @@ CF_list = sessions.CF(has_data);
 num_sessions = length(CF_list);
 
 % Plot each neuron
+jj = 1;
 spls = [43, 63, 73, 83];
 for isesh = 1:num_sessions
 	ineuron = index(order(isesh)); %indices(isesh)
@@ -308,10 +309,25 @@ for isesh = 1:num_sessions
 			yticklabels([])
 			clim([0 1])
 			colorbar
+
+            % Save VS_harm data
+            [max_VS, max_ind] = max(temporal.VS_harms, [], "all");
+            [row, col] = ind2sub(size(temporal.VS_harms), max_ind);
+            max_VS_harm = col;
+            [avg_VS, avg_ind] = max(mean(temporal.VS_harms));
+            avg_VS_harm = avg_ind;
+
+            VS.max_VS_all(jj) = max_VS;
+            VS.max_VS_harm_all(jj) = max_VS_harm;
+            VS.avg_VS_all(jj) = avg_VS;
+            VS.avg_VS_harm_all(jj) = avg_VS_harm;
+            VS.CF(jj) = CF;
+            jj = jj+1;
 		
 		end
 		title('VS to harmonics #s')
 		set(gca, 'fontsize', fontsize)
+
 
 		% Add to PDF
 		[plt1, images] = addtoSTPDF(images, fig, putative);
@@ -485,6 +501,8 @@ for isesh = 1:num_sessions
 
 	end
 end
+
+save(fullfile(datapath, 'VS_harms_data.mat'), 'VS')
 
 % Closes and opens PDF to view
 close(rpt);
