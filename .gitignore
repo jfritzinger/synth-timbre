@@ -3,3 +3,6 @@
 
 # Ignore matlab data
 *.mat
+
+$ Ignore autosaves 
+*.asv
