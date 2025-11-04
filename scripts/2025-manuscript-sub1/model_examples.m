@@ -56,12 +56,12 @@ for ii = 1:6
 	load(fullfile(datapath, 'neural_data', [putative '.mat']))
 
 	% Load in model data
-	modelpath = '/Volumes/Synth-Timbre/data/manuscript';
-	load(fullfile(modelpath,'SFIE_model', [putative '_SFIE.mat']), 'SFIE')
-	load(fullfile(modelpath,'energy_model', [putative '_Energy.mat']), 'energy')
+	%modelpath = '/Volumes/Synth-Timbre/data/manuscript';
+	load(fullfile(datapath,'model-SFIE', [putative '_SFIE.mat']), 'SFIE')
+	load(fullfile(datapath,'model-energy', [putative '_Energy.mat']), 'energy')
 
 	% Load in lateral inhibition model
-	load(fullfile(modelpath,'lat_inh_model', [putative '_Lat_Inh.mat']), 'lat_inh')
+	load(fullfile(datapath,'model-lat-inh', [putative '_Lat_Inh.mat']), 'lat_inh')
 
 	% Get spont rate
 	param_RM = data(2,2);
