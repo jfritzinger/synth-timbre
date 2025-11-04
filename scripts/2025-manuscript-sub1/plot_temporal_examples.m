@@ -113,6 +113,20 @@ for ii = 1:20
 	set(hh, 'EdgeColor', 'none');
 	hold on
 	yline(CF/1000, 'r', 'LineWidth',2)
+
+    % Plot harmonics 
+    if ii == 5
+        response = 1.379;
+        xline(response, 'g')
+        harm2_period = 1/400*1000;
+        xline(response + harm2_period, 'g')
+    elseif ii == 13
+        response = 0.25;
+        xline(response, 'g')
+        harm4_period = 1/800*1000;
+        xline(response + harm4_period, 'g')
+    end
+
 	%colorbar;
 	%axis square;
 	colormap(grayMap);
@@ -123,8 +137,10 @@ for ii = 1:20
 		ylabel('                                Spectral Peak Freq. (Hz)')
 	end
 	xticks(0:5)
-	if ismember(ii, [4, 8, 12, 16, 20])
-		xlabel('Period (ms)')
+	if ismember(ii, 12)
+		xlabel('Time within Period (ms)')
+    elseif ismember(ii, [4, 8, 16, 20])
+        xticks(0:5)
 	else
 		xticklabels([])
 	end
@@ -248,6 +264,6 @@ annotation('textbox',[left(5) 0.75 0.0826 0.0385],'String',{'G'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-% 
-% filename = 'Fig5_plot_temporal_examples';
-% saveFigure(filename)
+
+filename = 'Fig5_plot_temporal_examples';
+saveFigure(filename)
