@@ -265,5 +265,8 @@ annotation('textbox',[left(5) 0.75 0.0826 0.0385],'String',{'G'},...
 
 %% Save figure 
 
-filename = 'Fig5_plot_temporal_examples';
-saveFigure(filename)
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig5_plot_temporal_examples';
+	save_figure(filename)
+end

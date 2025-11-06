@@ -120,6 +120,9 @@ annotation('textbox',[left(3)-0.04 0.95 0.0826 0.0385],'String',{'C'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-% 
-% filename = 'Fig3_methods_peak_quantification';
-% saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig3_methods_peak_quantification';
+	save_figure(filename)
+end

@@ -183,6 +183,9 @@ annotation('textbox',[left(4) 0.96 0.0826 0.0385],'String',{'D'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
 %% Save figure 
-% % 
-% % filename = 'FigS1_data_distribution';
-% % saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+	filename = 'fig_s1_data_distribution';
+	save_figure(filename)
+end

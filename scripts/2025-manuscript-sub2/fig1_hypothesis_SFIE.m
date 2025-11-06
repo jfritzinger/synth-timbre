@@ -4,7 +4,6 @@ clear
 
 %% Set up figure
 
-addpath '/Users/jfritzinger/Projects/synth-timbre/scripts/helper-functions'
 [base, datapath, savepath, ppi] = getPaths();
 figure('Position',[50,50,4.567*ppi,5*ppi])
 
@@ -519,8 +518,9 @@ annotation('textbox',[0 bottom(5)+0.135 0.0826 0.0385],'String',{'E'},...
 
 %% Save figure 
 
-save_fig = 0;
+save_fig = 1;
 if save_fig == 1
+    filename = 'fig1_hypothesis_SFIE';
 	save_figure(filename)
 end
 

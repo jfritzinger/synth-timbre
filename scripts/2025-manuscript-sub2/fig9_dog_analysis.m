@@ -171,6 +171,9 @@ for ii = 1:4
 end
 
 %% Save figure 
-% 
-% filename = 'Fig11_dog_analysis_plots';
-% saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig9_dog_analysis';
+	save_figure(filename)
+end

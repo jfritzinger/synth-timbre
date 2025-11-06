@@ -505,5 +505,8 @@ annotation("arrow", [0.5366 0.5365], [0.7083 0.6875], 'HeadStyle','plain', ...
 
 %% Save figure 
 
-filename = 'Fig7_changed_over_level';
-saveFigure(filename)
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig7_changes_over_level';
+	save_figure(filename)
+end

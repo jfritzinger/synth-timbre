@@ -263,6 +263,9 @@ for ii = 1:3
 end
 
 %% Save figure 
-% 
-% filename = 'Fig10_model_Q_comparisons';
-% saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+	filename = 'fig11_model_Q_comparisons';
+	save_figure(filename)
+end

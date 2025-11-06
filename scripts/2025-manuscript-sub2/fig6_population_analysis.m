@@ -470,5 +470,8 @@ annotation('textbox',[0.47 bottom(1) 0.0826 0.0385],'String',{'F'},...
 
 %% Save figure 
 
-filename = 'Fig6_plot_population';
-saveFigure(filename)
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig6_population_analysis';
+	save_figure(filename)
+end

@@ -244,6 +244,9 @@ annotation('textbox',[0.1 0.13 0.10 0.053],'String',{'Energy'},...
 
 
 %% Save figure
-% 
-% filename = 'FigS4_model_temporal';
-% saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+	filename = 'fig_s3_model_temporal';
+	save_figure(filename)
+end

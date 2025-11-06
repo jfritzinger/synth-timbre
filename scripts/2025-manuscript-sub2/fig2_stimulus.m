@@ -1,6 +1,7 @@
 %% Methods Figure
 % Synthetic timbre stimulus, sliding in the frequency spectrum
 % J. Fritzinger, 8/27/24
+clear 
 
 %% Set up figure
 
@@ -140,6 +141,9 @@ annotation('textbox',[0.385 0.0198 0.0625 0.106],'String',{'CF'},...
 	'FontSize',fontsize,'FitBoxToText','off','EdgeColor','none', 'Color',CF_color);
 
 %% Save figure 
-% 
-% filename = 'Fig2_stimulus';
-% saveFigure(filename)
+
+save_fig = 1;
+if save_fig == 1
+    filename = 'fig2_stimulus';
+	save_figure(filename)
+end

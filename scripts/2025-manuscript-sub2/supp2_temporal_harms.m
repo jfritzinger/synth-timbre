@@ -156,5 +156,8 @@ annotation('textbox',[left(5) 0.95 0.0826 0.0385],'String',{'E'},...
 
 %% Save figure 
 
-filename = 'supp_phaselocking_to_harms';
-saveFigure(filename)
+save_fig = 1;
+if save_fig == 1
+	filename = 'fig_s2_temporal_harms';
+	save_figure(filename)
+end
