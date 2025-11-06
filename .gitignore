@@ -6,3 +6,6 @@
 
 $ Ignore autosaves 
 *.asv
+
+# Ignore excel files 
+*.xlsx
