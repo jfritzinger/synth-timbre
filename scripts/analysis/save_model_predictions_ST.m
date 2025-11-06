@@ -24,8 +24,9 @@ bin200(:,4) = cellfun(@(s) contains(s, 'R'), sessions.ST_83dB);
 
 %% Run models 
 
+putative = 'R27_TT2_P8_N04';
 jj = 1;
-for imodel = 1:2
+for imodel = 1
     switch imodel
         case 1
             model_type = 'SFIE';
@@ -39,21 +40,31 @@ for imodel = 1:2
     has_data = bin200(:,1) | bin200(:,2) | bin200(:,3) | bin200(:,4);
     indices = find(has_data);
     num_index = length(indices);
-    for isesh = 1:num_index
-        try
+    for isesh = 1
+        %try
             timerVal2 = tic;
         	% Error: 52
 
         	% Load in session
-        	putative = sessions.Putative_Units{indices(isesh)};
-        	CF = sessions.CF(indices(isesh));
+        	%putative = sessions.Putative_Units{indices(isesh)};
+        	%CF = sessions.CF(indices(isesh));
+            index = find(strcmp(sessions.Putative_Units, putative));
+            CF = sessions.CF(index);
         	load(fullfile(datapath, 'neural_data', [putative '.mat']))
-        	MTF_shape = sessions.MTF{indices(isesh)};
+        	%MTF_shape = sessions.MTF{indices(isesh)};
+            MTF_shape = sessions.MTF{index};
         	params_ST = data(6:9, 2);
-        	if strcmp(MTF_shape, 'BS')
-        		BMF = sessions.WMF(indices(isesh));
+        	% if strcmp(MTF_shape, 'BS')
+        	% 	BMF = sessions.WMF(indices(isesh));
+        	% elseif strcmp (MTF_shape, 'BE')
+        	% 	BMF = sessions.BMF(indices(isesh));
+        	% else
+        	% 	BMF = 100;
+        	% end
+            if strcmp(MTF_shape, 'BS')
+        		BMF = sessions.WMF(index);
         	elseif strcmp (MTF_shape, 'BE')
-        		BMF = sessions.BMF(indices(isesh));
+        		BMF = sessions.BMF(index);
         	else
         		BMF = 100;
         	end
@@ -499,8 +510,8 @@ for imodel = 1:2
 
         			end
 
-        			elapsedTime = toc(timerVal)/60;
-        			disp([putative ' Model took ' num2str(elapsedTime) ' minutes'])
+        			%elapsedTime = toc(timerVal)/60;
+        			%disp([putative ' Model took ' num2str(elapsedTime) ' minutes'])
         		end
             end
 
@@ -509,7 +520,8 @@ for imodel = 1:2
 
         	% Save model
         	filename = [putative '_' model_type '.mat'];
-        	savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+        	%savepath = 'C:\DataFiles_JBF\Synth-Timbre\data\manuscript';
+            savepath = '/Users/johannafritzinger/Library/CloudStorage/Dropbox-UniversityofMichigan/Johanna Fritzinger/02-projects/synth-timbre/data';
         	if strcmp(model_type, 'Energy')
         		save(fullfile(savepath, 'energy_model', filename), 'params_ST', 'energy')
         	elseif strcmp(model_type, 'SFIE')
@@ -522,17 +534,18 @@ for imodel = 1:2
         		%end
         	end
 
-        catch
-            skipped_indices{jj} = sprintf('Model: %s, index = %d, Putative: %s', ...
-                model_type, isesh, sessions.Putative_Units{indices(isesh)});
-            jj = jj+1;
-        end
+        % catch
+        %     skipped_indices{jj} = sprintf('Model: %s, index = %d, Putative: %s', ...
+        %         model_type, isesh, sessions.Putative_Units{indices(isesh)});
+        %     jj = jj+1;
+        %     disp(skipped_indices{jj})
+        % end
     end
 end
 
-for ii = 1:jj
-    disp(skipped_indices{ii})
-end
+% for ii = 1:jj
+%     disp(skipped_indices{ii})
+% end
 
 %% Functions
 
