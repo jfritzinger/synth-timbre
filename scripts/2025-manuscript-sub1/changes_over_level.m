@@ -14,7 +14,7 @@ sessions = readtable(fullfile(base, sheetpath, spreadsheet_name), ...
 %% Set up figure 
 
 figure('Position',[50,50,4.567*ppi,6*ppi])
-legsize = 6;
+legsize = 5;
 fontsize = 7;
 titlesize = 8;
 labelsize = 13;
@@ -39,7 +39,8 @@ for ineuron = 1:6
 		case 1 % Sharpening
 			putative = 'R27_TT3_P7_N08';
 		case 2 % Sharpening
-			putative = 'R27_TT3_P7_N14';
+            putative = 'R27_TT3_P1_N06';
+			%putative = 'R27_TT3_P7_N14'; % original
 		case 3 % No Change 
 			putative = 'R29_TT4_P5_N02';
 		case 4 % No Change 
@@ -109,6 +110,11 @@ for ineuron = 1:6
 	set(gca, 'Fontsize', fontsize);
 	xlim(plot_range);
 	grid on
+    if ineuron == 2
+        ylim([0 max_rate+20])
+    else
+        ylim([0 max_rate+10])
+    end
 
 	hLeg = legend('', sprintf('83, Q=%0.1f', Q(1)), '', sprintf('63, Q=%0.1f', Q(2)), ...
 		'', sprintf('43, Q=%0.1f', Q(3)));
@@ -312,15 +318,13 @@ for iCF = 1:3
 		Q_sem(iCF, ispl) = std(Qs)/sqrt(length(Qs));
 	end
 
-    is70 = tables.SPL == 70;
-	tables_new = tables(isCFgroup & is200 & ~is70,:);
-	Qs_stats = tables_new.Q;
-	SPLs_stats = tables_new.SPL;
-	[p, tbl, stats] = kruskalwallis(Qs_stats, SPLs_stats);
-    [p, tbl, stats] = anova1(Qs_stats, SPLs_stats);
-    c = multcompare(stats);
-	fprintf('%s CF group, changes over level (Kruskal-Wallis): p=%0.04f\n',...
-		CFgroup{iCF}, p)
+    % is70 = tables.SPL == 70;
+	% tables_new = tables(isCFgroup & is200 & ~is70,:);
+	% Qs_stats = tables_new.Q;
+	% SPLs_stats = tables_new.SPL;
+	% [p, ~, ~] = kruskalwallis(Qs_stats, SPLs_stats);
+	% fprintf('%s CF group, changes over level (Kruskal-Wallis): p=%0.04f\n',...
+	% 	CFgroup{iCF}, p)
 end
 
 h(11) = subplot(4, 3, 11);
@@ -341,6 +345,14 @@ hleg.Box = 'off';
 set(gca, 'fontsize', fontsize)
 grid on
 box off
+
+% is70 = tables.SPL == 70;
+% tables_new = tables(is200 & ~is70,:);
+% Qs_stats = tables_new.Q;
+% CF_stats = tables_new.CF_Group;
+% [p, tbl, stats] = kruskalwallis(Qs_stats, CF_stats);
+% c = multcompare(stats);
+% fprintf('Changes over CF (Kruskal-Wallis): p=%0.04f\n', p)
 
 %% Histogram figure 
 
@@ -482,8 +494,16 @@ annotation('textbox',[left(2) bottom(1) 0.0826 0.0385],'String',{'E'},...
 annotation('textbox',[left(3) bottom(1) 0.0826 0.0385],'String',{'F'},...
 	'FontWeight','bold','FontSize',labelsize,'EdgeColor','none');
 
+annotation("arrow", [0.2174 0.2174], [0.9583 0.9392], 'HeadStyle','plain', ...
+    'HeadLength',3, 'HeadWidth',3)
+annotation("arrow", [0.269 0.269], [0.849 0.8715], 'HeadStyle','plain', ...
+    'HeadLength',3, 'HeadWidth',3)
+annotation("arrow", [0.5685 0.5685], [0.7205 0.7014], 'HeadStyle','plain', ...
+    'HeadLength',3, 'HeadWidth',3)
+annotation("arrow", [0.5366 0.5365], [0.7083 0.6875], 'HeadStyle','plain', ...
+    'HeadLength',3, 'HeadWidth',3)
 
 %% Save figure 
-% 
-% filename = 'Fig7_changed_over_level';
-% saveFigure(filename)
+
+filename = 'Fig7_changed_over_level';
+saveFigure(filename)

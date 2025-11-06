@@ -154,7 +154,7 @@ for ii = 1:3
 	set(gca, 'fontsize', fontsize)
 	title(types{ii}, 'fontsize', titlesize)
 	if ii == 1
-		a = colorbar('position', [0.258496946694888,0.194444444444451,0.01824684329611,0.131530769230791]);
+		a = colorbar('position', [0.087890625000001,0.14583333333334,0.016327123324332,0.131530769230791]);
 		a.Label.String = 'Z-score';
 	end
 

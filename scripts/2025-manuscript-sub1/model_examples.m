@@ -245,6 +245,9 @@ end
 
 %% Number of neurons.....
 
+isBS = strcmp(sessions.MTF, 'BS');
+isBE = strcmp(sessions.MTF, 'BE');
+
 % Neurons that have all three model predictions R^2 > 0.85. Out of 127
 num_good = sum(sessions.Energy_R2 > 0.4 & sessions.SFIE_R2 > 0.4 & ...
 	sessions.Lat_Inh_R2 > 0.4 & sessions.SPL == 63);
@@ -256,6 +259,10 @@ num_bad = sum(sessions.Energy_R2 < 0.4 & sessions.SFIE_R2 < 0.4 & ...
 % Number of broad-inhibition model better than other models 
 num_inh = sum(sessions.Lat_Inh_R2 > sessions.Energy_R2 & ...
 	 sessions.Lat_Inh_R2 > sessions.SFIE_R2 & sessions.SPL == 63);
+
+% BE 
+num_inh_BE = sum(isBE & sessions.Energy_R2 > 0.4 & ...
+	sessions.Lat_Inh_R2 > 0.4 & sessions.SPL == 63);
 
 %% Arrange
 
