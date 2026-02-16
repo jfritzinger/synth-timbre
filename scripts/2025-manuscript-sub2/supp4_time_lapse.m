@@ -335,6 +335,6 @@ end
 
 save_fig = 1;
 if save_fig == 1
-	filename = 'fig_s5_time_lapse_results';
+	filename = 'fig_s4_time_lapse_results';
 	save_figure(filename)
 end
