@@ -87,21 +87,25 @@ for isesh = 1:num_neurons
 			spl = param_ST{1}.spl;
 			data_ST = analyzeST(param_ST, CF);
 			data_ST = data_ST{1};
-			[~, peak_ind] = max(data_ST.rate);
-			peak_f = data_ST.fpeaks(peak_ind);
-			[~, peaksm_ind] = max(data_ST.rates_sm);
-			peak_fsm = data_ST.fpeaks(peaksm_ind);
+
+
+            temporal = analyzeST_Temporal(param_ST{1}, data_ST);
+
+			% [~, peak_ind] = max(data_ST.rate);
+			% peak_f = data_ST.fpeaks(peak_ind);
+			% [~, peaksm_ind] = max(data_ST.rates_sm);
+			% peak_fsm = data_ST.fpeaks(peaksm_ind);
 
 			% Find peaks & prominence values
 			[peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
-				data_ST, CF, 'Rate', param_ST{1});
+				data_ST, CF, 'Temporal', param_ST{1});
 
 			% Calculate thresholds 
 			fpeaks = param_ST{1}.fpeaks;
 			rate = data_ST.rate;
 			rate_std = data_ST.rate_std;
 			[threshold_percent, threshold_freq, slope_rate, d_prime] = calculateThresholds(...
-				fpeaks, rate, rate_std, CF);
+				fpeaks, temporal.VS_avg, temporal.VS_std, CF);
 
 
 			% Add data to table
@@ -139,6 +143,6 @@ end
 %% Save table
 
 % Save table
-writetable(tables,'peak_picking_w_thresholds.xlsx')
+writetable(tables,'peak_picking_w_thresholds_VS.xlsx')
 
 
