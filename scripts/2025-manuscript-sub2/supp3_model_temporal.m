@@ -80,8 +80,8 @@ for imodel = 1:3
 			model_params.which_IC = 1; % 2 = ModFilt; 1 = SFIE model
 			model_params.onsetWin = 0.020; % exclusion of onset response, e.g. to omit 1st 50 ms, use 0.050
 			model_params.fiberType = 3; % AN fiber type. (1 = low SR, 2 = medium SR, 3 = high SR)
-			model_params.lateral_CFs = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
-			model_params.CFs = model_params.lateral_CFs;
+			model_params.lateral_CF = [CF*2^(-1*oct_range), CF, CF*2^oct_range];
+			model_params.CFs = model_params.lateral_CF;
 			model_params.CF_range = model_params.CFs(2);
 
 			% Lateral model parameters
