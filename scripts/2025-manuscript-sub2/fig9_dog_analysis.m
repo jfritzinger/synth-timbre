@@ -5,7 +5,7 @@ clear
 
 [base, datapath, savepath, ppi] = getPaths();
 load(fullfile(datapath, 'dog_analysis3.mat'), "R2_gauss_all", "R2_dog_all", "dog_analysis")
-addpath('/Users/jfritzinger/Projects/shared-models/DoG-model', '-begin')
+addpath('/Users/johannafritzinger/Projects/shared-models/DoG-model', '-begin')
 
 %% Plot example fit 
 
