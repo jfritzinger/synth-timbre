@@ -300,6 +300,6 @@ end
 
 save_fig = 1;
 if save_fig == 1
-	filename = 'fig9_model_examples';
+	filename = 'fig10_model_examples';
 	save_figure(filename)
 end
