@@ -30,8 +30,8 @@ params{1}.spl = 70;
 params{1}.g = 24;
 params{1} = generate_ST(params{1});
 params{1}.num_stim = size(params{1}.stim, 1);
-y_prefilt = apply_rabbit_prefilter(params{1}.stim, params{1}.Fs);
-params{1}.stim = y_prefilt;
+%y_prefilt = apply_rabbit_prefilter(params{1}.stim, params{1}.Fs);
+%params{1}.stim = y_prefilt;
 
 % Stimu lus Parameters and Generation
 params{2}.type = 'typMTFN';
@@ -52,15 +52,15 @@ params{2}.mnrep = 5;
 params{2}.raised_sine = 1;
 params{2} = generate_MTF(params{2});
 params{2}.num_stim = size(params{2}.stim, 1);
-y_noise = apply_rabbit_prefilter(params{2}.stim, params{2}.Fs);
-params{2}.stim = y_noise;
+%y_noise = apply_rabbit_prefilter(params{2}.stim, params{2}.Fs);
+%params{2}.stim = y_noise;
 
 %% Run SFIE model 
 
 % Run population synth timbre model
 model_params.type = 'SFIE';
 model_params.range = 2; % 1 = population model, 2 = single cell model
-model_params.species = 4; % 1 = cat, 2 = human (4 = rabbit)
+model_params.species = 1; % 1 = cat, 2 = human (4 = rabbit)
 model_params.BMF = 100;
 model_params.CF_range = [125 10000];
 model_params.num_CFs = 100;
