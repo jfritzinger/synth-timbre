@@ -4,7 +4,8 @@ clear
 %% Load in data 
 
 [base, datapath, ~, ppi] = getPaths();
-tables = readtable(fullfile(datapath, "peak_picking_w_thresholds.xlsx"));
+datapath = fullfile(base, 'data', '2025-manuscript-sub2');
+tables = readtable(fullfile(datapath, "peak_picking_w_thresholds_VS.xlsx"));
 
 sheetpath = 'data/2025-manuscript/data-cleaning';
 spreadsheet_name = 'PutativeTable.xlsx';
@@ -371,10 +372,10 @@ for ii = 1:3
 		yticklabels([])
 	end
 
-	% Kruskal Wallis for non normal data, increasing
-	kruskalwallis(qs2(values,:))
-	[p, tbl, stats] = kruskalwallis(qs2(values,:), 1:3);
-	multcompare(stats, 'CType', 'dunn-sidak');
+	% % Kruskal Wallis for non normal data, increasing
+	% kruskalwallis(qs2(values,:))
+	% [p, tbl, stats] = kruskalwallis(qs2(values,:), 1:3);
+	% multcompare(stats, 'CType', 'dunn-sidak');
 end
 
 
