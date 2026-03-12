@@ -9,19 +9,26 @@
 % -------------------------------------------------------------------------
 clear
 
-%%%% Initialize the UMich cluster profiles
-setupUmichClusters
+% --- Replacement for setupUmichClusters ---
+% Get number of processors from Slurm environment
+if ~isempty(getenv('SLURM_CPUS_ON_NODE'))
+    NP = str2num(getenv('SLURM_CPUS_ON_NODE'));
+elseif ~isempty(getenv('SLURM_NTASKS'))
+    NP = str2num(getenv('SLURM_NTASKS'));
+else
+    NP = 1; % Default to 1 if running locally
+end
 
-%%%% Determine number of processors allocated to the job
-NP = str2num(getenv('SLURM_NTASKS'));
-
-%%%% Create the worker pool
-thePool = parpool('current', NP);
+% Create the worker pool using the 'local' profile
+% On a single Slurm node, 'local' uses the cores allocated to your job
+if isempty(gcp('nocreate'))
+    thePool = parpool('local', NP);
+end
 
 %% Add paths 
 
-addpath(genpath('/Users/johannafritzinger/Projects/synth-timbre/scripts/SPIKY'))
-addpath(genpath('/Users/johannafritzinger/Projects/synth-timbre/scripts/helper-functions'))
+addpath(genpath('/home/jofritzi/projects/synth-timbre/scripts/SPIKY'))
+addpath(genpath('/home/jofritzi/projects/synth-timbre/scripts/helper-functions'))
 
 %%
 
@@ -60,7 +67,8 @@ data_index = find(has_data);
 num_neurons = sum(has_data);
 
 %% Plot each neuron
-ii = 1;
+
+row_idx = 1;
 for isesh = 1:num_neurons
     ineuron = data_index(isesh);
 
@@ -113,12 +121,12 @@ for isesh = 1:num_neurons
             kk = 1;
             nfpeaks = length(data_ST.fpeaks);
             nrep = param_ST{1}.nrep;
-            for ii = 1:nfpeaks
-                rep = temporal.y{ii};
-                spike_times = temporal.x{ii}/1000;
+            for iii = 1:nfpeaks
+                rep = temporal.y{iii};
+                spike_times = temporal.x{iii}/1000;
                 for jj = 1:nrep
                     ind_target = rep == jj;
-                    spike_times_per_rep{jj, ii} = spike_times(ind_target);
+                    spike_times_per_rep{jj, iii} = spike_times(ind_target);
                     rearr_trains{kk} = spike_times(ind_target);
                     kk = kk+1;
                 end
@@ -302,31 +310,32 @@ for isesh = 1:num_neurons
             % if strcmp(type, 'Flat')
             % 	continue
             % else
-            tables.Putative{ii} = sessions.Putative_Units{ineuron};
-            tables.CF(ii) = CF;
-            tables.CF_Group{ii} = CF_Group;
-            tables.MTF{ii} = MTF_shape;
-            tables.MTF_at200{ii} = at200;
-            tables.MTF_str(ii) = data_MTF.perc_change;
-            tables.SPL(ii) = spl;
+            tables.Putative{row_idx} = sessions.Putative_Units{ineuron};
+            tables.CF(row_idx) = CF;
+            tables.CF_Group{row_idx} = CF_Group;
+            tables.MTF{row_idx} = MTF_shape;
+            tables.MTF_at200{row_idx} = at200;
+            tables.MTF_str(row_idx) = data_MTF.perc_change;
+            tables.SPL(row_idx) = spl;
             %tables.Type{ii} = type;
-            tables.binmode(ii) = param_ST{1}.binmode;
-            tables.F0(ii) = param_ST{1}.Delta_F;
+            tables.binmode(row_idx) = param_ST{1}.binmode;
+            tables.F0(row_idx) = param_ST{1}.Delta_F;
             % tables.Width(ii) = width;
             % tables.Lim(ii) = lim;
             % tables.Prom(ii) = prom;
             % tables.Freq(ii) = freq;
             % tables.Q(ii) = freq/width;
             % tables.Q_log(ii) = log10(freq/width);
-            tables.D_prime(ii) = max(d_prime, [], 'all');
-            tables.Threshold(ii) = threshold_percent;
-            tables.Thresh_Freq{ii} = threshold_freq;
-            tables.Slope_Rate{ii} = slope_rate;
-            ii = ii+1;
+            tables.D_prime(row_idx) = max(d_prime, [], 'all');
+            tables.Threshold(row_idx) = threshold_percent;
+            tables.Thresh_Freq{row_idx} = threshold_freq;
+            %tables.Slope_Rate{row_idx} = slope_rate;
+            row_idx = row_idx+1;
             % end
         end
     end
     fprintf('%s done, %d percent done\n', putative, round(isesh/num_neurons*100))
+    writetable(tables,fullfile(datapath, 'peak_picking_w_thresholds_RIS.xlsx'))
 end
 
 %% Save table
