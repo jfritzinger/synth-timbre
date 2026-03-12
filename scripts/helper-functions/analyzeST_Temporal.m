@@ -41,7 +41,7 @@ for i_fpeak = 1:num_fpeaks
 	phases = 2 * pi * mod(spike_times, period) / period;
 	VS = abs(mean(exp(1i * phases)));
 	if ~isempty(phases)
-		p_value = circ_rtest(phases); % Rayleigh statistic (P < 0.01)
+		p_value = 1; %circ_rtest(phases); % Rayleigh statistic (P < 0.01) %%%%%%%%%%%%%%%%%%%%%% commended out for cluster
 	else
 		p_value = NaN;
 	end
@@ -69,7 +69,7 @@ for i_fpeak = 1:num_fpeaks
 		phases = 2 * pi * (mod(spike_times, period) / period);
 		VS_harms(iharm) = abs(mean(exp(1i * phases)));
 		if ~isempty(phases)
-			p_value_harms(iharm) = circ_rtest(phases); % Rayleigh statistic (P < 0.01)
+			p_value_harms(iharm) = 1; %circ_rtest(phases); % Rayleigh statistic (P < 0.01) %%%%%%%%%%%%%%%%%%%%%% commented out for cluster
 		else
 			p_value_harms(iharm) = NaN;
 		end
