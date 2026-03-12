@@ -29,6 +29,7 @@ end
 
 addpath(genpath('/home/jofritzi/projects/synth-timbre/scripts/SPIKY'))
 addpath(genpath('/home/jofritzi/projects/synth-timbre/scripts/helper-functions'))
+addpath(genpath('/home/jofritzi/projects/shared-physio'), '-end')
 
 %%
 
