@@ -114,11 +114,6 @@ for isesh = 1:num_neurons
 
             temporal = analyzeST_Temporal(param_ST{1}, data_ST);
 
-            % [~, peak_ind] = max(data_ST.rate);
-            % peak_f = data_ST.fpeaks(peak_ind);
-            % [~, peaksm_ind] = max(data_ST.rates_sm);
-            % peak_fsm = data_ST.fpeaks(peaksm_ind);
-
             kk = 1;
             nfpeaks = length(data_ST.fpeaks);
             nrep = param_ST{1}.nrep;
@@ -132,117 +127,6 @@ for isesh = 1:num_neurons
                     kk = kk+1;
                 end
             end
-
-            % reps = 20;
-            % fpeaks = 41;
-            % RI_S_dist = zeros(reps*fpeaks,reps*fpeaks);
-            % RI_S_dist_per = NaN(1, 190);
-            % mean_RIS = zeros(1, fpeaks);
-            % std_RIS = zeros(1, fpeaks);
-            %
-            % parfor iii = 1:fpeaks
-            %
-            %     kk = 1;
-            %     spike_times = spike_times_per_rep(:,ii);
-            %     for train1i = 1:(length(spike_times)-1)
-            %         train1 = spike_times{train1i};
-            %
-            %         for train2i = (train1i+1):length(spike_times)
-            %
-            %             train2 = spike_times{train2i};
-            %             spikes = zeros(2,max([length(train2) length(train1)])); %initialize matrix to hold both trains
-            %             spikes(1,1:length(train1)) = train1;
-            %             spikes(2,1:length(train2)) = train2;
-            %
-            %             %initialize parameter structure
-            %             para = struct('tmin',[],'tmax',[],'dts',[],'select_measures',[]);
-            %             para.select_measures = [0 0 1 0 0 0 0 0]; %RI_SPIKE
-            %             para.tmin = 0;
-            %             para.tmax = 300; % ms
-            %             para.dts = 1;
-            %             d_para = para;
-            %
-            %             % Call SPIKY
-            %             SPIKY_check_spikes
-            %             para = d_para;
-            %             try
-            %                 SPIKY_loop_results = SPIKY_loop_f_distances(spikes, para);
-            %                 RI_S_dist_per(kk) = SPIKY_loop_results.RI_SPIKE.matrix(1,2);
-            %             catch
-            %                 RI_S_dist_per(kk) = 0;
-            %             end
-            %             kk = kk + 1;
-            %         end
-            %     end
-            %     mean_RIS(iii) = mean(RI_S_dist_per, 'omitnan');
-            %     std_RIS(iii) = std(RI_S_dist_per, 'omitnan');
-            % end
-
-
-            % % Pre-allocate final result containers
-            % mean_RIS = zeros(1, nfpeaks);
-            % std_RIS = zeros(1, nfpeaks);
-            %
-            % parfor iii = 1:nfpeaks
-            %     % 1. Local Slicing: Extract the specific data for this worker
-            %     % Note: Changed 'ii' to 'iii' to match the loop variable
-            %     spike_times = spike_times_per_rep(:, iii);
-            %
-            %     % 2. Temporary Storage: Create a local version of RI_S_dist_per
-            %     % This is initialized INSIDE the parfor so it's "Private" to each worker
-            %     local_dist_per = NaN(1, 190);
-            %     kk = 1;
-            %     for train1i = 1:(nrep - 1)
-            %         train1 = spike_times{train1i};
-            %
-            %         for train2i = (train1i + 1):nrep
-            %             train2 = spike_times{train2i};
-            %
-            %             % Setup local spikes matrix
-            %             spikes = zeros(2, max([length(train2), length(train1)]));
-            %             spikes(1, 1:length(train1)) = train1;
-            %             spikes(2, 1:length(train2)) = train2;
-            %
-            %             % Setup parameters
-            %             para = struct('tmin', 0, 'tmax', 300, 'dts', 1, 'select_measures', [0 0 1 0 0 0 0 0]);
-            %             d_para = para;
-            %
-            %             % Call SPIKY
-            %             [spikes, d_para, ret] = SPIKY_check_spikes_parallel(spikes, d_para);
-            %             para = d_para;
-            %
-            %             try
-            %                 SPIKY_loop_results = SPIKY_loop_f_distances(spikes, para);
-            %                 local_dist_per(kk) = SPIKY_loop_results.RI_SPIKE.matrix(1, 2);
-            %             catch
-            %                 local_dist_per(kk) = 0;
-            %             end
-            %             kk = kk + 1;
-            %         end
-            %     end
-            %
-            %     % 3. Calculate and store results in sliced output variables
-            %     mean_RIS(iii) = mean(local_dist_per, 'omitnan');
-            %     std_RIS(iii) = std(local_dist_per, 'omitnan');
-            % end
-
-
-            % Find peaks & prominence values
-            % [peaks, dips, type, prom, width, lim, ~, ~, freq] = peakFinding(...
-            %     data_ST, CF, 'Temporal', param_ST{1});
-
-            % % Calculate thresholds
-            % fpeaks = param_ST{1}.fpeaks;
-            % [threshold_percent, threshold_freq, slope_rate, d_prime] = calculateThresholds(...
-            %     fpeaks, mean_RIS, std_RIS, CF);
-            %
-            % figure
-            % errorbar(fpeaks, mean_RIS, std_RIS/sqrt(190))
-            % title(threshold_percent)
-            % ylim([0 1])
-            % hold on
-            % xline(CF)
-            % drawnow
 
             % 1. Pre-calculate total number of comparisons
             num_trains = length(rearr_trains);
@@ -303,6 +187,10 @@ for isesh = 1:num_neurons
             for p = 1:total_pairs
                 RI_S_dist(idx1_list(p), idx2_list(p)) = dist_results(p);
             end
+
+            % Save out matrix
+            savefile = fullfile(datapath, 'RIS_thresholds', [putative '_RIS.mat']);
+            save(savefile, 'RI_S_dist', 'putative', 'param_ST', 'CF')
 
             [threshold_percent, threshold_freq, d_prime] = calculate_SPIKE_Thresholds(param_ST{1}.fpeaks, RI_S_dist, nrep);
 
