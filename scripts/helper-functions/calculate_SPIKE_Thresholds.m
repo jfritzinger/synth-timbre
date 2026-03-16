@@ -1,73 +1,95 @@
-function [threshold_percent, threshold, d_prime_results] = calculate_SPIKE_Thresholds(fpeaks, RI_S_dist, reps)
-% fpeaks: vector of your 41 frequencies
-% RI_S_dist: the (reps*fpeaks) x (reps*fpeaks) distance matrix
-% reps: 20
-
+function [threshold_percent, threshold, d_prime_val] = calculate_SPIKE_Thresholds(fpeaks, RI_S_dist, reps)
 num_f = length(fpeaks);
-% This will hold every possible d' combination
-d_prime_matrix = NaN(num_f, num_f);
 
-% 1. Calculate d' for every possible pair of frequencies
+% 1. FORCE SYMMETRY (Fixes the "half-zeros" issue)
+RI_S_dist = RI_S_dist' + RI_S_dist;
+
+% 2. Calculate TRUE Noise and Signal
+mean_dist_matrix = zeros(num_f, num_f);
+std_within = zeros(1, num_f);
+
 for i = 1:num_f
-    % Get indices for Frequency i (the "Reference")
     idx1 = (i-1)*reps + (1:reps);
-    
-    % Get Within-Group Distances (the "Noise" distribution)
-    within_mat = RI_S_dist(idx1, idx1);
-    % We need the distances between different trials of the same frequency
-    % Use the upper triangle to avoid the 0-diagonal and duplicate pairs
-    within_vals = within_mat(triu(true(size(within_mat)), 1));
-    
-    mu_within = mean(within_vals, 'omitnan');
-    std_within = std(within_vals, 'omitnan');
-    
+
+    % Extract the WITHIN-frequency block
+    within_block = RI_S_dist(idx1, idx1);
+    unique_within_dists = within_block(triu(true(reps), 1));
+
+    % This is your ACTUAL noise floor 
+    mean_dist_matrix(i,i) = mean(unique_within_dists, 'omitnan');
+    std_within(i) = std(unique_within_dists, 'omitnan');
+
     for j = i+1:num_f
-        % Get indices for Frequency j (the "Comparison")
         idx2 = (j-1)*reps + (1:reps);
-        
-        % Get Between-Group Distances (the "Signal" distribution)
-        % This is the block comparing trials of Freq i to trials of Freq j
-        between_vals = RI_S_dist(idx1, idx2);
-        mu_between = mean(between_vals(:), 'omitnan');
-        
-        % Calculate d'
-        % Logic: How much did the distance increase relative to internal jitter?
-        d_prime_matrix(i,j) = (mu_between - mu_within) / std_within;
+        between_block = RI_S_dist(idx1, idx2);
+        val = mean(between_block(:), 'omitnan');
+        mean_dist_matrix(i,j) = val;
+        mean_dist_matrix(j,i) = val; % Mirror it
     end
 end
 
-% Set the output variable
-d_prime_results = d_prime_matrix;
+% 3. INTERPOLATE (Now using 600 points of VALID data)
+fpeaks_new = linspace(fpeaks(1), fpeaks(end), 600);
+[X, Y] = meshgrid(fpeaks, fpeaks);
+[Xq, Yq] = meshgrid(fpeaks_new, fpeaks_new);
 
-% 2. Search for the smallest frequency delta that reaches d' = 1
+dist_interp = interp2(X, Y, mean_dist_matrix, Xq, Yq, 'linear');
+std_interp = interp1(fpeaks, std_within, fpeaks_new, 'linear');
+
+% 4. SEARCH (d' must be relative to the interpolated diagonal)
 threshold_percent = NaN;
 threshold = NaN;
-found = false;
+threshold_criterion = 1;
+flag = 0;
+for ii = 1:500 % Delta
+    for i = 1:length(fpeaks_new) - ii
+        mu_noise = dist_interp(i, i);      % Internal Jitter Frequency A
+        mu_signal = dist_interp(i, i+ii);  % Distance between A and B
 
-% We check diagonals: delta=1 is adjacent frequencies, delta=2 is skipping one, etc.
-for delta = 1:(num_f-1) 
-    current_d_primes = diag(d_prime_matrix, delta);
-    
-    % Find if any pair at this 'distance' apart in frequency hits the threshold
-    if any(current_d_primes >= 1)
-        idx_match = find(current_d_primes >= 1, 1);
-        f1 = fpeaks(idx_match);
-        f2 = fpeaks(idx_match + delta);
-        
-        threshold = [f1, f2];
-        freq_diff = f2 - f1;
-        fpeak_mid = (f1 + f2) / 2;
-        threshold_percent = (freq_diff / fpeak_mid) * 100;
-        
-        fprintf('SPIKE d'' = %.2f\n', current_d_primes(idx_match));
-        disp(['SPIKE Threshold = ' num2str(threshold_percent) '%'])
-        found = true;
-        break;
+        s_pooled = sqrt((std_interp(i)^2 + std_interp(i+ii)^2) / 2);
+
+        % d' is the INCREASE in distance relative to jitter
+        d_prime_val = (mu_signal - mu_noise) / s_pooled;
+
+        if d_prime_val >= threshold_criterion
+            threshold = fpeaks_new([i, i+ii]);
+            threshold_percent = (diff(threshold) / mean(threshold)) * 100;
+            disp(['SPIKE Threshold = ' num2str(threshold_percent) '%'])
+
+            % Plot grid and std deviation
+            num_f = length(fpeaks);
+            [X, Y] = meshgrid(1:num_f, 1:num_f);
+            std_matrix = zeros(num_f, num_f);
+            for jj = 1:num_f
+                for j = 1:num_f
+                    std_matrix(jj,j) = sqrt((std_within(jj)^2 + std_within(j)^2) / 2);
+                end
+            end
+            Z_mean = mean_dist_matrix;
+            Z_upper = Z_mean + std_matrix;
+            Z_lower = Z_mean - std_matrix;
+            figure('Color', 'w');
+            hold on;
+            surf(X, Y, Z_lower, 'FaceColor', [0.7 0.7 0.7], 'EdgeColor', 'none', ...
+                'FaceAlpha', 0.2, 'HandleVisibility', 'off');
+            surf(X, Y, Z_upper, 'FaceColor', [0.7 0.7 0.7], 'EdgeColor', 'none', ...
+                'FaceAlpha', 0.2, 'DisplayName', 'Pooled Jitter (\pm1 STD)');
+            s = surf(X, Y, Z_mean, 'EdgeColor', 'none', 'FaceAlpha', 0.8, 'DisplayName', 'Mean SPIKE Distance');
+            colormap(jet);
+            colorbar;
+            view(45, 30); % Set a good perspective angle
+            grid on;
+            axis tight;
+            xlabel('Frequency Index i');
+            ylabel('Frequency Index j');
+            zlabel('SPIKE Distance');
+            title('3D SPIKE-Distance with Pooled Uncertainty Envelope');
+            legend('Location', 'northeast');
+
+            flag = 1; break;
+        end
     end
+    if flag == 1, break; end
+end
 end
 
-if ~found
-    disp('No frequency pair reached the d'' = 1 threshold.');
-end
-
-end
